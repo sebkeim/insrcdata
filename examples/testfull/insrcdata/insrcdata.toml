@@ -1,0 +1,35 @@
+#
+# insrcdata : testfull sample
+#
+
+dest ="../rust-testfull/src/insrcdata.rs"
+
+[[table]]
+name="Person"
+src = "persons.csv"
+
+[[table.col]]
+name = 'name'
+
+# Inner join with cardinality 1..1
+[[table.join]]
+name = 'spouse'
+to = 'ref'
+
+# Inner join with cardinality 0..1
+[[table.join]]
+name = 'father'
+to = 'ref'
+allow_null = true
+
+# Other inner join with cardinality 0..1
+[[table.join]]
+name = 'mother'
+to = 'ref'
+allow_null = true
+
+# Create code labels for rows
+[[table.col]]
+name = 'Persons'
+src = 'ref'
+format = 'label'

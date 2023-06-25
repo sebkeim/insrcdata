@@ -1,0 +1,11 @@
+dest ="../src/rust-labels/insrcdata.rs"
+
+[[table]]
+src = "label.csv"
+name = 'Label'
+ 
+[[table.col]]
+name = 'Labels'
+src = 'label'
+format = 'label'
+

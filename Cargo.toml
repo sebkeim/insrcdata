@@ -1,0 +1,18 @@
+[package]
+name = "insrcdata"
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/sebkeim/insrcdata"
+description = "Embed static data as source code" 
+license = "GPL-3.0-or-later"
+categories = [ "data-structures", "command-line-utilities"]
+keywords = ["cli", "array"]
+
+
+[dependencies]
+toml = "0.7.3"
+serde_derive = "1.0.145"
+serde = "1.0.145"
+csv = "1.1"
+clap = { version = "4.2.7", features = ["derive"] }
+heck = "0.4.1"

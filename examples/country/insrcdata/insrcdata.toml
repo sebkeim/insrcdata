@@ -1,0 +1,82 @@
+#
+# insrcdata : country sample
+#
+# data source from https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv
+
+dest = '../rust-country/src/insrcdata.rs'
+
+    # TABLE : Region
+[[table]]
+src = "region.csv"
+name = 'Region'
+trait = 'crate::country::Region'
+         
+[[table.col]]
+name = 'name'
+src = 'region'
+
+[[table.col]]
+name = 'code'
+format  = 'u8'
+src = 'region-code'
+
+ 
+
+    # TABLE : Subregions
+[[table]]
+src = "subregion.csv"
+name = 'Subregion'
+
+[[table.col]]
+name = 'name'
+src = 'sub-region'
+
+[[table.col]]
+name = 'code'
+format  = 'u16'
+src = 'sub-region-code'
+
+[[table.join]]
+name = 'region'
+src = 'region-code'
+to = 'region-code'
+external = 'Region'
+reverse = 'subregions'
+
+
+   # TABLE : Country
+[[table]]
+src = "countries.csv"
+name = 'Country'
+array = true
+
+[[table.col]]
+name = 'name'
+
+[[table.col]]
+name = 'alpha2'
+src = 'alpha-2'
+
+[[table.col]]
+name = 'alpha3'
+src = 'alpha-3'
+range = true
+
+[[table.col]]
+name = 'code'
+format  = 'u16'
+src = 'country-code'
+range = true
+
+[[table.join]]
+name = 'subregion'
+src = 'sub-region-code'
+to = 'sub-region-code'
+external = 'Subregion'
+allow_null = true
+reverse = 'countries'
+
+[[table.col]]
+name = 'Countries'
+src = 'label'
+format = 'label'

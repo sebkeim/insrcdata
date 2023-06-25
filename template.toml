@@ -1,0 +1,91 @@
+#
+# project file
+#
+#
+
+#
+# Level 1 : project
+#
+
+
+
+# source code
+# path relative to  project file path (  or to the  -outdir argument )
+# optionnal : default to project name with .rs extension
+dest ="src/hellodata.rs"
+
+
+#
+# Level 2 : table
+#
+
+
+[[table]]
+
+# name of the struct that will implement a row in the table
+# must be a valid identifier
+name = 'HelloWorld'
+
+# table source
+# path relative to  project file path (  or to the  -indir argument )
+# optionnal : default to table name in lowerase with .csv extension
+src = "helloworld.csv"
+
+# if true : create a static method array() that will return  a reference to the table
+# optionnal : default to false
+array  = true
+
+# declare table struct to implement that trait
+# optional : no trait if not defined
+trait = 'crate::hello::HelloWorld'
+
+
+#
+# Level 3 : column
+#
+
+
+[[table.col]]
+
+# name of the struct field that will implement a column in the table
+name = 'sentence'
+
+# content of the header row in the csv that contain the name of the column
+# default to name option value
+src= 'sentence'
+
+# datatype of the  struct field  (str, i32, u08..)
+# default to str, useless the join option is defined
+format = 'str'
+
+# create a struct mehod to iterate the rows with a column value matcing  the range
+# optionnal : default to false
+range = false
+
+
+#
+# Level 3 : join
+#
+[[table.join]]
+
+# name of the struct field that will implement a join in the table
+name = 'sentence'
+
+# content of the header row in the csv that contain the name of the column
+# default to name option value
+src= 'sentence'
+
+#  declare the target column of a join
+to = 'ref'
+
+# target table for external join
+# optionnal : inner join if undefined
+external= 'Person'
+
+#  accessor method will return a Option<>
+# optionnal : false by default
+allow_null = false
+
+# create accessor method in to table for reverse join
+# optionnal : no creation by default
+reverse = 'sentences'

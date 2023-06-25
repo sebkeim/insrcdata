@@ -1,0 +1,15 @@
+#
+# insrcdata : helloworld
+#
+
+dest ="../rust-helloworld/src/insrcdata.rs"
+
+[[table]]
+src = "helloworld.csv"
+name = 'HelloWorld'
+iterable = true
+array  = true    # we need the  method array 
+
+[[table.col]]
+name = 'sentence'
+
