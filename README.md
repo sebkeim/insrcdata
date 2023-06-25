@@ -40,7 +40,7 @@ The code can be generated for several languages : Rust and C today, other target
 and configuration in a [.toml](https://toml.io)  file
 
 You will find several uses in the sample directory. 
-We suggest to start with the helloworld tutorial
+We suggest to start with the [HelloWorld tutorial](https://github.com/sebkeim/insrcdata/wiki/Hello-World-tutorial)
 
 ### Installing
 
@@ -62,4 +62,6 @@ The following lines are the rows of the array that will implement the table.
 ### Configuration file
 First level sections correspond to the tables defined in the project.
 Second level sections are the columns of the tables.
-More information can be found in template.toml in the sample directory.
+More information can be found in [template.toml](https://github.com/sebkeim/insrcdata/blob/main/template.toml) at the root of the repository.
+
+The [wiki](https://github.com/sebkeim/insrcdata/wiki) contains detailled documentation.
