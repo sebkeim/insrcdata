@@ -1,5 +1,5 @@
 #
-# project file
+# template for insrcdata project configuration file
 #
 #
 
@@ -8,10 +8,9 @@
 #
 
 
-
 # source code
-# path relative to  project file path (  or to the  -outdir argument )
-# optionnal : default to project name with .rs extension
+# path relative to  project file path, may be overridden by the  -outdir command line argument 
+# optional : default to project name with .rs extension
 dest ="src/hellodata.rs"
 
 
@@ -28,16 +27,21 @@ name = 'HelloWorld'
 
 # table source
 # path relative to  project file path (  or to the  -indir argument )
-# optionnal : default to table name in lowerase with .csv extension
+# optional : default to table name in lowercase with .csv extension
 src = "helloworld.csv"
 
 # if true : create a static method array() that will return  a reference to the table
-# optionnal : default to false
+# optional : default to false
 array  = true
 
 # declare table struct to implement that trait
 # optional : no trait if not defined
 trait = 'crate::hello::HelloWorld'
+
+# in future version, some optimisation strategy may need to rearange row order.
+# set this flag to true if input row order must not be altered in table.
+# optional : default to false
+sorted = false
 
 
 #
@@ -58,8 +62,8 @@ src= 'sentence'
 # default to str, useless the join option is defined
 format = 'str'
 
-# create a struct mehod to iterate the rows with a column value matcing  the range
-# optionnal : default to false
+# create a struct method to iterate the rows with a column value matching  the range
+# optional : default to false
 range = false
 
 
@@ -79,13 +83,17 @@ src= 'sentence'
 to = 'ref'
 
 # target table for external join
-# optionnal : inner join if undefined
+# optional : inner join if undefined
 external= 'Person'
 
 #  accessor method will return a Option<>
-# optionnal : false by default
+# optional : false by default
 allow_null = false
 
 # create accessor method in to table for reverse join
-# optionnal : no creation by default
+# optional : no creation by default
 reverse = 'sentences'
+
+
+
+
