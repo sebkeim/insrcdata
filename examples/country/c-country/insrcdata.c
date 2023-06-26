@@ -3,7 +3,7 @@
 #include "insrcdata.h"
 #include <string.h> 
 
-region_t REGION_TABLE[REGION_TABLE_COUNT] = {
+const region_t REGION_TABLE[REGION_TABLE_COUNT] = {
    {"Asia", 142, },
    {"Europe", 150, },
    {"Africa", 2, },
@@ -11,7 +11,7 @@ region_t REGION_TABLE[REGION_TABLE_COUNT] = {
    {"Americas", 19, },
 };
 
-subregion_t SUBREGION_TABLE[SUBREGION_TABLE_COUNT] = {
+const subregion_t SUBREGION_TABLE[SUBREGION_TABLE_COUNT] = {
    {"Southern Asia", 34, 0, },
    {"Northern Europe", 154, 1, },
    {"Southern Europe", 39, 1, },
@@ -36,7 +36,7 @@ static uint8_t SUBREGION_REGION_INDEX   [SUBREGION_REGION_INDEX_COUNT] = {
      0,  7, 12, 13, 16,  1,  2,  9, 10,  3,  5,  4,  8, 14, 15,  6, 11, 
 };
 
-country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
+const country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
    {"Afghanistan", "AF", "AFG", 4, 1, },
    {"Åland Islands", "AX", "ALA", 248, 2, },
    {"Albania", "AL", "ALB", 8, 3, },

@@ -13,7 +13,7 @@ typedef struct  {
     uint8_t mother_;
 } person_t;
 static unsigned const PERSON_TABLE_COUNT = 4;
-extern person_t PERSON_TABLE[PERSON_TABLE_COUNT];
+extern const person_t PERSON_TABLE[PERSON_TABLE_COUNT];
 
 
 
@@ -24,9 +24,9 @@ typedef enum {
     PERSONS_IRENE = 2,
     PERSONS_FREDERIC = 3,
 } persons_t;
-static inline char* person_name(const person_t* s) { return s->name_; }
-static inline person_t* person_spouse(const person_t* s) { return &PERSON_TABLE[s->spouse_];}
-static inline bool person_father(const person_t* s, person_t** ptr)
+static inline const char* person_name(const person_t* s) { return s->name_; }
+static inline const person_t* person_spouse(const person_t* s) { return &PERSON_TABLE[s->spouse_];}
+static inline bool person_father(const person_t* s, const person_t** ptr)
 { 
     if( s->father_) {
         *ptr = &PERSON_TABLE[s->father_-1];
@@ -34,7 +34,7 @@ static inline bool person_father(const person_t* s, person_t** ptr)
     }
     return false;
 }
-static inline bool person_mother(const person_t* s, person_t** ptr)
+static inline bool person_mother(const person_t* s, const person_t** ptr)
 { 
     if( s->mother_) {
         *ptr = &PERSON_TABLE[s->mother_-1];

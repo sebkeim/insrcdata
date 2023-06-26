@@ -29,8 +29,8 @@ Most of the time, domain experts use their own tools to fashion the data to be u
 Programmers will have to rewrite the output of these tools in their programming language syntax. 
 This task, tedious and error-prone, will be avoided with *insrcdata*.
 
-Some features are not that easy to write by hand. For example, you will get indexed searches 
-and table joins almost for free.
+Some features are not that easy to write by hand. For example, insrcdata can generate code for indexed searches 
+and table joins, or automatically compute the width of integer data types to minimize the size of data columns.
 
 The code can be generated for several languages : Rust and C today, other targets are planned.
 

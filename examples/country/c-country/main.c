@@ -15,9 +15,9 @@ static bool region_in_eurasia(const region_t* s) {
 static void print_country(const country_t* country)
 {
       //  countries may not have subregion(see ANTARTICA), so the field is optional
-      subregion_t* subregion = NULL;
+      const subregion_t* subregion = NULL;
       if( country_subregion(country, &subregion) ){
-            region_t* region = subregion_region(subregion);
+            const region_t* region = subregion_region(subregion);
             printf(
                    " %s ( ISO 3166‑1: %s ) in %s from %s\n",
                    country_name(country),
@@ -38,7 +38,7 @@ static void print_country(const country_t* country)
 
 static void demo() {
       // row access by label
-      country_t* belgium = &COUNTRY_TABLE[COUNTRIES_BELGIUM];
+      const country_t* belgium = &COUNTRY_TABLE[COUNTRIES_BELGIUM];
     
       printf("\n  infos for %s : \n", country_name(belgium));
       print_country(belgium);
@@ -47,7 +47,7 @@ static void demo() {
       print_country(&COUNTRY_TABLE[COUNTRIES_ANTARCTICA]);
 
       printf("\n  all countries with  alpha3 code starting by 'F'\n");
-      country_t* country;
+      const country_t* country;
       country_iter_t iter = country_alpha3_range( "F", "G");
       while( (country = country_next(&iter)) ){
             print_country(country);
@@ -66,7 +66,7 @@ static void demo() {
       }
      
       printf("\n  all countries in Western Europe\n");
-      subregion_t* west_europe = NULL;
+      const subregion_t* west_europe = NULL;
       if( !country_subregion(belgium, &west_europe) ){
             assert(false); //"Belgium has a subregion"
       }
@@ -76,9 +76,9 @@ static void demo() {
       }
    
       printf("\n  all subregions in europe\n");
-      region_t* europe = subregion_region(west_europe);
+      const region_t* europe = subregion_region(west_europe);
       subregion_iter_t sriter = region_subregions(europe);
-      subregion_t* subregion;
+      const subregion_t* subregion;
       while( (subregion = subregion_next(&sriter)) ){
             printf("%s ( code : %d )\n", subregion_name(subregion), subregion_code(subregion));
       }
@@ -96,9 +96,9 @@ static void demo() {
 
 
 //  lookup by code
-static bool alpha3_country(char* code, country_t** ptr) {
+static bool alpha3_country(char* code, const country_t** ptr) {
       country_iter_t iter = country_alpha3_range(code, code);
-      country_t* country = country_next(&iter);
+      const country_t* country = country_next(&iter);
       if( country==NULL ){
             return false;
       }
@@ -108,7 +108,7 @@ static bool alpha3_country(char* code, country_t** ptr) {
 
 static void test_sdn_sgp(char* start, char* stop){
       country_iter_t iter = country_alpha3_range( start, stop);
-      country_t* country = country_next(&iter);
+      const country_t* country = country_next(&iter);
       assert( country!=NULL && strcmp(country_alpha3(country), "SDN")==0 ); // Sudan
       country = country_next(&iter);
       assert( country!=NULL && strcmp(country_alpha3(country), "SEN")==0 ); // Senegal
@@ -121,39 +121,39 @@ static void test_sdn_sgp(char* start, char* stop){
 
 static void test(void) {
       
-      country_t* belgium = &COUNTRY_TABLE[COUNTRIES_BELGIUM];
+      const country_t* belgium = &COUNTRY_TABLE[COUNTRIES_BELGIUM];
       assert( strcmp(country_name(belgium), "Belgium")==0 );
       assert( strcmp(country_alpha3(belgium), "BEL")==0 );
       assert( strcmp(country_alpha2(belgium), "BE")==0 );
       assert( country_code(belgium) == 56 );
       
-      subregion_t* west_europe = NULL;
+      const subregion_t* west_europe = NULL;
       if( !country_subregion(belgium, &west_europe) ){
             assert(false); //"Belgium has a subregion"
       }
-      region_t* europe = subregion_region(west_europe);
+      const region_t* europe = subregion_region(west_europe);
       assert( region_in_eurasia(europe) );
 
       country_iter_t iter = country_alpha3_range( "BEN", "ZZZ");
-      country_t* benin = country_next(&iter);
+      const country_t* benin = country_next(&iter);
       assert( benin!=NULL );
       assert( strcmp(country_name(benin), "Benin")==0 );
       
-      subregion_t* subsahara = NULL;
+      const subregion_t* subsahara = NULL;
       if( !country_subregion(benin, &subsahara) ){
             assert(false); //"Benin has a subregion"
       }
       assert( subregion_code(subsahara) == 202 );
       
       
-      region_t*  africa = subregion_region(subsahara);
+      const region_t*  africa = subregion_region(subsahara);
       assert( region_code(africa) == 2 );
       assert(!region_in_eurasia(africa));
       
       // check reverse join 0..1
       bool benin_in_subsahara = false;
       iter = subregion_countries(subsahara);
-      country_t* country;
+      const country_t* country;
       while( (country = country_next(&iter)) ){
             if( country==benin ){
                   benin_in_subsahara = true;
@@ -164,7 +164,7 @@ static void test(void) {
       // check reverse join 1..1
       bool subsahara_in_africa = false;
       subregion_iter_t  sriter = region_subregions(africa);
-      subregion_t* subregion;
+      const subregion_t* subregion;
       while( (subregion = subregion_next(&sriter)) ){
             if( subregion==subsahara ){
                   subsahara_in_africa = true;
@@ -173,13 +173,13 @@ static void test(void) {
       assert( subsahara_in_africa );
       
       //  lookup by code
-      country_t* france;
+      const country_t* france;
       if( !alpha3_country("FRA", &france) ){
             assert(false); //FRA is france iso code
       }
       assert( strcmp(country_name(france), "France")==0 );
       
-      country_t* unknown;
+      const country_t* unknown;
       assert( !alpha3_country("XYZ", &unknown));
       
       // test open and closed iter range

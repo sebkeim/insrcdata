@@ -94,7 +94,7 @@ fn header_getter_col(
             let jointable = table_name(&outtype);
             writeln!(
                 output,
-                "static inline bool {strname}_{field}(const {strname}_t* s, {outtype}_t** ptr)
+                "static inline bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr)
 {{ 
     if( s->{field}_) {{
         *ptr = &{jointable}_TABLE[s->{field}_-1];
@@ -109,7 +109,7 @@ fn header_getter_col(
             let jointable = table_name(&outtype);
             writeln!(
                 output,
-                "static inline {outtype}_t* {strname}_{field}(const {strname}_t* s) {{ return &{jointable}_TABLE[s->{field}_];}}",
+                "static inline const {outtype}_t* {strname}_{field}(const {strname}_t* s) {{ return &{jointable}_TABLE[s->{field}_];}}",
             )?;
         }
 
@@ -117,7 +117,7 @@ fn header_getter_col(
             let outtype = strtype(&info.interface_type);
             writeln!(
                 output,
-                "static inline {outtype} {strname}_{field}(const {strname}_t* s) {{ return s->{field}_; }}",
+                "static inline const {outtype} {strname}_{field}(const {strname}_t* s) {{ return s->{field}_; }}",
 
 
             )?;
@@ -310,7 +310,7 @@ fn header_index(table: &table::Table, output: &mut dyn io::Write) -> io::Result<
     let indextyp = strtype(&table.index_type());
 
     writeln!(output, "typedef struct {{ {indextyp}* ptr; {indextyp}* end; }} {strname}_iter_t;
-static inline {strname}_t* {strname}_next({strname}_iter_t*  idx) {{ return idx->ptr<idx->end ? &{tablename}_TABLE[*idx->ptr++] : NULL; }}")
+static inline const {strname}_t* {strname}_next({strname}_iter_t*  idx) {{ return idx->ptr<idx->end ? &{tablename}_TABLE[*idx->ptr++] : NULL; }}")
 }
 
 fn impl_index(
@@ -365,7 +365,7 @@ fn header_table_types(
         writeln!(
             output,
             "static unsigned const {tablename}_TABLE_COUNT = {count};
-extern {strname}_t {tablename}_TABLE[{tablename}_TABLE_COUNT];"
+extern const {strname}_t {tablename}_TABLE[{tablename}_TABLE_COUNT];"
         )?;
 
         if project.table_need_iter(table) {
@@ -421,7 +421,7 @@ fn impl_table_data(table: &table::Table, output: &mut dyn io::Write) -> io::Resu
 
     writeln!(
         output,
-        "{strname}_t {tablename}_TABLE[{tablename}_TABLE_COUNT] = {{"
+        "const {strname}_t {tablename}_TABLE[{tablename}_TABLE_COUNT] = {{"
     )?;
 
     for row in 0..table.len {

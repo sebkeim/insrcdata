@@ -3,7 +3,7 @@
 #include "insrcdata.h"
 #include <string.h> 
 
-hello_world_t HELLO_WORLD_TABLE[HELLO_WORLD_TABLE_COUNT] = {
+const hello_world_t HELLO_WORLD_TABLE[HELLO_WORLD_TABLE_COUNT] = {
    {"Hello", },
    {"World !", },
 };

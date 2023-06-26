@@ -5,13 +5,12 @@
 #include <stdio.h>
 
 
-/// This sample show how to define a minimal project, that will only generate labels wich will
-/// be used to link to external data
-/// This model is also known as the mixed data model
-/// TODO: struct Inexata and TABLE are useless and must not be generated
+// This sample show how to define a minimal project, that will only generate labels wich will
+// be used to link to external data
+// This model is also known as the mixed data model
 
-/// This table simulate external data
-/// In real life application this could be for sample user-edited values stored in a database
+// This table simulate external data
+// In real life application this could be for sample user-edited values stored in a database
 
 typedef struct  {
       uint16_t  key; // is a number corresponding to the value of insrcdata::Labels

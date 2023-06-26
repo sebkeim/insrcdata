@@ -3,7 +3,7 @@
 #include "insrcdata.h"
 #include <string.h> 
 
-person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
+const person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
    {"Marie Curie", 1, 0, 0, },
    {"Pierre Curie", 0, 0, 0, },
    {"Irène Joliot-Curie", 3, 2, 1, },
