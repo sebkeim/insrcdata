@@ -3,7 +3,8 @@
 #include "insrcdata.h"
 #include <string.h> 
 
-const region_t REGION_TABLE[REGION_TABLE_COUNT] = {
+static unsigned const REGION_TABLE_COUNT = 5;
+static const region_t REGION_TABLE[REGION_TABLE_COUNT] = {
    {"Asia", 142, },
    {"Europe", 150, },
    {"Africa", 2, },
@@ -11,7 +12,11 @@ const region_t REGION_TABLE[REGION_TABLE_COUNT] = {
    {"Americas", 19, },
 };
 
-const subregion_t SUBREGION_TABLE[SUBREGION_TABLE_COUNT] = {
+const region_t* region_next(region_iter_t* idx) { return idx->ptr<idx->end ? &REGION_TABLE[*idx->ptr++] : NULL; }
+    
+
+static unsigned const SUBREGION_TABLE_COUNT = 17;
+static const subregion_t SUBREGION_TABLE[SUBREGION_TABLE_COUNT] = {
    {"Southern Asia", 34, 0, },
    {"Northern Europe", 154, 1, },
    {"Southern Europe", 39, 1, },
@@ -31,11 +36,15 @@ const subregion_t SUBREGION_TABLE[SUBREGION_TABLE_COUNT] = {
    {"Central Asia", 143, 0, },
 };
 
+const subregion_t* subregion_next(subregion_iter_t* idx) { return idx->ptr<idx->end ? &SUBREGION_TABLE[*idx->ptr++] : NULL; }
+    
+
 static unsigned const SUBREGION_REGION_INDEX_COUNT  =  17;
 static uint8_t SUBREGION_REGION_INDEX   [SUBREGION_REGION_INDEX_COUNT] = {
      0,  7, 12, 13, 16,  1,  2,  9, 10,  3,  5,  4,  8, 14, 15,  6, 11, 
 };
 
+const region_t* subregion_region(const subregion_t* s) { return &REGION_TABLE[s->region_];}
 const country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
    {"Afghanistan", "AF", "AFG", 4, 1, },
    {"Åland Islands", "AX", "ALA", 248, 2, },
@@ -288,6 +297,9 @@ const country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
    {"Zimbabwe", "ZW", "ZWE", 716, 6, },
 };
 
+const country_t* country_next(country_iter_t* idx) { return idx->ptr<idx->end ? &COUNTRY_TABLE[*idx->ptr++] : NULL; }
+    
+
 static unsigned const COUNTRY_ALPHA3_INDEX_COUNT  =  249;
 static uint8_t COUNTRY_ALPHA3_INDEX   [COUNTRY_ALPHA3_INDEX_COUNT] = {
      12,   0,   6,   7,   1,   2,   5, 233,  10,  11,   4,   8,  79,   9,  13,  14,  15,  36,  21,  23, 
@@ -339,7 +351,14 @@ static uint8_t COUNTRY_SUBREGION_INDEX   [COUNTRY_SUBREGION_INDEX_COUNT] = {
     165, 169, 236, 115, 121, 218, 228, 238, 
 };
 
- country_iter_t  country_alpha3_range( char* start, char* stop){
+const country_t* countries_country(countries_t r) {
+    return &COUNTRY_TABLE[r];
+}
+countries_t country_countries(const country_t *s) {
+    return s-COUNTRY_TABLE;
+}
+
+ country_iter_t  country_alpha3_range( char* start, char* stop) {
         uint8_t* lo = COUNTRY_ALPHA3_INDEX;
         uint8_t*  hi = COUNTRY_ALPHA3_INDEX + COUNTRY_ALPHA3_INDEX_COUNT;
         while( lo < hi ){
@@ -366,7 +385,7 @@ static uint8_t COUNTRY_SUBREGION_INDEX   [COUNTRY_SUBREGION_INDEX_COUNT] = {
         return res;
 
     }
- country_iter_t  country_code_range( uint16_t start, uint16_t stop){
+ country_iter_t  country_code_range( uint16_t start, uint16_t stop) {
         uint8_t* lo = COUNTRY_CODE_INDEX;
         uint8_t*  hi = COUNTRY_CODE_INDEX + COUNTRY_CODE_INDEX_COUNT;
         while( lo < hi ){
@@ -393,7 +412,14 @@ static uint8_t COUNTRY_SUBREGION_INDEX   [COUNTRY_SUBREGION_INDEX_COUNT] = {
         return res;
 
     }
-subregion_iter_t region_subregions(const region_t* s){
+bool country_subregion(const country_t* s, const subregion_t** ptr) {
+    if( s->subregion_) {
+        *ptr = &SUBREGION_TABLE[s->subregion_-1];
+        return true;
+    }
+    return false;
+}
+subregion_iter_t region_subregions(const region_t* s) {
     
         long cons = s - REGION_TABLE;
 
@@ -427,7 +453,7 @@ subregion_iter_t region_subregions(const region_t* s){
       return res;
 }
 
-country_iter_t subregion_countries(const subregion_t* s){
+country_iter_t subregion_countries(const subregion_t* s) {
     
         long cons = s - SUBREGION_TABLE + 1;
 

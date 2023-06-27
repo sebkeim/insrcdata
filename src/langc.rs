@@ -91,25 +91,16 @@ fn header_getter_col(
         }
         basetype::TypeImpl::Join01 => {
             let outtype = struct_name(&info.join_table());
-            let jointable = table_name(&outtype);
             writeln!(
                 output,
-                "static inline bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr)
-{{ 
-    if( s->{field}_) {{
-        *ptr = &{jointable}_TABLE[s->{field}_-1];
-        return true;
-    }}
-    return false;
-}}",
+                "extern bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr);",
             )?;
         }
         basetype::TypeImpl::Join11 => {
             let outtype = struct_name(&info.join_table());
-            let jointable = table_name(&outtype);
             writeln!(
                 output,
-                "static inline const {outtype}_t* {strname}_{field}(const {strname}_t* s) {{ return &{jointable}_TABLE[s->{field}_];}}",
+                "extern const {outtype}_t* {strname}_{field}(const {strname}_t* s);",
             )?;
         }
 
@@ -118,10 +109,49 @@ fn header_getter_col(
             writeln!(
                 output,
                 "static inline const {outtype} {strname}_{field}(const {strname}_t* s) {{ return s->{field}_; }}",
-
-
             )?;
         }
+    }
+    Ok(())
+}
+
+fn impl_getter_col(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let info = col.info();
+    let strname = struct_name(&table.name);
+    let field = &info.name;
+
+    match &info.interface_type.type_impl() {
+        basetype::TypeImpl::Label => {}
+
+        basetype::TypeImpl::Join01 => {
+            let outtype = struct_name(&info.join_table());
+            let jointable = table_name(&outtype);
+            writeln!(
+                output,
+                "bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr) {{
+    if( s->{field}_) {{
+        *ptr = &{jointable}_TABLE[s->{field}_-1];
+        return true;
+    }}
+    return false;
+}}",
+            )?;
+        }
+
+        basetype::TypeImpl::Join11 => {
+            let outtype = struct_name(&info.join_table());
+            let jointable = table_name(&outtype);
+            writeln!(
+output,
+"const {outtype}_t* {strname}_{field}(const {strname}_t* s) {{ return &{jointable}_TABLE[s->{field}_];}}",
+)?;
+        }
+
+        basetype::TypeImpl::Scalar => {}
     }
     Ok(())
 }
@@ -163,7 +193,7 @@ fn impl_iter_range(
 
     write!(
         output,
-        " {strname}_iter_t  {strname}_{colname}_range( {argtype} start, {argtype} stop){{
+        " {strname}_iter_t  {strname}_{colname}_range( {argtype} start, {argtype} stop) {{
         {indextyp}* lo = {strtable}_{field}_INDEX;
         {indextyp}*  hi = {strtable}_{field}_INDEX + {strtable}_{field}_INDEX_COUNT;
         while( lo < hi ){{
@@ -238,7 +268,7 @@ fn impl_reverse_join(
     let offset = if info.mincard0() { " + 1" } else { "" };
     writeln!(
         output,
-        "{strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s){{
+        "{strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s) {{
     
         long cons = s - {strtable}_TABLE{offset};
 
@@ -278,7 +308,11 @@ fn impl_reverse_join(
 // Labels
 // ================================================================================================
 
-fn header_col_labels(col: &dyn table::Column, output: &mut dyn io::Write) -> io::Result<()> {
+fn header_col_labels(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
     let info = col.info();
 
     writeln!(output, "typedef enum {{")?;
@@ -297,7 +331,44 @@ fn header_col_labels(col: &dyn table::Column, output: &mut dyn io::Write) -> io:
             )?;
         }
     }
-    writeln!(output, "}} {}_t;", &info.name.to_snake_case())
+    let strname = struct_name(&table.name);
+    let enumname = info.name.to_snake_case();
+
+    writeln!(output, "}} {enumname}_t;")?;
+    if table.has_data() {
+        writeln!(
+            output,
+            "const {strname}_t* {enumname}_{strname}({enumname}_t r);
+{enumname}_t {strname}_{enumname}(const {strname}_t *s);
+            "
+        )?;
+    }
+    Ok(())
+}
+
+fn impl_col_labels(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let info = col.info();
+    let strname = struct_name(&table.name);
+    let tablename = table_name(&table.name);
+    let enumname = info.name.to_snake_case();
+
+    if table.has_data() {
+        writeln!(
+            output,
+            "const {strname}_t* {enumname}_{strname}({enumname}_t r) {{
+    return &{tablename}_TABLE[r];
+}}
+{enumname}_t {strname}_{enumname}(const {strname}_t *s) {{
+    return s-{tablename}_TABLE;
+}}
+"
+        )?;
+    }
+    Ok(())
 }
 
 // ================================================================================================
@@ -305,29 +376,38 @@ fn header_col_labels(col: &dyn table::Column, output: &mut dyn io::Write) -> io:
 // ================================================================================================
 
 fn header_index(table: &table::Table, output: &mut dyn io::Write) -> io::Result<()> {
-    let tablename = table_name(&table.name);
     let strname = struct_name(&table.name);
     let indextyp = strtype(&table.index_type());
 
-    writeln!(output, "typedef struct {{ {indextyp}* ptr; {indextyp}* end; }} {strname}_iter_t;
-static inline const {strname}_t* {strname}_next({strname}_iter_t*  idx) {{ return idx->ptr<idx->end ? &{tablename}_TABLE[*idx->ptr++] : NULL; }}")
+    writeln!(
+        output,
+        "typedef struct {{ {indextyp}* ptr; {indextyp}* end; }} {strname}_iter_t;
+extern const {strname}_t* {strname}_next({strname}_iter_t* idx);"
+    )
 }
 
-fn impl_index(
+fn impl_index(table: &table::Table, output: &mut dyn io::Write) -> io::Result<()> {
+    let strname = struct_name(&table.name);
+    let tablename = table_name(&table.name);
+
+    writeln!(output, "const {strname}_t* {strname}_next({strname}_iter_t* idx) {{ return idx->ptr<idx->end ? &{tablename}_TABLE[*idx->ptr++] : NULL; }}
+    \n")
+}
+
+fn impl_col_index(
     table: &table::Table,
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let indextyp = strtype(&table.index_type());
-
+    let tablename = table_name(&table.name);
     let indexes = col.indexes();
-    let table = table_name(&table.name);
     let field = table_name(&col.info().name);
     let count = indexes.len();
     write!(
         output,
-        "static unsigned const {table}_{field}_INDEX_COUNT  =  {count};
-static {indextyp} {table}_{field}_INDEX   [{table}_{field}_INDEX_COUNT] = {{",
+        "static unsigned const {tablename}_{field}_INDEX_COUNT  =  {count};
+static {indextyp} {tablename}_{field}_INDEX   [{tablename}_{field}_INDEX_COUNT] = {{",
     )?;
 
     let width = language::digits(indexes.len());
@@ -337,7 +417,7 @@ static {indextyp} {table}_{field}_INDEX   [{table}_{field}_INDEX_COUNT] = {{",
         }
         write!(output, "{:width$}, ", v)?;
     }
-    write!(output, "\n}};\n\n")
+    writeln!(output, "\n}};\n")
 }
 
 // ================================================================================================
@@ -361,12 +441,14 @@ fn header_table_types(
         }
         writeln!(output, "}} {strname}_t;")?;
 
-        let count = table.len;
-        writeln!(
-            output,
-            "static unsigned const {tablename}_TABLE_COUNT = {count};
+        if table.get_array {
+            let count = table.len;
+            writeln!(
+                output,
+                "static unsigned const {tablename}_TABLE_COUNT = {count};
 extern const {strname}_t {tablename}_TABLE[{tablename}_TABLE_COUNT];"
-        )?;
+            )?;
+        }
 
         if project.table_need_iter(table) {
             header_index(table, output)?;
@@ -386,7 +468,7 @@ fn header_table_methods(
     // Labels
     let labelcols: Vec<&dyn table::Column> = table.label_columns();
     for col in labelcols {
-        header_col_labels(col, output)?;
+        header_col_labels(table, col, output)?;
     }
 
     //methods for data column
@@ -405,19 +487,24 @@ fn header_table_methods(
     Ok(())
 }
 
-fn impl_table_data(table: &table::Table, output: &mut dyn io::Write) -> io::Result<()> {
+fn impl_table_data(
+    project: &table::Project,
+    table: &table::Table,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
     let strname = struct_name(&table.name);
     let tablename = table_name(&table.name);
 
     let datacols: Vec<&dyn table::Column> = table.data_columns();
 
-    /* if !table.get_array {
+    if !table.get_array {
         let count = table.len;
-        writeln!(
+        write!(
             output,
-            "static unsigned const {tablename}_TABLE_COUNT = {count};"
+            "static unsigned const {tablename}_TABLE_COUNT = {count};
+static "
         )?;
-    }*/
+    }
 
     writeln!(
         output,
@@ -434,14 +521,23 @@ fn impl_table_data(table: &table::Table, output: &mut dyn io::Write) -> io::Resu
     write!(output, "}};\n\n")?;
 
     // indexes
+    if project.table_need_iter(table) {
+        impl_index(table, output)?;
+    }
     for col in &datacols {
         if col.info().iterable {
-            impl_index(table, *col, output)?;
+            impl_col_index(table, *col, output)?;
         }
     }
 
+    // Labels
+    let labelcols: Vec<&dyn table::Column> = table.label_columns();
+    for col in labelcols {
+        impl_col_labels(table, col, output)?;
+    }
     // data column
     for col in &datacols {
+        impl_getter_col(table, *col, output)?;
         if col.info().has_iter_range() {
             impl_iter_range(table, *col, output)?;
         }
@@ -503,7 +599,7 @@ fn impl_project(project: &table::Project) -> aperror::Result<()> {
 
     for table in &project.tables {
         if table.has_data() {
-            impl_table_data(table, output)?;
+            impl_table_data(project, table, output)?;
         }
     }
 
@@ -536,5 +632,3 @@ impl language::Language for LangC {
 
 const LANG_C_: LangC = LangC {};
 pub const LANG_C: &'static dyn language::Language = &LANG_C_;
-
-// todo table.get_array is ignored since we need table in header for inline function

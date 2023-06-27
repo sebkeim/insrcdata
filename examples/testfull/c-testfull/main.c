@@ -6,10 +6,10 @@
 
 // Inner join is when your join column reference a record in the same table
 void  test_innerjoin(void) {
-      const person_t* marie    = &PERSON_TABLE[PERSONS_MARIE   ];
-      const person_t* pierre   = &PERSON_TABLE[PERSONS_PIERRE  ];
-      const person_t* irene    = &PERSON_TABLE[PERSONS_IRENE   ];
-      const person_t* frederic = &PERSON_TABLE[PERSONS_FREDERIC];
+      const person_t* marie    = persons_person(PERSONS_MARIE   );
+      const person_t* pierre   = persons_person(PERSONS_PIERRE  );
+      const person_t* irene    = persons_person(PERSONS_IRENE   );
+      const person_t* frederic = persons_person(PERSONS_FREDERIC);
       
       assert(!strcmp(person_name(marie)    , "Marie Curie"));
       assert(!strcmp(person_name(pierre)   , "Pierre Curie"));
@@ -38,7 +38,7 @@ void  test_innerjoin(void) {
 
 // Pattern matching : retrieve label from fic record reference
 uint16_t nobel_year(const person_t* x)  {
-      switch( x-PERSON_TABLE ) {
+      switch( person_persons(x) ){
             case PERSONS_MARIE    : return 1911;  // also in 1903
             case PERSONS_PIERRE   : return 1903;
             case PERSONS_IRENE    : return 1935;
@@ -48,8 +48,8 @@ uint16_t nobel_year(const person_t* x)  {
 }
 
 void test_fictolabel(void) {
-      const person_t* marie    = &PERSON_TABLE[PERSONS_MARIE   ];
-      const person_t* irene    = &PERSON_TABLE[PERSONS_IRENE   ];
+      const person_t* marie    = persons_person(PERSONS_MARIE);
+      const person_t* irene    = persons_person(PERSONS_IRENE);
       
       assert(nobel_year(person_spouse(marie)) == 1903);
       assert(nobel_year(irene) == 1935);
