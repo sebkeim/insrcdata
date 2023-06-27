@@ -51,7 +51,7 @@ typedef enum {
     COUNTRIES_ANTARCTICA = 8,
     COUNTRIES_BELGIUM = 21,
 } countries_t;
-const country_t* countries_country(countries_t r);
+const country_t* country_from_countries(countries_t label);
 countries_t country_countries(const country_t *s);
             
 static inline const char* country_name(const country_t* s) { return s->name_; }

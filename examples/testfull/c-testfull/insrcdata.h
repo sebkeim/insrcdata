@@ -22,7 +22,7 @@ typedef enum {
     PERSONS_IRENE = 2,
     PERSONS_FREDERIC = 3,
 } persons_t;
-const person_t* persons_person(persons_t r);
+const person_t* person_from_persons(persons_t label);
 persons_t person_persons(const person_t *s);
             
 static inline const char* person_name(const person_t* s) { return s->name_; }

@@ -338,7 +338,7 @@ fn header_col_labels(
     if table.has_data() {
         writeln!(
             output,
-            "const {strname}_t* {enumname}_{strname}({enumname}_t r);
+            "const {strname}_t* {strname}_from_{enumname}({enumname}_t label);
 {enumname}_t {strname}_{enumname}(const {strname}_t *s);
             "
         )?;
@@ -359,8 +359,8 @@ fn impl_col_labels(
     if table.has_data() {
         writeln!(
             output,
-            "const {strname}_t* {enumname}_{strname}({enumname}_t r) {{
-    return &{tablename}_TABLE[r];
+            "const {strname}_t* {strname}_from_{enumname}({enumname}_t label) {{
+    return &{tablename}_TABLE[label];
 }}
 {enumname}_t {strname}_{enumname}(const {strname}_t *s) {{
     return s-{tablename}_TABLE;

@@ -351,8 +351,8 @@ static uint8_t COUNTRY_SUBREGION_INDEX   [COUNTRY_SUBREGION_INDEX_COUNT] = {
     165, 169, 236, 115, 121, 218, 228, 238, 
 };
 
-const country_t* countries_country(countries_t r) {
-    return &COUNTRY_TABLE[r];
+const country_t* country_from_countries(countries_t label) {
+    return &COUNTRY_TABLE[label];
 }
 countries_t country_countries(const country_t *s) {
     return s-COUNTRY_TABLE;

@@ -11,8 +11,8 @@ static const person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
    {"Frédéric Joliot-Curie", 2, 0, 0, },
 };
 
-const person_t* persons_person(persons_t r) {
-    return &PERSON_TABLE[r];
+const person_t* person_from_persons(persons_t label) {
+    return &PERSON_TABLE[label];
 }
 persons_t person_persons(const person_t *s) {
     return s-PERSON_TABLE;
