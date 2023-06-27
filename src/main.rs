@@ -53,7 +53,7 @@ struct Args {
     rebuild: bool,
 
     /// log level
-    #[arg(value_enum, default_value = "default")]
+    #[arg(value_enum, default_value = "warning")]
     log: LogLevel,
 }
 
@@ -64,7 +64,7 @@ enum LogLevel {
     /// only major notifications
     Warning,
     /// all potentially useful information  
-    Default,
+    Standard,
     /// log anything
     Verbose,
 }
@@ -76,7 +76,7 @@ fn main() -> aperror::Result<()> {
     log::set_level(match args.log {
         LogLevel::Silent => log::Level::Off,
         LogLevel::Warning => log::Level::Warning,
-        LogLevel::Default => log::Level::Log,
+        LogLevel::Standard => log::Level::Standard,
         LogLevel::Verbose => log::Level::Verbose,
     });
 

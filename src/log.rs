@@ -9,10 +9,10 @@
 pub enum Level {
     Off,
     Warning,
-    Log,
+    Standard,
     Verbose,
 }
-static mut LEVEL: Level = Level::Log;
+static mut LEVEL: Level = Level::Standard;
 
 pub fn set_level(level: Level) {
     unsafe {
@@ -30,7 +30,7 @@ pub fn warning(str: &str) {
 }
 
 pub fn log(str: &str) {
-    if level() >= Level::Log {
+    if level() >= Level::Standard {
         eprintln!("{}", str)
     }
 }
