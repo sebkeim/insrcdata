@@ -385,7 +385,7 @@ fn write_index(
         }
         write!(output, "{:width$}, ", v)?;
     }
-    write!(output, "\n];\n\n")
+    write!(output, "\n];\n")
 }
 
 // ================================================================================================
@@ -518,7 +518,7 @@ fn impl_table_data(
         }
         writeln!(output, ")}},")?;
     }
-    write!(output, "];\n\n")?;
+    writeln!(output, "];")?;
 
     // indexes
     for col in datacols {
@@ -526,7 +526,7 @@ fn impl_table_data(
             write_index(table, col, output)?;
         }
     }
-    writeln!(output, "\n}} // mod {} ", modname)?;
+    writeln!(output, "\n}} // mod {}\n", modname)?;
 
     //export
     if project.table_need_iter(table) {

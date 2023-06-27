@@ -55,13 +55,38 @@ void test_fictolabel(void) {
       assert(nobel_year(irene) == 1935);
 }
 
+// check string comparison for various encoded unicode strings
+static const int REFSTRS_COUNT = 6;
+static const char* REFSTRS[REFSTRS_COUNT] = {
+      "𝒾ň𝗌яčḓẚᵵᶏ : 𝔢ᶆḃ℮𝚍 ᶌ𝖔ừᵳ ⅆằƫⱥ",
+      "hello",
+      "κόσμε",
+      "いろはにほへとちりぬるを",
+      "éventuellement validé",
+      "Да, но фальшивый экземпляр",
+};
+
+void  test_strencoding(void) {
+      for( const char** refstr=REFSTRS;  refstr<REFSTRS+REFSTRS_COUNT; refstr++ ){
+            strencoding_iter_t iter = strencoding_text_range(*refstr, *refstr);
+            const strencoding_t* row = strencoding_next(&iter);
+            assert(row!=NULL);
+            const char* text = strencoding_text(row);
+            assert( strcmp(text, *refstr)==0 );
+            assert(strencoding_next(&iter)==NULL);
+    }
+}
+
 
 int main(void) {
       // the join column reference a record in the same table
       test_innerjoin();
       
-      //  retrieve label from fic record reference
+      // retrieve label from fic record reference
       test_fictolabel();
+      
+      // check string comparison for various encoded unicode strings
+      test_strencoding();
       return 0;
 }
 

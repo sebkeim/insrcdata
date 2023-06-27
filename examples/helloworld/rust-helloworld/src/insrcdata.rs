@@ -21,5 +21,5 @@ pub static TABLE : [ super::HelloWorld ; 2 ] = [
    {r("World !", )},
 ];
 
+} // mod hello_world
 
-} // mod hello_world 

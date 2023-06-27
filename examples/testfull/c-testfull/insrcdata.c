@@ -15,7 +15,7 @@ const person_t* person_from_persons(persons_t label) {
     return &PERSON_TABLE[label];
 }
 persons_t person_persons(const person_t *s) {
-    return s-PERSON_TABLE;
+    return (persons_t)(s-PERSON_TABLE);
 }
 
 const person_t* person_spouse(const person_t* s) { return &PERSON_TABLE[s->spouse_];}
@@ -32,4 +32,47 @@ bool person_mother(const person_t* s, const person_t** ptr) {
         return true;
     }
     return false;
+}
+const strencoding_t STRENCODING_TABLE[STRENCODING_TABLE_COUNT] = {
+   {"𝒾ň𝗌яčḓẚᵵᶏ : 𝔢ᶆḃ℮𝚍 ᶌ𝖔ừᵳ ⅆằƫⱥ", },
+   {"hello", },
+   {"κόσμε", },
+   {"いろはにほへとちりぬるを", },
+   {"éventuellement validé", },
+   {"Да, но фальшивый экземпляр", },
+};
+
+const strencoding_t* strencoding_next(strencoding_iter_t* idx) { return idx->ptr<idx->end ? &STRENCODING_TABLE[*idx->ptr++] : NULL; }
+    
+
+static unsigned const STRENCODING_TEXT_INDEX_COUNT  =  6;
+static uint8_t STRENCODING_TEXT_INDEX   [STRENCODING_TEXT_INDEX_COUNT] = {
+    1, 4, 2, 5, 3, 0, 
+};
+
+strencoding_iter_t  strencoding_text_range( const char* start, const char* stop) {
+    uint8_t* lo = STRENCODING_TEXT_INDEX;
+    uint8_t*  hi = STRENCODING_TEXT_INDEX + STRENCODING_TEXT_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid = lo + ( hi-lo)/2;
+        if( strcmp(start,STRENCODING_TABLE[*mid].text_ )>0 ){
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+
+    uint8_t*  begin = lo;
+    hi = STRENCODING_TEXT_INDEX + STRENCODING_TEXT_INDEX_COUNT;
+    while( lo < hi ){
+         uint8_t* mid = lo + ( hi-lo)/2;
+        if( strcmp(stop,STRENCODING_TABLE[*mid].text_ )<0 ){
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+
+    strencoding_iter_t res = {  begin,  lo };
+    return res;
 }

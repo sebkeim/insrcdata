@@ -50,5 +50,84 @@ pub static TABLE : [ super::Person ; 4 ] = [
    {r("Frédéric Joliot-Curie", 2, 0, 0, )},
 ];
 
+} // mod person
 
-} // mod person 
+pub struct Strencoding {
+    text_ : &'static str,
+}
+impl Strencoding {
+    pub fn text(&self) -> &'static str { self.text_ }
+
+    pub fn text_range(start:& str, stop:& str) -> strencoding::IndexIter {
+        let mut lo = 0;
+        let mut hi = strencoding::TEXT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if start > strencoding::TABLE[strencoding::TEXT_INDEX[mid] as usize].text_ {
+                 lo = mid + 1;
+            } else {
+                 hi = mid;
+            }
+        }
+
+        let begin = lo;
+        hi = strencoding::TEXT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if stop < strencoding::TABLE[strencoding::TEXT_INDEX[mid] as usize].text_ {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+        strencoding::IndexIter {
+            indexes: Box::new(strencoding::TEXT_INDEX[begin..lo].iter()),
+        }
+    }
+    pub fn array() -> &'static [Strencoding; 6]  { &strencoding::TABLE }
+}
+
+mod strencoding {
+
+
+use std::mem;
+
+pub struct IndexIter {
+    pub indexes : Box<dyn Iterator<Item=&'static u8>>,
+}
+
+impl Iterator for IndexIter {
+    type Item = & 'static super::Strencoding;
+
+    fn next(&mut self) -> Option<&'static super::Strencoding> {
+        let idx = self.indexes.next();
+        match idx {
+            Some(v) => Some(&TABLE[*v as usize]),
+            None => None,
+        }
+    }
+}
+
+pub fn index_of(fic:&super::Strencoding) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Strencoding>()
+}
+
+const fn r(text:&'static str, ) -> super::Strencoding {
+    super::Strencoding{text_:text, }
+}
+
+pub static TABLE : [ super::Strencoding ; 6 ] = [
+   {r("𝒾ň𝗌яčḓẚᵵᶏ : 𝔢ᶆḃ℮𝚍 ᶌ𝖔ừᵳ ⅆằƫⱥ", )},
+   {r("hello", )},
+   {r("κόσμε", )},
+   {r("いろはにほへとちりぬるを", )},
+   {r("éventuellement validé", )},
+   {r("Да, но фальшивый экземпляр", )},
+];
+pub static TEXT_INDEX : [ u8 ; 6 ] = [
+    1, 4, 2, 5, 3, 0, 
+];
+
+} // mod strencoding
+
+pub use strencoding::IndexIter as StrencodingIter;

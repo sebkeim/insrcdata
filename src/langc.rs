@@ -24,7 +24,7 @@ fn strtype(typ: &basetype::BaseType) -> String {
         basetype::BaseType::U16 => "uint16_t",
         basetype::BaseType::U32 => "uint32_t",
         basetype::BaseType::U64 => "uint64_t",
-        basetype::BaseType::Str => "char*", //todo check encoding
+        basetype::BaseType::Str => "const char*", //todo check encoding
         basetype::BaseType::Join {
             strname: _,
             mincard: _,
@@ -108,7 +108,7 @@ fn header_getter_col(
             let outtype = strtype(&info.interface_type);
             writeln!(
                 output,
-                "static inline const {outtype} {strname}_{field}(const {strname}_t* s) {{ return s->{field}_; }}",
+                "static inline {outtype} {strname}_{field}(const {strname}_t* s) {{ return s->{field}_; }}",
             )?;
         }
     }
@@ -193,33 +193,32 @@ fn impl_iter_range(
 
     write!(
         output,
-        " {strname}_iter_t  {strname}_{colname}_range( {argtype} start, {argtype} stop) {{
-        {indextyp}* lo = {strtable}_{field}_INDEX;
-        {indextyp}*  hi = {strtable}_{field}_INDEX + {strtable}_{field}_INDEX_COUNT;
-        while( lo < hi ){{
-            {indextyp}*  mid = lo + ( hi-lo)/2;
-            if( {gt} ){{
-                 lo = mid + 1;
-            }} else {{
-                 hi = mid;
-            }}
+        "{strname}_iter_t  {strname}_{colname}_range( {argtype} start, {argtype} stop) {{
+    {indextyp}* lo = {strtable}_{field}_INDEX;
+    {indextyp}*  hi = {strtable}_{field}_INDEX + {strtable}_{field}_INDEX_COUNT;
+    while( lo < hi ){{
+        {indextyp}*  mid = lo + ( hi-lo)/2;
+        if( {gt} ){{
+             lo = mid + 1;
+        }} else {{
+             hi = mid;
         }}
-
-        {indextyp}*  begin = lo;
-        hi = {strtable}_{field}_INDEX + {strtable}_{field}_INDEX_COUNT;
-        while( lo < hi ){{
-             {indextyp}* mid = lo + ( hi-lo)/2;
-            if( {lt} ){{
-                hi = mid;
-            }} else {{
-                lo = mid + 1;
-            }}
-        }}
-
-        {strname}_iter_t res = {{  begin,  lo }};
-        return res;
-
     }}
+
+    {indextyp}*  begin = lo;
+    hi = {strtable}_{field}_INDEX + {strtable}_{field}_INDEX_COUNT;
+    while( lo < hi ){{
+         {indextyp}* mid = lo + ( hi-lo)/2;
+        if( {lt} ){{
+            hi = mid;
+        }} else {{
+            lo = mid + 1;
+        }}
+    }}
+
+    {strname}_iter_t res = {{  begin,  lo }};
+    return res;
+}}
 "
     )
 }
@@ -269,37 +268,35 @@ fn impl_reverse_join(
     writeln!(
         output,
         "{strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s) {{
-    
-        long cons = s - {strtable}_TABLE{offset};
+    long cons = s - {strtable}_TABLE{offset};
 
-        // bissect left
-        {indextyp}* lo = {tablesrc}_{field}_INDEX;
-        {indextyp}* hi = {tablesrc}_{field}_INDEX + {tablesrc}_{field}_INDEX_COUNT;
+    // bissect left
+    {indextyp}* lo = {tablesrc}_{field}_INDEX;
+    {indextyp}* hi = {tablesrc}_{field}_INDEX + {tablesrc}_{field}_INDEX_COUNT;
    
-        while( lo < hi ){{
-           {indextyp}*  mid =  lo + ( hi-lo)/2;
-           if ( cons > {tablesrc}_TABLE[*mid].{colname}_ ) {{
-                lo = mid + 1;
-           }} else {{
-                hi = mid;
-           }}
+    while( lo < hi ){{
+        {indextyp}*  mid =  lo + ( hi-lo)/2;
+        if ( cons > {tablesrc}_TABLE[*mid].{colname}_ ) {{
+             lo = mid + 1;
+        }} else {{
+             hi = mid;
         }}
+    }}
+    {indextyp}* begin = lo;
 
-        {indextyp}* begin = lo;
-
-        // bissect-right
-        hi = {tablesrc}_{field}_INDEX +  {tablesrc}_{field}_INDEX_COUNT;
-        while( lo < hi ){{
-            {indextyp}*  mid =  lo + ( hi-lo)/2;
-            if( cons < {tablesrc}_TABLE[*mid].{colname}_ )  {{
-                hi = mid;
-            }} else {{
-                lo = mid + 1;
-            }}
+    // bissect-right
+    hi = {tablesrc}_{field}_INDEX +  {tablesrc}_{field}_INDEX_COUNT;
+    while( lo < hi ){{
+        {indextyp}*  mid =  lo + ( hi-lo)/2;
+        if( cons < {tablesrc}_TABLE[*mid].{colname}_ )  {{
+            hi = mid;
+        }} else {{
+            lo = mid + 1;
         }}
+     }}
 
-      {strsrc}_iter_t res = {{  begin,  lo }};
-      return res;
+    {strsrc}_iter_t res = {{  begin,  lo }};
+    return res;
 }}\n"
     )
 }
@@ -363,7 +360,7 @@ fn impl_col_labels(
     return &{tablename}_TABLE[label];
 }}
 {enumname}_t {strname}_{enumname}(const {strname}_t *s) {{
-    return s-{tablename}_TABLE;
+    return ({enumname}_t)(s-{tablename}_TABLE);
 }}
 "
         )?;

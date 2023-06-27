@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 typedef struct  {
-    char* sentence_;
+    const char* sentence_;
 } hello_world_t;
 static unsigned const HELLO_WORLD_TABLE_COUNT = 2;
 extern const hello_world_t HELLO_WORLD_TABLE[HELLO_WORLD_TABLE_COUNT];

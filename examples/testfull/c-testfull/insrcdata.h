@@ -7,11 +7,19 @@
 #include <stdbool.h>
 
 typedef struct  {
-    char* name_;
+    const char* name_;
     uint8_t spouse_;
     uint8_t father_;
     uint8_t mother_;
 } person_t;
+
+typedef struct  {
+    const char* text_;
+} strencoding_t;
+static unsigned const STRENCODING_TABLE_COUNT = 6;
+extern const strencoding_t STRENCODING_TABLE[STRENCODING_TABLE_COUNT];
+typedef struct { uint8_t* ptr; uint8_t* end; } strencoding_iter_t;
+extern const strencoding_t* strencoding_next(strencoding_iter_t* idx);
 
 
 
@@ -29,4 +37,9 @@ static inline const char* person_name(const person_t* s) { return s->name_; }
 extern const person_t* person_spouse(const person_t* s);
 extern bool person_father(const person_t* s, const person_t** ptr);
 extern bool person_mother(const person_t* s, const person_t** ptr);
+
+
+// ------    
+static inline const char* strencoding_text(const strencoding_t* s) { return s->text_; }
+extern strencoding_iter_t  strencoding_text_range( const char* start, const char* stop);
 #endif //  INSRCDATA_H 

@@ -81,8 +81,8 @@ pub static TABLE : [ super::Region ; 5 ] = [
    {r("Americas", 19, )},
 ];
 
+} // mod region
 
-} // mod region 
 pub use region::IndexIter as RegionIter;
 pub struct Subregion {
     name_ : &'static str,
@@ -177,13 +177,12 @@ pub static TABLE : [ super::Subregion ; 17 ] = [
    {r("Micronesia", 57, 3, )},
    {r("Central Asia", 143, 0, )},
 ];
-
 pub static REGION_INDEX : [ u8 ; 17 ] = [
      0,  7, 12, 13, 16,  1,  2,  9, 10,  3,  5,  4,  8, 14, 15,  6, 11, 
 ];
 
+} // mod subregion
 
-} // mod subregion 
 pub use subregion::IndexIter as SubregionIter;
 #[derive(Clone, Copy)]
 pub enum Countries {
@@ -549,7 +548,6 @@ pub static TABLE : [ super::Country ; 249 ] = [
    {r("Zambia", "ZM", "ZMB", 894, 6, )},
    {r("Zimbabwe", "ZW", "ZWE", 716, 6, )},
 ];
-
 pub static ALPHA3_INDEX : [ u8 ; 249 ] = [
      12,   0,   6,   7,   1,   2,   5, 233,  10,  11,   4,   8,  79,   9,  13,  14,  15,  36,  21,  23, 
      27,  35,  18,  34,  17,  16,  28, 185,  20,  22,  24,  26,  31,  19,  33,  25,  30,  29,  42,  40, 
@@ -565,7 +563,6 @@ pub static ALPHA3_INDEX : [ u8 ; 249 ] = [
     223, 228, 221, 224, 225, 226, 227, 230, 217, 219, 231, 232, 236, 237, 235, 238,  98, 191, 240, 242, 
     243, 241, 239, 244, 192, 246, 206, 247, 248, 
 ];
-
 pub static CODE_INDEX : [ u8 ; 249 ] = [
       0,   2,   8,   3,   4,   5,   6,   9,  15,  10,  13,  14,  16,  17,  18,  11,  19,  21,  24,  25, 
      26,  28,  29,  30,  31,  22,  32, 204, 242,  33,  34, 152,  36,  20,  38,  39,  40,  37,  41,  42, 
@@ -581,7 +578,6 @@ pub static CODE_INDEX : [ u8 ; 249 ] = [
     222, 223, 224, 225, 233, 226, 227, 228, 229, 230, 231, 232, 164,  65, 234,  92, 113, 108, 219, 235, 
     243,  35, 237, 238, 240, 244, 192, 246, 247, 
 ];
-
 pub static SUBREGION_INDEX : [ u8 ; 248 ] = [
       0,  18,  25, 103, 105, 135, 155, 168, 210,   1,  60,  69,  73,  75,  92, 102, 107, 108, 113, 123, 
     129, 166, 213, 214, 234,   2,   5,  28,  55,  85,  86,  98, 110, 137, 148, 164, 178, 193, 197, 203, 
@@ -598,6 +594,6 @@ pub static SUBREGION_INDEX : [ u8 ; 248 ] = [
     165, 169, 236, 115, 121, 218, 228, 238, 
 ];
 
+} // mod country
 
-} // mod country 
 pub use country::IndexIter as CountryIter;

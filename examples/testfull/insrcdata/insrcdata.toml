@@ -33,3 +33,12 @@ allow_null = true
 name = 'Persons'
 src = 'ref'
 format = 'label'
+
+[[table]]
+name = "strencoding"
+src = "strencoding.csv"
+array = true
+
+[[table.col]]
+name = 'text'
+range = true
