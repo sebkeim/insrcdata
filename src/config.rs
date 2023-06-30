@@ -10,10 +10,12 @@ use crate::table::Project;
 use crate::{
     aperror, basetype, colint, coljoin, collabel, colstr, langrust, language, lint, log, table,
 };
-use std::collections::HashMap;
+use csv::StringRecord;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+use std::string::ToString;
 use std::time::SystemTime;
 
 //  index for specific table column
@@ -66,6 +68,8 @@ struct Col {
     format: Option<String>,
     /// generate accessor for range indexing
     range: Option<bool>,
+    /// deduplicate similar rows
+    single: Option<bool>,
 }
 
 impl Col {
@@ -99,7 +103,7 @@ impl Col {
         tablecols: &HashMap<String, Vec<String>>,
     ) -> aperror::Result<Box<dyn table::Column>> {
         // retrieve src values
-        let src = self.src.as_ref().unwrap_or(&self.name);
+        let src = self.src_name();
         let key = table.key(src);
         let Some(strvals) = tablecols.get(&key) else {
             return Err(aperror::Error::new(&format!("column not found {}", key)));
@@ -128,6 +132,10 @@ impl Col {
             ))),
             _ => Err(aperror::Error::new("unknown column type")),
         }
+    }
+
+    fn src_name(&self) -> &String {
+        self.src.as_ref().unwrap_or(&self.name)
     }
 }
 
@@ -160,7 +168,7 @@ impl Join {
         tablecols: &HashMap<String, Vec<String>>,
     ) -> aperror::Result<Box<dyn table::Column>> {
         // retrieve src values
-        let src = self.src.as_ref().unwrap_or(&self.name);
+        let src = self.src_name();
         let key = table.key(src);
         let Some(values) = tablecols.get(&key) else {
             return Err(aperror::Error::new(&format!("column not found {}", key)));
@@ -182,6 +190,10 @@ impl Join {
             self.reverse.as_ref().unwrap_or(&String::new()),
         )))
     }
+
+    fn src_name(&self) -> &String {
+        self.src.as_ref().unwrap_or(&self.name)
+    }
 }
 
 // ================================================================================================
@@ -198,6 +210,9 @@ struct Table {
     col: Option<Vec<Col>>,
     join: Option<Vec<Join>>,
 }
+static EMPTY_COLS: Vec<Col> = vec![];
+static UNIC_SEPARATOR: &str = "\n";
+
 impl Table {
     /// path of .csv data source
     fn src_path(&self, indir: &Path) -> PathBuf {
@@ -212,6 +227,32 @@ impl Table {
         } else {
             indir.join(confpath)
         }
+    }
+
+    //
+    fn unic_indexes(&self, headers: &csv::StringRecord) -> Vec<usize> {
+        let mut indexes: Vec<usize> = vec![];
+        let cols = self.col.as_ref().unwrap_or(&EMPTY_COLS);
+        for col in cols {
+            if col.single.unwrap_or_default() {
+                let src_name = col.src_name();
+                match headers.iter().position(|r| r == src_name) {
+                    None => {}
+                    Some(value) => {
+                        indexes.push(value);
+                    }
+                }
+            }
+        }
+        indexes
+    }
+    fn unic_key(indexes: &Vec<usize>, row: &StringRecord) -> String {
+        let mut key = "".to_string();
+        for i in indexes {
+            let v = row.get(*i).unwrap_or_default();
+            key = key + v + UNIC_SEPARATOR;
+        }
+        key
     }
 
     /// index for specific table column
@@ -249,17 +290,31 @@ impl Table {
             cols.insert(key, vec![]);
         }
 
+        // for deduplication
+        let unic_indexes = self.unic_indexes(&headers);
+        let mut unic_keys: HashSet<String> = HashSet::new();
+        unic_keys.insert(UNIC_SEPARATOR.repeat(unic_indexes.len())); // skip empty rows
+
         // column values
         for result in reader.records() {
-            let record = match result {
+            let row = match result {
                 Ok(v) => v,
                 Err(e) => {
                     return Err(aperror::Error::new(&e.to_string()));
                 }
             };
 
+            // deduplicate
+            if !unic_indexes.is_empty() {
+                let key = Table::unic_key(&unic_indexes, &row);
+                if unic_keys.contains(&key) {
+                    continue;
+                }
+                unic_keys.insert(key);
+            }
+
             for (i, _) in headers.iter().enumerate() {
-                let Some(val) =  record.get(i) else {
+                let Some(val) =  row.get(i) else {
                     return Err(aperror::Error::new("short row"));
                 };
                 let key = &keys[i];
@@ -276,11 +331,7 @@ impl Table {
 
         let mut columns = vec![];
 
-        let emptycols: Vec<Col> = vec![];
-        let cols = match &self.col {
-            Some(v) => v,
-            None => &emptycols,
-        };
+        let cols = self.col.as_ref().unwrap_or(&EMPTY_COLS);
         for col in cols {
             let res = col.create(self, tablecols);
             match res {

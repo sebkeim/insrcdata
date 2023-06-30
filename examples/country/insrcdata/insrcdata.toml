@@ -7,7 +7,7 @@ dest = '../rust-country/src/insrcdata.rs'
 
     # TABLE : Region
 [[table]]
-src = "region.csv"
+src = "countries.csv"
 name = 'Region'
 trait = 'crate::country::Region'
          
@@ -19,12 +19,13 @@ src = 'region'
 name = 'code'
 format  = 'u8'
 src = 'region-code'
+# we keep only one record by region
+single = true
 
- 
 
     # TABLE : Subregions
 [[table]]
-src = "subregion.csv"
+src = "countries.csv"
 name = 'Subregion'
 
 [[table.col]]
@@ -35,6 +36,7 @@ src = 'sub-region'
 name = 'code'
 format  = 'u16'
 src = 'sub-region-code'
+single = true
 
 [[table.join]]
 name = 'region'
