@@ -8,7 +8,6 @@ import os, subprocess, sys
 PATH = ".."
 INSRCDATA = f"{PATH}/target/debug/insrcdata"
 
-
 RESET = "reset" in sys.argv
 
 # ==================================================================================================================
@@ -22,7 +21,6 @@ def test_root():
       # unitest
       r = os.system(f"cargo test --manifest-path {PATH}/Cargo.toml")
       assert r==0, f"failed cargo unitest : root"
-        
      
       # fmt
       r = os.system(f"cargo fmt --check --manifest-path {PATH}/Cargo.toml")
@@ -32,9 +30,8 @@ def test_root():
       r = os.system(f"cargo clippy --manifest-path {PATH}/Cargo.toml")
       assert r==0, f"failed cargo clippy : root"
       
-      # TODO: clippy warinings should produce an error
-     
- 
+      # TODO: clippy warnings should produce an error
+
 # ==================================================================================================================
 # Test sample directory
 # ==================================================================================================================
@@ -43,15 +40,13 @@ class sample:
  
       def __init__(self, name):
             self.name = name
-            
-            
+
       def project_path(self):
             return f"{PATH}/examples/{self.name}"
       
       def lang_path(self):
             return f"{self.project_path()}/{self.LANG}-{self.name}"
-      
-            
+
       def regress_path(self):
             return f"{self.lang_path()}/regression"
       
@@ -60,8 +55,7 @@ class sample:
               
       def build(self):
             raise NotImplemented
-            
-            
+
       def build_and_run(self):
             """return stdout content"""
       
@@ -69,7 +63,6 @@ class sample:
             try:
                   os.remove(f"{self.project_path()}/insrcdata/{self.dest()}")
             except FileNotFoundError:
-                   
                   pass
       
             # generate insrcdata source
@@ -84,8 +77,7 @@ class sample:
             output = cmd.communicate()[0]
             assert cmd.returncode==0, f"failed run : {self.name}"
             return output
-      
-      
+
       def get_template(self):
             """return generated template for trait"""
             
@@ -93,8 +85,7 @@ class sample:
             output = cmd.communicate()[0]
             assert cmd.returncode==0, f"failed insrcdata interface : {self.name}"
             return output
-      
-      
+
       def check_regression(self, new_output, consigne_name):
             path = f"{self.regress_path()}/{consigne_name}.txt"
             try:
@@ -117,46 +108,31 @@ class sample:
                   os.mkdir(self.regress_path())
             except FileExistsError:
                   pass
-                  
-            
+
             # sample output
-            
             self.check_regression(output, "output")
 
             # trait template generation
             template = self.get_template()
             self.check_regression(template, "template")
-            
-                 
-      
-       
-       
 
 class sample_rust(sample):
       LANG = "rust"
       
       def dest(self):
             return f"../rust-{self.name}/src/insrcdata.rs"
-      
-  
-            
+
       def regress_path(self):
             return f"{self.lang_path()}/target/debug/regression"
-
 
       def product_path(self):
             return f"{self.lang_path()}/target/debug/{self.name}"
 
-
-   
       def build(self):
-           
             # build
             r = os.system(f"cargo build --manifest-path {self.lang_path()}/Cargo.toml")
             assert r==0, f"failed cargo build : {self.name}"
-        
-   
-      
+
       def test(self):
             sample.test(self)
             
@@ -164,13 +140,10 @@ class sample_rust(sample):
             #r = os.system(f"cargo fmt --check --manifest-path {self.project_path()}/Cargo.toml")
             #assert r==0, f"failed cargo fmt : root"
             #TODO: fmt on project will need to make generated innexata.rs compliant
-         
-     
+
             # clippy
             r = os.system(f"cargo clippy --manifest-path {self.lang_path()}/Cargo.toml")
             assert r==0, f"failed cargo clippy : root"
-
-
 
 class sample_c(sample):
       LANG = "c"
@@ -181,14 +154,10 @@ class sample_c(sample):
       def regress_path(self):
             return f"{self.lang_path()}/target/regression"
 
-
       def product_path(self):
             return f"{self.lang_path()}/target/{self.name}"
 
-
-   
       def build(self):
-      
             try:
                   os.mkdir(f"{self.lang_path()}/target")
             except FileExistsError:
@@ -198,15 +167,12 @@ class sample_c(sample):
             r = os.system(f"cd {self.lang_path()}; cc main.c insrcdata.c -o ./target/{self.name} ")
             assert r==0, f"failed cc build : {self.name}"
         
-   
 
 def test_sample(name):
-       
       r = sample_rust(name)
       r.test()
       c = sample_c(name)
       c.test()
-
 
 def test_examples():
       sample_path = f"{PATH}/examples"
@@ -215,7 +181,6 @@ def test_examples():
             if os.path.exists(f"{sample_path}/{name}/rust-{name}/Cargo.toml"):
                   print(f"\n   -- sample {name} --")
                   test_sample(name)
-                  
 
 # ==================================================================================================================
 #

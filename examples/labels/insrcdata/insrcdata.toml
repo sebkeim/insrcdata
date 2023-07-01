@@ -1,4 +1,4 @@
-dest ="../src/rust-labels/insrcdata.rs"
+dest ="../rust-labels/src/insrcdata.rs"
 
 [[table]]
 src = "label.csv"

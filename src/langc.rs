@@ -236,7 +236,7 @@ fn header_reverse_join(
     let strname = struct_name(&table.name);
     let reverse = srccol.reverse_name();
     let strsrc = struct_name(srcname);
-    write!(
+    writeln!(
         output,
         "extern {strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s);"
     )
@@ -532,12 +532,28 @@ static "
     for col in labelcols {
         impl_col_labels(table, col, output)?;
     }
+
+    Ok(())
+}
+
+fn impl_table_methods(
+    project: &table::Project,
+    table: &table::Table,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
     // data column
+    let datacols: Vec<&dyn table::Column> = table.data_columns();
+
     for col in &datacols {
         impl_getter_col(table, *col, output)?;
         if col.info().has_iter_range() {
             impl_iter_range(table, *col, output)?;
         }
+    }
+
+    let reverse_join = project.join_to_columns(table);
+    for (join, col) in reverse_join {
+        impl_reverse_join(table, col, &join.name, output)?;
     }
 
     Ok(())
@@ -575,7 +591,7 @@ fn header_project(project: &table::Project) -> aperror::Result<()> {
     for table in &project.tables {
         header_table_methods(project, table, output)?;
     }
-    writeln!(output, "#endif //  {include_guard}_H ")?;
+    writeln!(output, "\n#endif //  {include_guard}_H ")?;
     Ok(())
 }
 
@@ -601,10 +617,7 @@ fn impl_project(project: &table::Project) -> aperror::Result<()> {
     }
 
     for table in &project.tables {
-        let reverse_join = project.join_to_columns(table);
-        for (join, col) in reverse_join {
-            impl_reverse_join(table, col, &join.name, output)?;
-        }
+        impl_table_methods(project, table, output)?;
     }
     Ok(())
 }

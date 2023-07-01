@@ -16,4 +16,5 @@ extern const hello_world_t HELLO_WORLD_TABLE[HELLO_WORLD_TABLE_COUNT];
 
 // ------    
 static inline const char* hello_world_sentence(const hello_world_t* s) { return s->sentence_; }
+
 #endif //  INSRCDATA_H 

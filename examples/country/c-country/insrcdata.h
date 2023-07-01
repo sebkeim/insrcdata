@@ -40,11 +40,13 @@ static inline const char* region_name(const region_t* s) { return s->name_; }
 static inline uint8_t region_code(const region_t* s) { return s->code_; }
 extern subregion_iter_t region_subregions(const region_t* s);
 
+
 // ------    
 static inline const char* subregion_name(const subregion_t* s) { return s->name_; }
 static inline uint16_t subregion_code(const subregion_t* s) { return s->code_; }
 extern const region_t* subregion_region(const subregion_t* s);
 extern country_iter_t subregion_countries(const subregion_t* s);
+
 
 // ------    
 typedef enum {
@@ -61,4 +63,5 @@ extern country_iter_t  country_alpha3_range( const char* start, const char* stop
 static inline uint16_t country_code(const country_t* s) { return s->code_; }
 extern country_iter_t  country_code_range( uint16_t start, uint16_t stop);
 extern bool country_subregion(const country_t* s, const subregion_t** ptr);
+
 #endif //  INSRCDATA_H 

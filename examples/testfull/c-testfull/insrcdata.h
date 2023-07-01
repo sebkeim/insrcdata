@@ -42,4 +42,5 @@ extern bool person_mother(const person_t* s, const person_t** ptr);
 // ------    
 static inline const char* strencoding_text(const strencoding_t* s) { return s->text_; }
 extern strencoding_iter_t  strencoding_text_range( const char* start, const char* stop);
+
 #endif //  INSRCDATA_H 

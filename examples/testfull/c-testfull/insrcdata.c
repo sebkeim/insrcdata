@@ -18,21 +18,6 @@ persons_t person_persons(const person_t *s) {
     return (persons_t)(s-PERSON_TABLE);
 }
 
-const person_t* person_spouse(const person_t* s) { return &PERSON_TABLE[s->spouse_];}
-bool person_father(const person_t* s, const person_t** ptr) {
-    if( s->father_) {
-        *ptr = &PERSON_TABLE[s->father_-1];
-        return true;
-    }
-    return false;
-}
-bool person_mother(const person_t* s, const person_t** ptr) {
-    if( s->mother_) {
-        *ptr = &PERSON_TABLE[s->mother_-1];
-        return true;
-    }
-    return false;
-}
 const strencoding_t STRENCODING_TABLE[STRENCODING_TABLE_COUNT] = {
    {"𝒾ň𝗌яčḓẚᵵᶏ : 𝔢ᶆḃ℮𝚍 ᶌ𝖔ừᵳ ⅆằƫⱥ", },
    {"hello", },
@@ -50,6 +35,21 @@ static uint8_t STRENCODING_TEXT_INDEX   [STRENCODING_TEXT_INDEX_COUNT] = {
     1, 4, 2, 5, 3, 0, 
 };
 
+const person_t* person_spouse(const person_t* s) { return &PERSON_TABLE[s->spouse_];}
+bool person_father(const person_t* s, const person_t** ptr) {
+    if( s->father_) {
+        *ptr = &PERSON_TABLE[s->father_-1];
+        return true;
+    }
+    return false;
+}
+bool person_mother(const person_t* s, const person_t** ptr) {
+    if( s->mother_) {
+        *ptr = &PERSON_TABLE[s->mother_-1];
+        return true;
+    }
+    return false;
+}
 strencoding_iter_t  strencoding_text_range( const char* start, const char* stop) {
     uint8_t* lo = STRENCODING_TEXT_INDEX;
     uint8_t*  hi = STRENCODING_TEXT_INDEX + STRENCODING_TEXT_INDEX_COUNT;

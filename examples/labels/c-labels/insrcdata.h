@@ -21,4 +21,5 @@ typedef enum {
     LABELS_SHOUTY_KEBAB_CASE = 8,
     LABELS_TRAIN_CASE = 9,
 } labels_t;
+
 #endif //  INSRCDATA_H 

@@ -44,7 +44,6 @@ static uint8_t SUBREGION_REGION_INDEX   [SUBREGION_REGION_INDEX_COUNT] = {
      0,  7, 12, 13, 16,  1,  2,  9, 10,  3,  5,  4,  8, 14, 15,  6, 11, 
 };
 
-const region_t* subregion_region(const subregion_t* s) { return &REGION_TABLE[s->region_];}
 const country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
    {"Afghanistan", "AF", "AFG", 4, 1, },
    {"Åland Islands", "AX", "ALA", 248, 2, },
@@ -358,6 +357,71 @@ countries_t country_countries(const country_t *s) {
     return (countries_t)(s-COUNTRY_TABLE);
 }
 
+subregion_iter_t region_subregions(const region_t* s) {
+    long cons = s - REGION_TABLE;
+
+    // bissect left
+    uint8_t* lo = SUBREGION_REGION_INDEX;
+    uint8_t* hi = SUBREGION_REGION_INDEX + SUBREGION_REGION_INDEX_COUNT;
+   
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if ( cons > SUBREGION_TABLE[*mid].region_ ) {
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+    uint8_t* begin = lo;
+
+    // bissect-right
+    hi = SUBREGION_REGION_INDEX +  SUBREGION_REGION_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if( cons < SUBREGION_TABLE[*mid].region_ )  {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+     }
+
+    subregion_iter_t res = {  begin,  lo };
+    return res;
+}
+
+const region_t* subregion_region(const subregion_t* s) { return &REGION_TABLE[s->region_];}
+country_iter_t subregion_countries(const subregion_t* s) {
+    long cons = s - SUBREGION_TABLE + 1;
+
+    // bissect left
+    uint8_t* lo = COUNTRY_SUBREGION_INDEX;
+    uint8_t* hi = COUNTRY_SUBREGION_INDEX + COUNTRY_SUBREGION_INDEX_COUNT;
+   
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if ( cons > COUNTRY_TABLE[*mid].subregion_ ) {
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+    uint8_t* begin = lo;
+
+    // bissect-right
+    hi = COUNTRY_SUBREGION_INDEX +  COUNTRY_SUBREGION_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if( cons < COUNTRY_TABLE[*mid].subregion_ )  {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+     }
+
+    country_iter_t res = {  begin,  lo };
+    return res;
+}
+
 country_iter_t  country_alpha3_range( const char* start, const char* stop) {
     uint8_t* lo = COUNTRY_ALPHA3_INDEX;
     uint8_t*  hi = COUNTRY_ALPHA3_INDEX + COUNTRY_ALPHA3_INDEX_COUNT;
@@ -417,67 +481,3 @@ bool country_subregion(const country_t* s, const subregion_t** ptr) {
     }
     return false;
 }
-subregion_iter_t region_subregions(const region_t* s) {
-    long cons = s - REGION_TABLE;
-
-    // bissect left
-    uint8_t* lo = SUBREGION_REGION_INDEX;
-    uint8_t* hi = SUBREGION_REGION_INDEX + SUBREGION_REGION_INDEX_COUNT;
-   
-    while( lo < hi ){
-        uint8_t*  mid =  lo + ( hi-lo)/2;
-        if ( cons > SUBREGION_TABLE[*mid].region_ ) {
-             lo = mid + 1;
-        } else {
-             hi = mid;
-        }
-    }
-    uint8_t* begin = lo;
-
-    // bissect-right
-    hi = SUBREGION_REGION_INDEX +  SUBREGION_REGION_INDEX_COUNT;
-    while( lo < hi ){
-        uint8_t*  mid =  lo + ( hi-lo)/2;
-        if( cons < SUBREGION_TABLE[*mid].region_ )  {
-            hi = mid;
-        } else {
-            lo = mid + 1;
-        }
-     }
-
-    subregion_iter_t res = {  begin,  lo };
-    return res;
-}
-
-country_iter_t subregion_countries(const subregion_t* s) {
-    long cons = s - SUBREGION_TABLE + 1;
-
-    // bissect left
-    uint8_t* lo = COUNTRY_SUBREGION_INDEX;
-    uint8_t* hi = COUNTRY_SUBREGION_INDEX + COUNTRY_SUBREGION_INDEX_COUNT;
-   
-    while( lo < hi ){
-        uint8_t*  mid =  lo + ( hi-lo)/2;
-        if ( cons > COUNTRY_TABLE[*mid].subregion_ ) {
-             lo = mid + 1;
-        } else {
-             hi = mid;
-        }
-    }
-    uint8_t* begin = lo;
-
-    // bissect-right
-    hi = COUNTRY_SUBREGION_INDEX +  COUNTRY_SUBREGION_INDEX_COUNT;
-    while( lo < hi ){
-        uint8_t*  mid =  lo + ( hi-lo)/2;
-        if( cons < COUNTRY_TABLE[*mid].subregion_ )  {
-            hi = mid;
-        } else {
-            lo = mid + 1;
-        }
-     }
-
-    country_iter_t res = {  begin,  lo };
-    return res;
-}
-
