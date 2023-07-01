@@ -1,0 +1,57 @@
+dest ="../rust-minister/src/insrcdata.rs"
+
+   # --- Ministers
+[[table]]
+src = "minister.csv"
+name = 'Minister'
+ 
+[[table.col]]
+name = 'ministers'
+src = 'identifier'
+format = 'label'
+
+ 
+[[table.col]]
+name = 'name'
+ 
+
+[[table.col]]
+name = 'birth'
+format = 'u16'
+range=true
+
+[[table.join]]
+name = 'country'
+src = 'country'
+to = 'country'
+external = 'Country'
+reverse = 'ministers'
+
+
+   # --- Country
+ 
+[[table]]
+src = "minister.csv"
+name = 'Country'
+
+[[table.col]]
+name = 'code'
+src = 'country'
+single = true
+ 
+[[table.col]]
+name = 'name'
+src = 'country name'
+
+[[table.col]]
+name = 'countries'
+src = 'country'
+format = 'label'
+
+
+ 
+ 
+
+
+
+ 
