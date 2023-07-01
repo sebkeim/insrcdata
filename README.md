@@ -79,4 +79,4 @@ Source code is available under GNU General Public License  v3.0 or later.
 
 Output files **generated** by insrcdata are not covered by the GNU GPL, and can be distributed under any license of the user's choice, while respecting the copyright of the input data.
   
-
+Contact : [insrcdata@gmail.com](mailto:insrcdata@gmail.com)

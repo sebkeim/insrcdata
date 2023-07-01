@@ -2,12 +2,14 @@
 name = "insrcdata"
 version = "0.1.0"
 edition = "2021"
-repository = "https://github.com/sebkeim/insrcdata"
 description = "Embed static data as source code" 
 license = "GPL-3.0-or-later"
 categories = [ "data-structures", "command-line-utilities"]
-keywords = ["cli", "array"]
-
+keywords = ["source", "constants", "array"]
+repository = "https://github.com/sebkeim/insrcdata"
+documentation = "https://github.com/sebkeim/insrcdata/wiki"
+homepage = "https://www.insrcdata.org"
+authors = ["Sebastien Keim <insrcdata@gmail.com>"]
 
 [dependencies]
 toml = "0.7.3"
