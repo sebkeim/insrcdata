@@ -6,9 +6,11 @@
 // using the [crate toml](https://docs.rs/toml/)
 //
 
+use crate::language::Language;
 use crate::table::Project;
 use crate::{
-    aperror, basetype, colint, coljoin, collabel, colstr, langrust, language, lint, log, table,
+    aperror, basetype, colint, coljoin, collabel, colobject, colstr, langrust, language, lint, log,
+    table,
 };
 use csv::StringRecord;
 use std::collections::{HashMap, HashSet};
@@ -54,8 +56,26 @@ impl Runtime<'_> {
 }
 
 // ================================================================================================
+//  [[table.col.target]]
+// ================================================================================================
+#[derive(Deserialize)]
+struct Target {
+    /// generated language
+    lang: String,
+    /// data type
+    r#type: String,
+    /// transformer
+    template: Option<String>,
+    /// global directive
+    import: Option<String>,
+}
+
+// ================================================================================================
 //  [[table.col]]
 // ================================================================================================
+struct ColContext<'a> {
+    table_context: &'a TableContext<'a>,
+}
 
 /// data column definition
 #[derive(Deserialize)]
@@ -70,8 +90,10 @@ struct Col {
     range: Option<bool>,
     /// deduplicate similar rows
     single: Option<bool>,
+    /// target
+    target: Option<Vec<Target>>,
 }
-
+static EMPTY_TARGET: Vec<Target> = vec![];
 impl Col {
     /// generate column for integer type value
     fn create_int(
@@ -96,11 +118,47 @@ impl Col {
         )))
     }
 
+    fn target(&self, lang: &str) -> Option<&Target> {
+        for target in self.target.as_ref().unwrap_or(&EMPTY_TARGET) {
+            if target.lang == lang {
+                return Some(target);
+            }
+        }
+        None
+    }
+
+    fn create_object(
+        &self,
+        strvals: &Vec<String>,
+        ctx: &ColContext,
+    ) -> aperror::Result<Box<dyn table::Column>> {
+        let lang = ctx.table_context.lang.extension();
+        let Some(target) = self.target(&lang) else {
+            return Err(aperror::Error::new(&format!("target language {} not defined for column {}", lang, self.name)));
+        };
+        let template = match &target.template {
+            None => "{}",
+            Some(v) => v.as_str(),
+        };
+        let import = match &target.import {
+            None => "",
+            Some(v) => v.as_str(),
+        };
+        Ok(Box::new(colobject::ColObject::new(
+            &self.name,
+            strvals.clone(),
+            &target.r#type,
+            template,
+            import,
+        )))
+    }
+
     /// generate column object from configuration
     fn create(
         &self,
         table: &Table,
         tablecols: &HashMap<String, Vec<String>>,
+        ctx: &ColContext,
     ) -> aperror::Result<Box<dyn table::Column>> {
         // retrieve src values
         let src = self.src_name();
@@ -108,6 +166,8 @@ impl Col {
         let Some(strvals) = tablecols.get(&key) else {
             return Err(aperror::Error::new(&format!("column not found {}", key)));
         };
+
+        //let runtime = ctx.tableContext.configContext.runtime;
 
         // generate column from flied type
         let default_format = "str".to_string();
@@ -130,7 +190,11 @@ impl Col {
                 &self.name,
                 strvals.clone(),
             ))),
-            _ => Err(aperror::Error::new("unknown column type")),
+            "object" => self.create_object(strvals, ctx),
+            _ => Err(aperror::Error::new(&format!(
+                "unknown column type '{}'",
+                format
+            ))),
         }
     }
 
@@ -199,6 +263,10 @@ impl Join {
 // ================================================================================================
 // [[table]]
 // ================================================================================================
+struct TableContext<'a> {
+    config_context: &'a ConfigContext<'a>,
+    lang: &'static dyn Language,
+}
 
 #[derive(Deserialize)]
 struct Table {
@@ -326,14 +394,16 @@ impl Table {
     }
 
     /// create table object
-    fn create(&self, tablecols: &HashMap<String, Vec<String>>, runtime: &Runtime) -> table::Table {
+    fn create(&self, tablecols: &HashMap<String, Vec<String>>, ctx: &TableContext) -> table::Table {
         let _sorted = self.sorted; // silent dead code warning until the option is actually used
 
         let mut columns = vec![];
+        let runtime = ctx.config_context.runtime;
 
+        let col_context = ColContext { table_context: ctx };
         let cols = self.col.as_ref().unwrap_or(&EMPTY_COLS);
         for col in cols {
-            let res = col.create(self, tablecols);
+            let res = col.create(self, tablecols, &col_context);
             match res {
                 Ok(c) => columns.push(c),
                 Err(_) => runtime.linter.check_result(&self.name, res),
@@ -382,10 +452,14 @@ struct Config {
     dest: Option<String>,
     table: Vec<Table>,
 }
-
+struct ConfigContext<'a> {
+    runtime: &'a Runtime<'a>,
+    project_modified: SystemTime,
+}
 impl Config {
     /// read columns values for all tables of project
-    fn read_values(&self, indir: &Path, runtime: &Runtime) -> HashMap<String, Vec<String>> {
+    fn read_values(&self, runtime: &Runtime) -> HashMap<String, Vec<String>> {
+        let indir = runtime.indir_path();
         let mut tablecols: HashMap<String, Vec<String>> = HashMap::new();
         for table in &self.table {
             let result = table.read_values(indir, &mut tablecols);
@@ -404,8 +478,7 @@ impl Config {
                         Some(name) => name.to_os_string().into_string().unwrap(),
                         None => "unnamed".to_string(),
                     };
-                    let lang = langrust::RUST;
-                    format!("{}.{}", defaultname, lang.extension())
+                    format!("{}.{}", defaultname, langrust::RUST.extension())
                 }
             }
         } else {
@@ -420,25 +493,29 @@ impl Config {
     }
 
     /// create project object
-    fn project(&self, runtime: &Runtime, project_modified: SystemTime) -> aperror::Result<Project> {
-        let values = self.read_values(runtime.indir_path(), runtime);
-        let mut tables = vec![];
-        for table in &self.table {
-            let t = table.create(&values, runtime);
-            tables.push(t);
-        }
-
-        let dst_path = self.dst_path(runtime);
+    fn project(&self, ctx: &ConfigContext) -> aperror::Result<Project> {
+        let dst_path = self.dst_path(ctx.runtime);
 
         let lang = language::language_for_dest(dst_path.clone());
+
+        let values = self.read_values(ctx.runtime);
+        let mut tables = vec![];
+        let table_context = TableContext {
+            config_context: ctx,
+            lang: lang,
+        };
+        for table in &self.table {
+            let t = table.create(&values, &table_context);
+            tables.push(t);
+        }
 
         let table_modified = self
             .table
             .iter()
-            .map(|x| x.last_modified(runtime.indir_path()))
+            .map(|x| x.last_modified(ctx.runtime.indir_path()))
             .max()
-            .unwrap_or(project_modified);
-        let src_modified = std::cmp::max(project_modified, table_modified);
+            .unwrap_or(ctx.project_modified);
+        let src_modified = std::cmp::max(ctx.project_modified, table_modified);
 
         let project = Project {
             dst_path,
@@ -460,7 +537,6 @@ impl Config {
 pub fn read(runtime: &Runtime) -> aperror::Result<Project> {
     let metadata =
         aperror::io_error_result(fs::metadata(runtime.projectpath), runtime.projectpath)?;
-    let project_modified = metadata.modified()?;
 
     let contents =
         aperror::io_error_result(fs::read_to_string(runtime.projectpath), runtime.projectpath)?;
@@ -469,6 +545,10 @@ pub fn read(runtime: &Runtime) -> aperror::Result<Project> {
         Ok(file) => Ok(file),
         Err(error) => Err(aperror::Error::new(error.message())),
     }?;
-
-    config.project(runtime, project_modified)
+    let project_modified = metadata.modified()?;
+    let context = ConfigContext {
+        runtime: runtime,
+        project_modified: project_modified,
+    };
+    config.project(&context)
 }

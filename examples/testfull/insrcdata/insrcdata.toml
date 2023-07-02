@@ -34,6 +34,9 @@ name = 'Persons'
 src = 'ref'
 format = 'label'
 
+
+#    ---- table encoding
+
 [[table]]
 name = "strencoding"
 src = "strencoding.csv"
@@ -42,3 +45,24 @@ array = true
 [[table.col]]
 name = 'text'
 range = true
+
+#    ---- table lettercase
+
+[[table]]
+name = "lettercase"
+src = "lettercase.csv"
+
+[[table.col]]
+name = 'name'
+
+[[table.col]]
+name = 'lettercases'
+src= "label"
+format = 'label'
+
+[[table.col]]
+name = 'transformer'
+format = 'object'
+target = [ { lang= 'rs', type = 'fn(&str)->String', template="co::{}", import='crate::colobject as co'  },
+           { lang= 'c', type = 'transformer_t*', import='colobject.h'  },
+         ]

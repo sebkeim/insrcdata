@@ -131,3 +131,39 @@ pub static TEXT_INDEX : [ u8 ; 6 ] = [
 } // mod strencoding
 
 pub use strencoding::IndexIter as StrencodingIter;
+#[derive(Clone, Copy)]
+pub enum Lettercases {
+    Capital = 0,
+    Upper = 1,
+    Lower = 2,
+}
+impl Deref for Lettercases {
+    type Target =  Lettercase;
+    fn deref(&self) -> &'static Lettercase {
+        &lettercase::TABLE[*self as usize]
+    }
+}
+pub struct Lettercase {
+    name_ : &'static str,
+    transformer_ : fn(&str)->String,
+}
+impl Lettercase {
+    pub fn name(&self) -> &'static str { self.name_ }
+    pub fn transformer(&self) -> fn(&str)->String { self.transformer_ }
+}
+
+mod lettercase {
+use crate::colobject as co;
+
+const fn r(name:&'static str, transformer:fn(&str)->String, ) -> super::Lettercase {
+    super::Lettercase{name_:name, transformer_:transformer, }
+}
+
+pub static TABLE : [ super::Lettercase ; 3 ] = [
+   {r("Capitalised case", co::make_capitalize, )},
+   {r("Upper case", co::make_upper, )},
+   {r("Lower case", co::make_lower, )},
+];
+
+} // mod lettercase
+

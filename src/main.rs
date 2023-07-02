@@ -15,6 +15,7 @@ mod collabel;
 mod colstr;
 mod config;
 
+mod colobject;
 mod langc;
 mod langrust;
 mod language;

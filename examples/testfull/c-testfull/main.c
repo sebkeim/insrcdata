@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 // Inner join is when your join column reference a record in the same table
 void  test_innerjoin(void) {
@@ -78,6 +79,31 @@ void  test_strencoding(void) {
 }
 
 
+// object type column : reference to native objects
+extern void make_capitalize(char* str) {
+      if( *str ){
+            *str = toupper(*str);
+      }
+}
+extern void make_upper(char* str) {
+      for( ;*str ; str++ ){
+            *str = toupper(*str);
+      }
+}
+extern void make_lower(char*str) {
+      for( ;*str ; str++ ){
+            *str = tolower(*str);
+      }
+}
+
+void  test_colobject(void) {
+      char  hello[] = "hello";
+      const lettercase_t* upper = lettercase_from_lettercases(LETTERCASES_UPPER);
+      transformer_t* upper_transformer = lettercase_transformer(upper);
+      upper_transformer(hello);
+      assert( strcmp(hello, "HELLO")==0 );
+}
+
 int main(void) {
       // the join column reference a record in the same table
       test_innerjoin();
@@ -87,6 +113,9 @@ int main(void) {
       
       // check string comparison for various encoded unicode strings
       test_strencoding();
+      
+      // object type column : reference to native objects
+      test_colobject();
       return 0;
 }
 

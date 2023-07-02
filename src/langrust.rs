@@ -29,6 +29,7 @@ fn strtype(typ: &basetype::BaseType) -> String {
             mincard: _,
             maxcard: _,
         } => "TODO",
+        basetype::BaseType::Object { objtype } => objtype,
     })
 }
 fn argtype(typ: &basetype::BaseType) -> String {
@@ -498,7 +499,12 @@ fn impl_table_data(
 
     // begin module private
     let modname = mod_name(&strname);
-    write!(output, "mod {} {{\n\n", modname)?;
+    write!(output, "mod {} {{\n", modname)?;
+
+    for import in table.imports() {
+        writeln!(output, "use {import};")?;
+    }
+    writeln!(output, "")?;
 
     if project.table_need_iter(table) {
         write_iter_index_struct(&strname, output)?;
@@ -565,8 +571,10 @@ impl language::Language for Rust {
             output,
             "// {notice}
 
-#![allow(dead_code)]\n#![allow(unused_variables)]" // TODO : remove this
+#![allow(dead_code)]
+#![allow(unused_variables)]"
         )?;
+        // TODO : remove allow(dead_code)
 
         if project.has_deref_labels() {
             writeln!(output, "use std::ops::Deref;")?;
@@ -578,6 +586,7 @@ impl language::Language for Rust {
         Ok(())
     }
 
+    // print definition of traits
     fn interface(&self, project: &table::Project) -> aperror::Result<()> {
         let output = &mut io::stdout() as &mut dyn io::Write;
 

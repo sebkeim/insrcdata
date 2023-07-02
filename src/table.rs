@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 // insrcdata : embed tabular data in source code (https://github.com/sebkeim/insrcdata)
 // Copyright (c)  2023 Sébastien Keim
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -57,6 +58,8 @@ pub trait Column {
     fn reverse_name(&self) -> String {
         "".to_string()
     }
+
+    fn fill_import(&self, _out: &mut HashSet<String>) {}
 }
 
 // ================================================================================================
@@ -154,6 +157,14 @@ impl Table {
     pub fn index_type(&self) -> basetype::BaseType {
         basetype::int_type_for_range(0, self.len as i64)
     }
+
+    pub fn imports(&self) -> HashSet<String> {
+        let mut imports: HashSet<String> = HashSet::new();
+        for col in &self.columns {
+            col.fill_import(&mut imports);
+        }
+        imports
+    }
 }
 
 // ================================================================================================
@@ -247,5 +258,15 @@ impl Project {
             }
         }
         columns
+    }
+
+    pub fn imports(&self) -> HashSet<String> {
+        let mut imports: HashSet<String> = HashSet::new();
+        for table in &self.tables {
+            for col in &table.columns {
+                col.fill_import(&mut imports);
+            }
+        }
+        imports
     }
 }

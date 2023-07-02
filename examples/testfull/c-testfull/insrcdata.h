@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "colobject.h"
 
 typedef struct  {
     const char* name_;
@@ -20,6 +21,11 @@ static unsigned const STRENCODING_TABLE_COUNT = 6;
 extern const strencoding_t STRENCODING_TABLE[STRENCODING_TABLE_COUNT];
 typedef struct { uint8_t* ptr; uint8_t* end; } strencoding_iter_t;
 extern const strencoding_t* strencoding_next(strencoding_iter_t* idx);
+
+typedef struct  {
+    const char* name_;
+    transformer_t* transformer_;
+} lettercase_t;
 
 
 
@@ -42,5 +48,18 @@ extern bool person_mother(const person_t* s, const person_t** ptr);
 // ------    
 static inline const char* strencoding_text(const strencoding_t* s) { return s->text_; }
 extern strencoding_iter_t  strencoding_text_range( const char* start, const char* stop);
+
+
+// ------    
+typedef enum {
+    LETTERCASES_CAPITAL = 0,
+    LETTERCASES_UPPER = 1,
+    LETTERCASES_LOWER = 2,
+} lettercases_t;
+const lettercase_t* lettercase_from_lettercases(lettercases_t label);
+lettercases_t lettercase_lettercases(const lettercase_t *s);
+            
+static inline const char* lettercase_name(const lettercase_t* s) { return s->name_; }
+static inline transformer_t* lettercase_transformer(const lettercase_t* s) { return s->transformer_; }
 
 #endif //  INSRCDATA_H 

@@ -66,9 +66,9 @@ format = 'str'
 # optional : default to false
 range = false
 
-# if several rows have the same value for this column, only the firs row is kept
+# if several rows have the same value for this column, only the first row is kept
 # rows with empty values are skipped
-# you can set this flag for several columns of the table: row will be skipped if all the columns are equals
+# you can set this flag for several columns of the table: the row will be skipped if all the columns are equal
 # optional : default to false
 single = false
 

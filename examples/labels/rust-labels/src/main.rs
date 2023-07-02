@@ -5,7 +5,6 @@ mod insrcdata;
 /// This sample show how to define a minimal project, that will only generate labels wich will
 /// be used to link to external data
 /// This model is also known as the mixed data model
-/// TODO: struct Inexata and TABLE are useless and must not be generated
 
 /// This table simulate external data
 /// In real life application this could be for sample user-edited values stored in a database

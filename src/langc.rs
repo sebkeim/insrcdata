@@ -30,12 +30,15 @@ fn strtype(typ: &basetype::BaseType) -> String {
             mincard: _,
             maxcard: _,
         } => "TODO",
+        basetype::BaseType::Object { objtype } => objtype,
     })
 }
 
 fn gt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        basetype::BaseType::Label | basetype::BaseType::Join { .. } => "todo".to_string(),
+        basetype::BaseType::Label
+        | basetype::BaseType::Join { .. }
+        | basetype::BaseType::Object { .. } => "todo".to_string(),
         basetype::BaseType::I8
         | basetype::BaseType::I16
         | basetype::BaseType::I32
@@ -50,7 +53,9 @@ fn gt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
 
 fn lt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        basetype::BaseType::Label | basetype::BaseType::Join { .. } => "todo".to_string(),
+        basetype::BaseType::Label
+        | basetype::BaseType::Join { .. }
+        | basetype::BaseType::Object { .. } => "todo".to_string(),
         basetype::BaseType::I8
         | basetype::BaseType::I16
         | basetype::BaseType::I32
@@ -573,7 +578,7 @@ fn header_project(project: &table::Project) -> aperror::Result<()> {
 
     let include_guard = project.name().to_shouty_snake_case();
     let notice = language::file_notice();
-    write!(
+    writeln!(
         output,
         "// {notice}
 
@@ -581,8 +586,12 @@ fn header_project(project: &table::Project) -> aperror::Result<()> {
 #define INSRCDATA_{include_guard}_H
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>\n\n"
+#include <stdbool.h>"
     )?;
+    for import in project.imports() {
+        writeln!(output, "#include \"{import}\"")?;
+    }
+    writeln!(output, "")?;
 
     for table in &project.tables {
         header_table_types(project, table, output)?;
@@ -602,12 +611,13 @@ fn impl_project(project: &table::Project) -> aperror::Result<()> {
         aperror::io_error_result(fs::File::create(&project.dst_path), &project.dst_path)?;
     let output = (&mut outfile) as &mut dyn io::Write;
     let notice = language::file_notice();
-    write!(
+    writeln!(
         output,
         "// {notice}
 
 #include \"{filename}.h\"
-#include <string.h> \n\n"
+#include <string.h>
+"
     )?;
 
     for table in &project.tables {

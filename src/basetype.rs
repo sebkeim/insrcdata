@@ -25,6 +25,9 @@ pub enum BaseType {
         mincard: usize,
         maxcard: usize,
     },
+    Object {
+        objtype: String,
+    },
 }
 
 // Integer type
@@ -72,6 +75,7 @@ impl BaseType {
             BaseType::U64 => u64::MAX as usize,
             BaseType::Str => 0,
             BaseType::Join { .. } => 0,
+            BaseType::Object { .. } => 0,
         }
     }
 
@@ -88,6 +92,7 @@ impl BaseType {
             BaseType::U64 => u64::MIN as isize,
             BaseType::Str => 0,
             BaseType::Join { .. } => 0,
+            BaseType::Object { .. } => 0,
         }
     }
 
@@ -102,7 +107,8 @@ impl BaseType {
             | BaseType::U16
             | BaseType::U32
             | BaseType::U64
-            | BaseType::Str => TypeImpl::Scalar,
+            | BaseType::Str
+            | BaseType::Object { .. } => TypeImpl::Scalar,
             BaseType::Join {
                 strname: _,
                 mincard,
@@ -141,6 +147,7 @@ impl fmt::Display for BaseType {
                 mincard,
                 maxcard,
             } => write!(f, "join({},{},{})", strname, mincard, maxcard),
+            BaseType::Object { objtype } => write!(f, "object({})", objtype),
         }
     }
 }

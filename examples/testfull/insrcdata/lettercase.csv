@@ -1,0 +1,4 @@
+name,label,transformer
+Capitalised case, CAPITAL,make_capitalize
+Upper case,UPPER,make_upper
+Lower case,LOWER,make_lower
