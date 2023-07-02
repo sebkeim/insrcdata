@@ -119,17 +119,16 @@ impl Col {
     }
 
     fn target(&self, lang: &str) -> Option<&Target> {
-        for target in self.target.as_ref().unwrap_or(&EMPTY_TARGET) {
-            if target.lang == lang {
-                return Some(target);
-            }
-        }
-        None
+        self.target
+            .as_ref()
+            .unwrap_or(&EMPTY_TARGET)
+            .iter()
+            .find(|&target| target.lang == lang)
     }
 
     fn create_object(
         &self,
-        strvals: &Vec<String>,
+        strvals: &[String],
         ctx: &ColContext,
     ) -> aperror::Result<Box<dyn table::Column>> {
         let lang = ctx.table_context.lang.extension();
@@ -146,7 +145,7 @@ impl Col {
         };
         Ok(Box::new(colobject::ColObject::new(
             &self.name,
-            strvals.clone(),
+            strvals.to_owned(),
             &target.r#type,
             template,
             import,
@@ -502,7 +501,7 @@ impl Config {
         let mut tables = vec![];
         let table_context = TableContext {
             config_context: ctx,
-            lang: lang,
+            lang,
         };
         for table in &self.table {
             let t = table.create(&values, &table_context);
@@ -547,8 +546,8 @@ pub fn read(runtime: &Runtime) -> aperror::Result<Project> {
     }?;
     let project_modified = metadata.modified()?;
     let context = ConfigContext {
-        runtime: runtime,
-        project_modified: project_modified,
+        runtime,
+        project_modified,
     };
     config.project(&context)
 }

@@ -499,12 +499,12 @@ fn impl_table_data(
 
     // begin module private
     let modname = mod_name(&strname);
-    write!(output, "mod {} {{\n", modname)?;
+    writeln!(output, "mod {} {{", modname)?;
 
     for import in table.imports() {
         writeln!(output, "use {import};")?;
     }
-    writeln!(output, "")?;
+    writeln!(output)?;
 
     if project.table_need_iter(table) {
         write_iter_index_struct(&strname, output)?;

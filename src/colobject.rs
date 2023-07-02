@@ -39,7 +39,7 @@ impl table::Column for ColObject {
     }
 
     fn fill_import(&self, out: &mut HashSet<String>) {
-        if self.import.len() > 0 {
+        if !self.import.is_empty() {
             out.insert(self.import.to_string());
         }
     }
@@ -65,7 +65,7 @@ impl ColObject {
                 },
                 iterable: false,
             },
-            values: values,
+            values,
             template: template.to_string(),
             import: import.to_string(),
         }

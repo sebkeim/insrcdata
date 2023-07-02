@@ -591,7 +591,7 @@ fn header_project(project: &table::Project) -> aperror::Result<()> {
     for import in project.imports() {
         writeln!(output, "#include \"{import}\"")?;
     }
-    writeln!(output, "")?;
+    writeln!(output)?;
 
     for table in &project.tables {
         header_table_types(project, table, output)?;

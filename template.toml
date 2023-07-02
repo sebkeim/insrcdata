@@ -72,6 +72,10 @@ range = false
 # optional : default to false
 single = false
 
+# for object format column
+# specify implementation for each target language
+target = [ { lang= 'rs', type = '...', template="...{}...", import='...'  }, ]
+
 
 #
 # Level 3 : join
