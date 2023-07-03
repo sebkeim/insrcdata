@@ -1,4 +1,4 @@
-name,label,transformer
-Capitalised case, CAPITAL,make_capitalize
-Upper case,UPPER,make_upper
-Lower case,LOWER,make_lower
+name,label,transformer,point
+Capitalised case, CAPITAL,make_capitalize,ZERO
+Upper case,UPPER,make_upper,ONE
+Lower case,LOWER,make_lower,ONE

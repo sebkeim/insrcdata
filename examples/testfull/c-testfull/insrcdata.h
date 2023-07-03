@@ -25,6 +25,7 @@ extern const strencoding_t* strencoding_next(strencoding_iter_t* idx);
 typedef struct  {
     const char* name_;
     transformer_t* transformer_;
+    const point_t* point_;
 } lettercase_t;
 
 
@@ -61,5 +62,6 @@ lettercases_t lettercase_lettercases(const lettercase_t *s);
             
 static inline const char* lettercase_name(const lettercase_t* s) { return s->name_; }
 static inline transformer_t* lettercase_transformer(const lettercase_t* s) { return s->transformer_; }
+static inline const point_t* lettercase_point(const lettercase_t* s) { return s->point_; }
 
 #endif //  INSRCDATA_H 

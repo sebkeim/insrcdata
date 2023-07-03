@@ -146,23 +146,25 @@ impl Deref for Lettercases {
 pub struct Lettercase {
     name_ : &'static str,
     transformer_ : fn(&str)->String,
+    point_ : &'static crate::colobject::Point,
 }
 impl Lettercase {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn transformer(&self) -> fn(&str)->String { self.transformer_ }
+    pub fn point(&self) -> &'static crate::colobject::Point { self.point_ }
 }
 
 mod lettercase {
 use crate::colobject as co;
 
-const fn r(name:&'static str, transformer:fn(&str)->String, ) -> super::Lettercase {
-    super::Lettercase{name_:name, transformer_:transformer, }
+const fn r(name:&'static str, transformer:fn(&str)->String, point:&'static crate::colobject::Point, ) -> super::Lettercase {
+    super::Lettercase{name_:name, transformer_:transformer, point_:point, }
 }
 
 pub static TABLE : [ super::Lettercase ; 3 ] = [
-   {r("Capitalised case", co::make_capitalize, )},
-   {r("Upper case", co::make_upper, )},
-   {r("Lower case", co::make_lower, )},
+   {r("Capitalised case", co::make_capitalize, &co::ZERO, )},
+   {r("Upper case", co::make_upper, &co::ONE, )},
+   {r("Lower case", co::make_lower, &co::ONE, )},
 ];
 
 } // mod lettercase

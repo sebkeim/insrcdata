@@ -96,12 +96,23 @@ extern void make_lower(char*str) {
       }
 }
 
+const point_t POINT_ZERO = {.0, .0};
+const point_t POINT_ONE = {1.0, 1.0};
+
 void  test_colobject(void) {
-      char  hello[] = "hello";
+      char  hello1[] = "hello";
       const lettercase_t* upper = lettercase_from_lettercases(LETTERCASES_UPPER);
       transformer_t* upper_transformer = lettercase_transformer(upper);
-      upper_transformer(hello);
-      assert( strcmp(hello, "HELLO")==0 );
+      upper_transformer(hello1);
+      assert( strcmp(hello1, "HELLO")==0 );
+      assert(  lettercase_point(upper)->x==1.0);
+      
+      char  hello2[] = "hello";
+      const lettercase_t* capital = lettercase_from_lettercases(LETTERCASES_CAPITAL);
+      transformer_t* capital_transformer = lettercase_transformer(capital);
+      capital_transformer(hello2);
+      assert( strcmp(hello2, "Hello")==0 );
+      assert(  lettercase_point(capital)->x==0.0);
 }
 
 int main(void) {

@@ -37,9 +37,9 @@ static uint8_t STRENCODING_TEXT_INDEX   [STRENCODING_TEXT_INDEX_COUNT] = {
 
 static unsigned const LETTERCASE_TABLE_COUNT = 3;
 static const lettercase_t LETTERCASE_TABLE[LETTERCASE_TABLE_COUNT] = {
-   {"Capitalised case", make_capitalize, },
-   {"Upper case", make_upper, },
-   {"Lower case", make_lower, },
+   {"Capitalised case", make_capitalize, &POINT_ZERO, },
+   {"Upper case", make_upper, &POINT_ONE, },
+   {"Lower case", make_lower, &POINT_ONE, },
 };
 
 const lettercase_t* lettercase_from_lettercases(lettercases_t label) {
