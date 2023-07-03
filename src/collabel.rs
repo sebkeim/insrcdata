@@ -20,9 +20,13 @@ impl table::Column for ColLabel {
         &self.info
     }
 
-    fn emit_table_cell(&self, row: usize) -> String {
+    fn emit_table_cell(&self, _row: usize) -> String {
+        "EMIT_TABLE_CELL_UNSUPORTED".to_string()
+    }
+    fn emit_label(&self, row: usize) -> String {
         self.labels[row].to_string()
     }
+
     fn indexes(&self) -> Vec<usize> {
         vec![]
     }
@@ -48,10 +52,14 @@ impl ColLabel {
     pub fn new(namespace: &str, labels: Vec<String>) -> ColLabel {
         ColLabel {
             info: table::ColumnInfo {
-                name: namespace.to_string(),
+                name: "".to_string(),
                 len: labels.len(),
-                interface_type: basetype::BaseType::Label,
-                table_type: basetype::BaseType::Label,
+                interface_type: basetype::BaseType::Label {
+                    name: namespace.to_string(),
+                },
+                table_type: basetype::BaseType::Label {
+                    name: namespace.to_string(),
+                },
                 iterable: false,
             },
             labels,

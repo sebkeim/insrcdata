@@ -135,20 +135,16 @@ impl Col {
         let Some(target) = self.target(&lang) else {
             return Err(aperror::Error::new(&format!("target language {} not defined for column {}", lang, self.name)));
         };
-        let template = match &target.template {
-            None => "{}",
-            Some(v) => v.as_str(),
-        };
-        let import = match &target.import {
-            None => "",
-            Some(v) => v.as_str(),
-        };
+
+        let default_template = "{}".to_string();
+        let default_import = "".to_string();
+
         Ok(Box::new(colobject::ColObject::new(
             &self.name,
             strvals.to_owned(),
             &target.r#type,
-            template,
-            import,
+            target.template.as_ref().unwrap_or(&default_template),
+            target.import.as_ref().unwrap_or(&default_import),
         )))
     }
 
@@ -168,13 +164,13 @@ impl Col {
 
         //let runtime = ctx.tableContext.configContext.runtime;
 
-        // generate column from flied type
+        // generate column from field type
         let default_format = "str".to_string();
         let format = self.format.as_ref().unwrap_or(&default_format);
         match format.as_str() {
             "str" => Ok(Box::new(colstr::ColStr::new(
                 &self.name,
-                strvals.clone(),
+                strvals.to_owned(),
                 self.range.unwrap_or(false),
             ))),
             "i8" => self.create_int(strvals, basetype::BaseType::I8),
@@ -187,7 +183,7 @@ impl Col {
             "u64" => self.create_int(strvals, basetype::BaseType::U64),
             "label" => Ok(Box::new(collabel::ColLabel::new(
                 &self.name,
-                strvals.clone(),
+                strvals.to_owned(),
             ))),
             "object" => self.create_object(strvals, ctx),
             _ => Err(aperror::Error::new(&format!(

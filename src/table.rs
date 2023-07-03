@@ -50,6 +50,9 @@ pub trait Column {
     fn info(&self) -> &ColumnInfo;
 
     fn emit_table_cell(&self, row: usize) -> String;
+    fn emit_label(&self, _row: usize) -> String {
+        "EMIT_LABEL_UNSUPORTED".to_string()
+    }
 
     fn indexes(&self) -> Vec<usize>;
 
@@ -89,7 +92,12 @@ impl Table {
             let info = c.info();
             len = info.len;
             match info.table_type {
-                basetype::BaseType::Label => labcol_indexes.push(allcolumns.len()),
+                basetype::BaseType::Label { .. } => {
+                    if !info.name.is_empty() {
+                        outcol_indexes.push(allcolumns.len())
+                    }
+                    labcol_indexes.push(allcolumns.len())
+                }
                 _ => outcol_indexes.push(allcolumns.len()),
             }
             allcolumns.push(c)

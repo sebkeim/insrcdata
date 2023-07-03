@@ -10,7 +10,9 @@ use std::{cmp, fmt};
 #[derive(PartialEq, Eq)]
 pub enum BaseType {
     #[allow(dead_code)]
-    Label,
+    Label {
+        name: String,
+    },
     I8,
     I16,
     I32,
@@ -64,7 +66,7 @@ pub enum TypeImpl {
 impl BaseType {
     pub fn max(&self) -> usize {
         match self {
-            BaseType::Label => 0,
+            BaseType::Label { .. } => 0,
             BaseType::I8 => i8::MAX as usize,
             BaseType::I16 => i16::MAX as usize,
             BaseType::I32 => i32::MAX as usize,
@@ -81,7 +83,7 @@ impl BaseType {
 
     pub fn min(&self) -> isize {
         match self {
-            BaseType::Label => 0,
+            BaseType::Label { .. } => 0,
             BaseType::I8 => i8::MIN as isize,
             BaseType::I16 => i16::MIN as isize,
             BaseType::I32 => i32::MIN as isize,
@@ -98,7 +100,7 @@ impl BaseType {
 
     pub fn type_impl(&self) -> TypeImpl {
         match self {
-            BaseType::Label => TypeImpl::Label,
+            BaseType::Label { .. } => TypeImpl::Label,
             BaseType::I8
             | BaseType::I16
             | BaseType::I32
@@ -132,7 +134,7 @@ impl BaseType {
 impl fmt::Display for BaseType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BaseType::Label => write!(f, ""),
+            BaseType::Label { name } => write!(f, "label({})", name),
             BaseType::I8 => write!(f, "i8"),
             BaseType::I16 => write!(f, "i16"),
             BaseType::I32 => write!(f, "i32"),

@@ -12,10 +12,16 @@ use std::{fs, io};
 
 struct LangC {}
 
+fn enum_name(col: &dyn table::Column) -> String {
+    match &col.info().interface_type {
+        basetype::BaseType::Label { name } => name.to_snake_case(),
+        _ => "NOT A LABEL".to_string(),
+    }
+}
 // c data types
 fn strtype(typ: &basetype::BaseType) -> String {
     String::from(match typ {
-        basetype::BaseType::Label => "",
+        basetype::BaseType::Label { .. } => "",
         basetype::BaseType::I8 => "int8_t",
         basetype::BaseType::I16 => "int16_t",
         basetype::BaseType::I32 => "int32_t",
@@ -36,7 +42,7 @@ fn strtype(typ: &basetype::BaseType) -> String {
 
 fn gt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        basetype::BaseType::Label
+        basetype::BaseType::Label { .. }
         | basetype::BaseType::Join { .. }
         | basetype::BaseType::Object { .. } => "todo".to_string(),
         basetype::BaseType::I8
@@ -53,7 +59,7 @@ fn gt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
 
 fn lt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        basetype::BaseType::Label
+        basetype::BaseType::Label { .. }
         | basetype::BaseType::Join { .. }
         | basetype::BaseType::Object { .. } => "todo".to_string(),
         basetype::BaseType::I8
@@ -319,9 +325,10 @@ fn header_col_labels(
 
     writeln!(output, "typedef enum {{")?;
 
-    let prefix = &info.name.to_shouty_snake_case();
+    let enumname = enum_name(col);
+    let prefix = enumname.to_shouty_snake_case();
     for row in 0..info.len {
-        let label = col.emit_table_cell(row);
+        let label = col.emit_label(row);
         if !label.is_empty() {
             let camel = label.to_shouty_snake_case();
             writeln!(
@@ -333,11 +340,10 @@ fn header_col_labels(
             )?;
         }
     }
-    let strname = struct_name(&table.name);
-    let enumname = info.name.to_snake_case();
-
     writeln!(output, "}} {enumname}_t;")?;
+
     if table.has_data() {
+        let strname = struct_name(&table.name);
         writeln!(
             output,
             "const {strname}_t* {strname}_from_{enumname}({enumname}_t label);
@@ -353,10 +359,9 @@ fn impl_col_labels(
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
-    let info = col.info();
     let strname = struct_name(&table.name);
     let tablename = table_name(&table.name);
-    let enumname = info.name.to_snake_case();
+    let enumname = enum_name(col);
 
     if table.has_data() {
         writeln!(

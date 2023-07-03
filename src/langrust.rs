@@ -14,7 +14,7 @@ struct Rust {}
 // rust data types
 fn strtype(typ: &basetype::BaseType) -> String {
     String::from(match typ {
-        basetype::BaseType::Label => "",
+        basetype::BaseType::Label { name } => return struct_name(name),
         basetype::BaseType::I8 => "i8",
         basetype::BaseType::I16 => "i16",
         basetype::BaseType::I32 => "i32",
@@ -35,6 +35,12 @@ fn strtype(typ: &basetype::BaseType) -> String {
 fn argtype(typ: &basetype::BaseType) -> String {
     match typ {
         basetype::BaseType::Str => "& str".to_string(),
+        _ => strtype(typ),
+    }
+}
+fn modtype(typ: &basetype::BaseType) -> String {
+    match typ {
+        basetype::BaseType::Label { name } => format!("super::{}", struct_name(name)),
         _ => strtype(typ),
     }
 }
@@ -333,11 +339,11 @@ fn impl_col_labels(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let info = col.info();
-    let enumname = struct_name(&info.name);
+    let enumname = strtype(&info.interface_type);
     write!(output, "#[derive(Clone, Copy)]\npub enum {enumname} {{\n")?;
 
     for row in 0..info.len {
-        let label = col.emit_table_cell(row);
+        let label = col.emit_label(row);
         if !label.is_empty() {
             let camel = label.to_upper_camel_case();
             writeln!(output, "    {label} = {row},", label = camel, row = row)?;
@@ -430,7 +436,7 @@ fn write_ctor_function(
     write!(output, "const fn r(")?;
     for col in outcols {
         let info = col.info();
-        let typ = strtype(&info.table_type);
+        let typ = modtype(&info.table_type);
         write!(output, "{}:{}, ", info.name, typ)?;
     }
     write!(output, ") -> super::{} ", strname)?;
