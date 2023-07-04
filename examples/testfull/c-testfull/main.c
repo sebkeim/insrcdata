@@ -36,6 +36,22 @@ void  test_innerjoin(void) {
       assert(person_father(irene, &parent) && parent==pierre);
 }
 
+void test_bool(void) {
+      const person_t* marie    = person_from_persons(PERSONS_MARIE   );
+      const person_t* pierre   = person_from_persons(PERSONS_PIERRE  );
+   
+      assert(person_woman(marie));
+      assert(!person_woman(pierre));
+}
+
+void test_float(void) {
+      const person_t* marie    = person_from_persons(PERSONS_MARIE   );
+      const person_t* pierre   = person_from_persons(PERSONS_PIERRE  );
+   
+      assert(person_score(marie)==1.0);
+      assert(person_score(pierre)==2.1);
+}
+
 
 // Pattern matching : retrieve label from fic record reference
 uint16_t nobel_year(const person_t* x)  {
@@ -118,6 +134,12 @@ void  test_colobject(void) {
 int main(void) {
       // the join column reference a record in the same table
       test_innerjoin();
+      
+      // bool data type
+      test_bool();
+      
+      // float data type
+      test_float();
       
       // retrieve label from fic record reference
       test_fictolabel();

@@ -34,3 +34,19 @@ pub fn test_innerjoin() {
         &*pierre
     ));
 }
+
+pub fn test_bool() {
+    let marie = db::Persons::Marie;
+    let pierre = db::Persons::Pierre;
+
+    assert!(marie.woman());
+    assert!(!pierre.woman());
+}
+
+pub fn test_float() {
+    let marie = db::Persons::Marie;
+    let pierre = db::Persons::Pierre;
+
+    assert!(marie.score() == 1.0);
+    assert!(pierre.score() == 2.1);
+}

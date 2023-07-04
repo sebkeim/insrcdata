@@ -18,12 +18,16 @@ impl Deref for Persons {
 }
 pub struct Person {
     name_ : &'static str,
+    woman_ : bool,
+    score_ : f64,
     spouse_ : u8,
     father_ : u8,
     mother_ : u8,
 }
 impl Person {
     pub fn name(&self) -> &'static str { self.name_ }
+    pub fn woman(&self) -> bool { self.woman_ }
+    pub fn score(&self) -> f64 { self.score_ }
     pub fn spouse(&self) -> &'static Person {
         &person::TABLE[self.spouse_ as usize]
     }
@@ -39,15 +43,15 @@ impl Person {
 
 mod person {
 
-const fn r(name:&'static str, spouse:u8, father:u8, mother:u8, ) -> super::Person {
-    super::Person{name_:name, spouse_:spouse, father_:father, mother_:mother, }
+const fn r(name:&'static str, woman:bool, score:f64, spouse:u8, father:u8, mother:u8, ) -> super::Person {
+    super::Person{name_:name, woman_:woman, score_:score, spouse_:spouse, father_:father, mother_:mother, }
 }
 
 pub static TABLE : [ super::Person ; 4 ] = [
-   {r("Marie Curie", 1, 0, 0, )},
-   {r("Pierre Curie", 0, 0, 0, )},
-   {r("Irène Joliot-Curie", 3, 2, 1, )},
-   {r("Frédéric Joliot-Curie", 2, 0, 0, )},
+   {r("Marie Curie", true, 1.0, 1, 0, 0, )},
+   {r("Pierre Curie", false, 2.1, 0, 0, 0, )},
+   {r("Irène Joliot-Curie", true, 3.2, 3, 2, 1, )},
+   {r("Frédéric Joliot-Curie", false, 4.3, 2, 0, 0, )},
 ];
 
 } // mod person

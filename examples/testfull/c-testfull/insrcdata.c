@@ -5,10 +5,10 @@
 
 static unsigned const PERSON_TABLE_COUNT = 4;
 static const person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
-   {"Marie Curie", 1, 0, 0, },
-   {"Pierre Curie", 0, 0, 0, },
-   {"Irène Joliot-Curie", 3, 2, 1, },
-   {"Frédéric Joliot-Curie", 2, 0, 0, },
+   {"Marie Curie", true, 1.0, 1, 0, 0, },
+   {"Pierre Curie", false, 2.1, 0, 0, 0, },
+   {"Irène Joliot-Curie", true, 3.2, 3, 2, 1, },
+   {"Frédéric Joliot-Curie", false, 4.3, 2, 0, 0, },
 };
 
 const person_t* person_from_persons(persons_t label) {

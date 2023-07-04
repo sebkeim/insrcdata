@@ -10,6 +10,12 @@ fn main() {
     // the join column reference a record in the same table
     innerjoin::test_innerjoin();
 
+    // bool values
+    innerjoin::test_bool();
+
+    // float values
+    innerjoin::test_float();
+
     // retrieve label from fic record reference
     fictolabel::test_fictolabel();
 

@@ -5,7 +5,7 @@
 // integer data type column
 //
 
-use crate::table;
+use crate::{aperror, table};
 use crate::{basetype, lint};
 use std::cmp;
 
@@ -54,12 +54,14 @@ impl table::Column for ColInt {
 }
 
 impl ColInt {
-    pub fn new(
-        interface_type: basetype::BaseType,
+    pub fn parse(
         name: &str,
-        values: Vec<i64>,
+        strvals: &[String],
         iterable: bool,
-    ) -> ColInt {
+        interface_type: basetype::BaseType,
+    ) -> aperror::Result<Box<dyn table::Column>> {
+        let values = table::parse_vec::<i64>(strvals)?;
+
         let mut min = values[0]; // minimal value
         let mut max = values[0]; // maximal value
 
@@ -68,7 +70,7 @@ impl ColInt {
             max = cmp::max(max, *v);
         }
 
-        ColInt {
+        Ok(Box::new(ColInt {
             info: table::ColumnInfo {
                 name: name.to_string(),
                 len: values.len(),
@@ -80,18 +82,18 @@ impl ColInt {
 
             min, // minimal value
             max, // maximal value
-        }
+        }))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::table::Column;
 
     #[test]
     fn u8_no_oveflow() {
-        let c = ColInt::new(basetype::BaseType::U8, "", vec![123], false);
+        let c =
+            ColInt::parse("", &vec!["123".to_string()], false, basetype::BaseType::U8).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 0);
@@ -99,7 +101,8 @@ mod tests {
 
     #[test]
     fn u8_oveflow() {
-        let c = ColInt::new(basetype::BaseType::U8, "", vec![300], false);
+        let c =
+            ColInt::parse("", &vec!["300".to_string()], false, basetype::BaseType::U8).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);
@@ -107,7 +110,8 @@ mod tests {
 
     #[test]
     fn u8_underflow() {
-        let c = ColInt::new(basetype::BaseType::U8, "", vec![-1], false);
+        let c =
+            ColInt::parse("", &vec!["-1".to_string()], false, basetype::BaseType::U8).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);

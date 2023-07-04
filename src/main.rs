@@ -9,13 +9,14 @@ extern crate toml;
 
 mod aperror;
 mod basetype;
+mod colbool;
+mod colfloat;
 mod colint;
 mod coljoin;
 mod collabel;
+mod colobject;
 mod colstr;
 mod config;
-
-mod colobject;
 mod langc;
 mod langrust;
 mod language;

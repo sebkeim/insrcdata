@@ -28,6 +28,16 @@ name = 'mother'
 to = 'ref'
 allow_null = true
 
+# bool value
+[[table.col]]
+name = 'woman'
+format = 'bool'
+
+# float value (this score has no real meaning)
+[[table.col]]
+name = 'score'
+format = 'f64'
+
 # Create code labels for rows
 [[table.col]]
 name = 'Persons'

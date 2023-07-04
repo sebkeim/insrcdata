@@ -13,6 +13,7 @@ pub enum BaseType {
     Label {
         name: String,
     },
+    Bool,
     I8,
     I16,
     I32,
@@ -21,6 +22,8 @@ pub enum BaseType {
     U16,
     U32,
     U64,
+    F32,
+    F64,
     Str,
     Join {
         strname: String,
@@ -66,7 +69,6 @@ pub enum TypeImpl {
 impl BaseType {
     pub fn max(&self) -> usize {
         match self {
-            BaseType::Label { .. } => 0,
             BaseType::I8 => i8::MAX as usize,
             BaseType::I16 => i16::MAX as usize,
             BaseType::I32 => i32::MAX as usize,
@@ -75,15 +77,18 @@ impl BaseType {
             BaseType::U16 => u16::MAX as usize,
             BaseType::U32 => u32::MAX as usize,
             BaseType::U64 => u64::MAX as usize,
-            BaseType::Str => 0,
-            BaseType::Join { .. } => 0,
-            BaseType::Object { .. } => 0,
+            BaseType::Bool
+            | BaseType::F32
+            | BaseType::F64
+            | BaseType::Str
+            | BaseType::Label { .. }
+            | BaseType::Join { .. }
+            | BaseType::Object { .. } => 0,
         }
     }
 
     pub fn min(&self) -> isize {
         match self {
-            BaseType::Label { .. } => 0,
             BaseType::I8 => i8::MIN as isize,
             BaseType::I16 => i16::MIN as isize,
             BaseType::I32 => i32::MIN as isize,
@@ -92,16 +97,23 @@ impl BaseType {
             BaseType::U16 => u16::MIN as isize,
             BaseType::U32 => u32::MIN as isize,
             BaseType::U64 => u64::MIN as isize,
-            BaseType::Str => 0,
-            BaseType::Join { .. } => 0,
-            BaseType::Object { .. } => 0,
+            BaseType::Bool
+            | BaseType::F32
+            | BaseType::F64
+            | BaseType::Str
+            | BaseType::Label { .. }
+            | BaseType::Join { .. }
+            | BaseType::Object { .. } => 0,
         }
     }
 
     pub fn type_impl(&self) -> TypeImpl {
         match self {
             BaseType::Label { .. } => TypeImpl::Label,
-            BaseType::I8
+            BaseType::Bool
+            | BaseType::F32
+            | BaseType::F64
+            | BaseType::I8
             | BaseType::I16
             | BaseType::I32
             | BaseType::I64
@@ -135,6 +147,7 @@ impl fmt::Display for BaseType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             BaseType::Label { name } => write!(f, "label({})", name),
+            BaseType::Bool => write!(f, "bool"),
             BaseType::I8 => write!(f, "i8"),
             BaseType::I16 => write!(f, "i16"),
             BaseType::I32 => write!(f, "i32"),
@@ -144,6 +157,8 @@ impl fmt::Display for BaseType {
             BaseType::U32 => write!(f, "u32"),
             BaseType::U64 => write!(f, "u64"),
             BaseType::Str => write!(f, "&'static str"),
+            BaseType::F32 => write!(f, "f32"),
+            BaseType::F64 => write!(f, "f64"),
             BaseType::Join {
                 strname,
                 mincard,

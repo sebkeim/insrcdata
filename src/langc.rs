@@ -5,6 +5,7 @@
 // target implementation for C language
 //
 
+use crate::basetype::BaseType;
 use crate::{aperror, basetype, language, log, table};
 use heck::{ToShoutySnakeCase, ToSnakeCase};
 use std::path::PathBuf;
@@ -21,56 +22,66 @@ fn enum_name(col: &dyn table::Column) -> String {
 // c data types
 fn strtype(typ: &basetype::BaseType) -> String {
     String::from(match typ {
-        basetype::BaseType::Label { .. } => "",
-        basetype::BaseType::I8 => "int8_t",
-        basetype::BaseType::I16 => "int16_t",
-        basetype::BaseType::I32 => "int32_t",
-        basetype::BaseType::I64 => "int64_t",
-        basetype::BaseType::U8 => "uint8_t",
-        basetype::BaseType::U16 => "uint16_t",
-        basetype::BaseType::U32 => "uint32_t",
-        basetype::BaseType::U64 => "uint64_t",
-        basetype::BaseType::Str => "const char*", //todo check encoding
-        basetype::BaseType::Join {
+        BaseType::Label { .. } => "",
+        BaseType::I8 => "int8_t",
+        BaseType::I16 => "int16_t",
+        BaseType::I32 => "int32_t",
+        BaseType::I64 => "int64_t",
+        BaseType::U8 => "uint8_t",
+        BaseType::U16 => "uint16_t",
+        BaseType::U32 => "uint32_t",
+        BaseType::U64 => "uint64_t",
+        BaseType::Str => "const char*", //todo check encoding
+        BaseType::Join {
             strname: _,
             mincard: _,
             maxcard: _,
         } => "TODO",
-        basetype::BaseType::Object { objtype } => objtype,
+        BaseType::Object { objtype } => objtype,
+
+        BaseType::Bool => "bool",
+        BaseType::F32 => "float",
+        BaseType::F64 => "double",
     })
 }
 
 fn gt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        basetype::BaseType::Label { .. }
-        | basetype::BaseType::Join { .. }
-        | basetype::BaseType::Object { .. } => "todo".to_string(),
-        basetype::BaseType::I8
-        | basetype::BaseType::I16
-        | basetype::BaseType::I32
-        | basetype::BaseType::I64
-        | basetype::BaseType::U8
-        | basetype::BaseType::U16
-        | basetype::BaseType::U32
-        | basetype::BaseType::U64 => format!("{left}>{right}"),
-        basetype::BaseType::Str => format!("strcmp({left},{right})>0"),
+        BaseType::Label { .. } | BaseType::Join { .. } | BaseType::Object { .. } => {
+            "todo".to_string()
+        }
+        BaseType::Bool
+        | BaseType::F32
+        | BaseType::F64
+        | BaseType::I8
+        | BaseType::I16
+        | BaseType::I32
+        | BaseType::I64
+        | BaseType::U8
+        | BaseType::U16
+        | BaseType::U32
+        | BaseType::U64 => format!("{left}>{right}"),
+        BaseType::Str => format!("strcmp({left},{right})>0"),
     }
 }
 
 fn lt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        basetype::BaseType::Label { .. }
-        | basetype::BaseType::Join { .. }
-        | basetype::BaseType::Object { .. } => "todo".to_string(),
-        basetype::BaseType::I8
-        | basetype::BaseType::I16
-        | basetype::BaseType::I32
-        | basetype::BaseType::I64
-        | basetype::BaseType::U8
-        | basetype::BaseType::U16
-        | basetype::BaseType::U32
-        | basetype::BaseType::U64 => format!("{left}<{right}"),
-        basetype::BaseType::Str => format!("strcmp({left},{right})<0"),
+        BaseType::Label { .. } | BaseType::Join { .. } | BaseType::Object { .. } => {
+            "todo".to_string()
+        }
+        BaseType::Bool
+        | BaseType::F32
+        | BaseType::F64
+        | BaseType::I8
+        | BaseType::I16
+        | BaseType::I32
+        | BaseType::I64
+        | BaseType::U8
+        | BaseType::U16
+        | BaseType::U32
+        | BaseType::U64 => format!("{left}<{right}"),
+        BaseType::Str => format!("strcmp({left},{right})<0"),
     }
 }
 

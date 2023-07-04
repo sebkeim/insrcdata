@@ -9,14 +9,15 @@
 use crate::language::Language;
 use crate::table::Project;
 use crate::{
-    aperror, basetype, colint, coljoin, collabel, colobject, colstr, langrust, language, lint, log,
-    table,
+    aperror, basetype, colbool, colfloat, colint, coljoin, collabel, colobject, colstr, langrust,
+    language, lint, log, table,
 };
 use csv::StringRecord;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+
 use std::string::ToString;
 use std::time::SystemTime;
 
@@ -96,27 +97,6 @@ struct Col {
 static EMPTY_TARGET: Vec<Target> = vec![];
 impl Col {
     /// generate column for integer type value
-    fn create_int(
-        &self,
-        strvals: &[String],
-        typ: basetype::BaseType,
-    ) -> aperror::Result<Box<dyn table::Column>> {
-        let mut vals: Vec<i64> = vec![];
-
-        for (i, s) in strvals.iter().enumerate() {
-            let Ok(v) =  s.parse::<i64>() else {
-                return Err(aperror::Error::new(&format!("{} not a number at row {}", s, i)));
-            };
-            vals.push(v);
-        }
-
-        Ok(Box::new(colint::ColInt::new(
-            typ,
-            &self.name,
-            vals,
-            self.range.unwrap_or(false),
-        )))
-    }
 
     fn target(&self, lang: &str) -> Option<&Target> {
         self.target
@@ -162,29 +142,26 @@ impl Col {
             return Err(aperror::Error::new(&format!("column not found {}", key)));
         };
 
-        //let runtime = ctx.tableContext.configContext.runtime;
+        let name = &self.name;
+        let iterable = self.range.unwrap_or(false);
 
         // generate column from field type
         let default_format = "str".to_string();
         let format = self.format.as_ref().unwrap_or(&default_format);
         match format.as_str() {
-            "str" => Ok(Box::new(colstr::ColStr::new(
-                &self.name,
-                strvals.to_owned(),
-                self.range.unwrap_or(false),
-            ))),
-            "i8" => self.create_int(strvals, basetype::BaseType::I8),
-            "i16" => self.create_int(strvals, basetype::BaseType::I16),
-            "i32" => self.create_int(strvals, basetype::BaseType::I32),
-            "i64" => self.create_int(strvals, basetype::BaseType::I64),
-            "u8" => self.create_int(strvals, basetype::BaseType::U8),
-            "u16" => self.create_int(strvals, basetype::BaseType::U16),
-            "u32" => self.create_int(strvals, basetype::BaseType::U32),
-            "u64" => self.create_int(strvals, basetype::BaseType::U64),
-            "label" => Ok(Box::new(collabel::ColLabel::new(
-                &self.name,
-                strvals.to_owned(),
-            ))),
+            "bool" => colbool::ColBool::parse(name, strvals, iterable),
+            "f32" => colfloat::ColF32::parse(name, strvals, iterable),
+            "f64" => colfloat::ColF64::parse(name, strvals, iterable),
+            "i8" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I8),
+            "i16" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I16),
+            "i32" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I32),
+            "i64" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I64),
+            "u8" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U8),
+            "u16" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U16),
+            "u32" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U32),
+            "u64" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U64),
+            "str" => colstr::ColStr::parse(name, strvals, iterable),
+            "label" => collabel::ColLabel::parse(name, strvals),
             "object" => self.create_object(strvals, ctx),
             _ => Err(aperror::Error::new(&format!(
                 "unknown column type '{}'",

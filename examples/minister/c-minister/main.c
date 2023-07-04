@@ -12,11 +12,11 @@ int main(void)
       const minister_t* g_brown = minister_from_ministers(MINISTERS_GORDON_BROWN);
       
       // access it's attributes
-      printf("%s was born in %d\n", minister_name(g_brown), minister_birth(g_brown));
+      printf("%s was born in %d.\n", minister_name(g_brown), minister_birth(g_brown));
       
       // navigate between linked table
       const country_t* country = minister_country(g_brown);
-      printf("he was minister of %s\n", country_name(country));
+      printf("He was prime minister of %s\n", country_name(country));
       
       // perform indexed searches
       minister_iter_t iter = minister_birth_range(1900, 1960);

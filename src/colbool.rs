@@ -8,20 +8,22 @@
 use crate::{aperror, table};
 use crate::{basetype, lint};
 
-pub struct ColStr {
+pub struct ColBool {
     info: table::ColumnInfo,
-    values: Vec<String>,
+    values: Vec<bool>,
 }
 
-impl table::Column for ColStr {
+impl table::Column for ColBool {
     fn info(&self) -> &table::ColumnInfo {
         &self.info
     }
 
     fn emit_table_cell(&self, row: usize) -> String {
-        // TODO : stability of String.Debug trait implementation is not guaranteed
-        let v = &self.values[row];
-        format!("{:?}", v)
+        if self.values[row] {
+            "true".to_string()
+        } else {
+            "false".to_string()
+        }
     }
 
     fn indexes(&self) -> Vec<usize> {
@@ -35,21 +37,22 @@ impl table::Column for ColStr {
     fn lint(&self, _linter: &lint::Linter) {}
 }
 
-impl ColStr {
+impl ColBool {
     pub fn parse(
         name: &str,
-        values: &Vec<String>,
+        strvals: &[String],
         iterable: bool,
     ) -> aperror::Result<Box<dyn table::Column>> {
-        Ok(Box::new(ColStr {
+        let values = table::parse_vec::<bool>(strvals)?;
+        Ok(Box::new(ColBool {
             info: table::ColumnInfo {
                 name: name.to_string(),
                 len: values.len(),
-                interface_type: basetype::BaseType::Str,
-                table_type: basetype::BaseType::Str,
+                interface_type: basetype::BaseType::Bool,
+                table_type: basetype::BaseType::Bool,
                 iterable,
             },
-            values: values.to_owned(),
+            values,
         }))
     }
 }

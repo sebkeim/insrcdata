@@ -5,7 +5,7 @@
 // define row labels
 //
 
-use crate::table;
+use crate::{aperror, table};
 use crate::{basetype, lint};
 use heck::ToShoutySnakeCase;
 use std::collections::HashSet;
@@ -49,8 +49,8 @@ impl table::Column for ColLabel {
 }
 
 impl ColLabel {
-    pub fn new(namespace: &str, labels: Vec<String>) -> ColLabel {
-        ColLabel {
+    pub fn parse(namespace: &str, labels: &[String]) -> aperror::Result<Box<dyn table::Column>> {
+        Ok(Box::new(ColLabel {
             info: table::ColumnInfo {
                 name: "".to_string(),
                 len: labels.len(),
@@ -62,19 +62,18 @@ impl ColLabel {
                 },
                 iterable: false,
             },
-            labels,
-        }
+            labels: labels.to_owned(),
+        }))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::table::Column;
 
     #[test]
     fn label_ok() {
-        let c = ColLabel::new("", vec!["hello".to_string()]);
+        let c = ColLabel::parse("", &vec!["hello".to_string()]).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 0);
@@ -82,7 +81,7 @@ mod tests {
 
     #[test]
     fn label_invalid() {
-        let c = ColLabel::new("", vec!["0hello".to_string()]);
+        let c = ColLabel::parse("", &vec!["0hello".to_string()]).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);
@@ -90,7 +89,7 @@ mod tests {
 
     #[test]
     fn label_duplicate() {
-        let c = ColLabel::new("", vec!["hello".to_string(), "HELLO".to_string()]);
+        let c = ColLabel::parse("", &vec!["hello".to_string(), "HELLO".to_string()]).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);

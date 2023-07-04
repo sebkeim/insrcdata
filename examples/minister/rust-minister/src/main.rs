@@ -9,10 +9,10 @@ fn main() {
     let g_brown = Ministers::GordonBrown;
 
     // access it's attributes
-    println!("{} was born in {}", g_brown.name(), g_brown.birth());
+    println!("{} was born in {}.", g_brown.name(), g_brown.birth());
 
     // navigate between linked table
-    println!("he was minister of {}", g_brown.country().name());
+    println!("He was prime minister of {}.", g_brown.country().name());
 
     // perform indexed searches
     for minister in Minister::birth_range(1900, 1960) {

@@ -5,6 +5,7 @@
 // target implementation for Rust language
 //
 
+use crate::basetype::BaseType;
 use crate::{aperror, basetype, language, log, table};
 use heck::{ToShoutySnakeCase, ToSnakeCase, ToUpperCamelCase};
 use std::{fs, io};
@@ -14,22 +15,25 @@ struct Rust {}
 // rust data types
 fn strtype(typ: &basetype::BaseType) -> String {
     String::from(match typ {
-        basetype::BaseType::Label { name } => return struct_name(name),
-        basetype::BaseType::I8 => "i8",
-        basetype::BaseType::I16 => "i16",
-        basetype::BaseType::I32 => "i32",
-        basetype::BaseType::I64 => "i64",
-        basetype::BaseType::U8 => "u8",
-        basetype::BaseType::U16 => "u16",
-        basetype::BaseType::U32 => "u32",
-        basetype::BaseType::U64 => "u64",
-        basetype::BaseType::Str => "&'static str",
-        basetype::BaseType::Join {
+        BaseType::Label { name } => return struct_name(name),
+        BaseType::I8 => "i8",
+        BaseType::I16 => "i16",
+        BaseType::I32 => "i32",
+        BaseType::I64 => "i64",
+        BaseType::U8 => "u8",
+        BaseType::U16 => "u16",
+        BaseType::U32 => "u32",
+        BaseType::U64 => "u64",
+        BaseType::Str => "&'static str",
+        BaseType::Join {
             strname: _,
             mincard: _,
             maxcard: _,
         } => "TODO",
-        basetype::BaseType::Object { objtype } => objtype,
+        BaseType::Object { objtype } => objtype,
+        BaseType::Bool => "bool",
+        BaseType::F32 => "f32",
+        BaseType::F64 => "f64",
     })
 }
 fn argtype(typ: &basetype::BaseType) -> String {
