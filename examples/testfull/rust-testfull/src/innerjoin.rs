@@ -41,6 +41,12 @@ pub fn test_bool() {
 
     assert!(marie.woman());
     assert!(!pierre.woman());
+
+    // test iterator
+    let womens: Vec<String> = db::Person::woman_range(true, true)
+        .map(|n| n.name().to_string())
+        .collect();
+    assert!(womens == vec!["Marie Curie", "Irène Joliot-Curie"]);
 }
 
 pub fn test_float() {
@@ -49,4 +55,10 @@ pub fn test_float() {
 
     assert!(marie.score() == 1.0);
     assert!(pierre.score() == 2.1);
+
+    // test closed range iterator
+    let middle: Vec<String> = db::Person::score_range(2.1, 3.2)
+        .map(|n| n.name().to_string())
+        .collect();
+    assert!(middle == vec!["Pierre Curie", "Irène Joliot-Curie"]);
 }

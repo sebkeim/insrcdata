@@ -15,6 +15,8 @@ typedef struct  {
     uint8_t father_;
     uint8_t mother_;
 } person_t;
+typedef struct { uint8_t* ptr; uint8_t* end; } person_iter_t;
+extern const person_t* person_next(person_iter_t* idx);
 
 typedef struct  {
     const char* text_;
@@ -44,7 +46,9 @@ persons_t person_persons(const person_t *s);
             
 static inline const char* person_name(const person_t* s) { return s->name_; }
 static inline bool person_woman(const person_t* s) { return s->woman_; }
+extern person_iter_t  person_woman_range( bool start, bool stop);
 static inline double person_score(const person_t* s) { return s->score_; }
+extern person_iter_t  person_score_range( double start, double stop);
 extern const person_t* person_spouse(const person_t* s);
 extern bool person_father(const person_t* s, const person_t** ptr);
 extern bool person_mother(const person_t* s, const person_t** ptr);

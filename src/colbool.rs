@@ -37,13 +37,31 @@ impl table::Column for ColBool {
     fn lint(&self, _linter: &lint::Linter) {}
 }
 
+pub fn parse_vec_bool(strvals: &[String]) -> aperror::Result<Vec<bool>> {
+    let mut vals: Vec<bool> = vec![];
+
+    for (i, str) in strvals.iter().enumerate() {
+        match str.to_lowercase().as_str() {
+            "1" | "true" | "yes" => vals.push(true),
+            "0" | "false" | "no" => vals.push(false),
+            x => {
+                return Err(aperror::Error::new(&format!(
+                    "invalid bool value {} at row {}",
+                    x, i
+                )))
+            }
+        }
+    }
+    Ok(vals)
+}
+
 impl ColBool {
     pub fn parse(
         name: &str,
         strvals: &[String],
         iterable: bool,
     ) -> aperror::Result<Box<dyn table::Column>> {
-        let values = table::parse_vec::<bool>(strvals)?;
+        let values = parse_vec_bool(strvals)?;
         Ok(Box::new(ColBool {
             info: table::ColumnInfo {
                 name: name.to_string(),

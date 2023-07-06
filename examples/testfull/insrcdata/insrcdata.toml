@@ -32,11 +32,13 @@ allow_null = true
 [[table.col]]
 name = 'woman'
 format = 'bool'
+range = true
 
 # float value (this score has no real meaning)
 [[table.col]]
 name = 'score'
 format = 'f64'
+range = true
 
 # Create code labels for rows
 [[table.col]]

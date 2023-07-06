@@ -11,6 +11,19 @@ static const person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
    {"Frédéric Joliot-Curie", false, 4.3, 2, 0, 0, },
 };
 
+const person_t* person_next(person_iter_t* idx) { return idx->ptr<idx->end ? &PERSON_TABLE[*idx->ptr++] : NULL; }
+    
+
+static unsigned const PERSON_WOMAN_INDEX_COUNT  =  4;
+static uint8_t PERSON_WOMAN_INDEX   [PERSON_WOMAN_INDEX_COUNT] = {
+    1, 3, 0, 2, 
+};
+
+static unsigned const PERSON_SCORE_INDEX_COUNT  =  4;
+static uint8_t PERSON_SCORE_INDEX   [PERSON_SCORE_INDEX_COUNT] = {
+    0, 1, 2, 3, 
+};
+
 const person_t* person_from_persons(persons_t label) {
     return &PERSON_TABLE[label];
 }
@@ -49,6 +62,58 @@ lettercases_t lettercase_lettercases(const lettercase_t *s) {
     return (lettercases_t)(s-LETTERCASE_TABLE);
 }
 
+person_iter_t  person_woman_range( bool start, bool stop) {
+    uint8_t* lo = PERSON_WOMAN_INDEX;
+    uint8_t*  hi = PERSON_WOMAN_INDEX + PERSON_WOMAN_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid = lo + ( hi-lo)/2;
+        if( start>PERSON_TABLE[*mid].woman_  ){
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+
+    uint8_t*  begin = lo;
+    hi = PERSON_WOMAN_INDEX + PERSON_WOMAN_INDEX_COUNT;
+    while( lo < hi ){
+         uint8_t* mid = lo + ( hi-lo)/2;
+        if( stop<PERSON_TABLE[*mid].woman_  ){
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+
+    person_iter_t res = {  begin,  lo };
+    return res;
+}
+person_iter_t  person_score_range( double start, double stop) {
+    uint8_t* lo = PERSON_SCORE_INDEX;
+    uint8_t*  hi = PERSON_SCORE_INDEX + PERSON_SCORE_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid = lo + ( hi-lo)/2;
+        if( start>PERSON_TABLE[*mid].score_  ){
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+
+    uint8_t*  begin = lo;
+    hi = PERSON_SCORE_INDEX + PERSON_SCORE_INDEX_COUNT;
+    while( lo < hi ){
+         uint8_t* mid = lo + ( hi-lo)/2;
+        if( stop<PERSON_TABLE[*mid].score_  ){
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+
+    person_iter_t res = {  begin,  lo };
+    return res;
+}
 const person_t* person_spouse(const person_t* s) { return &PERSON_TABLE[s->spouse_];}
 bool person_father(const person_t* s, const person_t** ptr) {
     if( s->father_) {

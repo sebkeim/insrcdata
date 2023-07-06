@@ -37,21 +37,32 @@ void  test_innerjoin(void) {
 }
 
 void test_bool(void) {
-      const person_t* marie    = person_from_persons(PERSONS_MARIE   );
-      const person_t* pierre   = person_from_persons(PERSONS_PIERRE  );
+      const person_t* marie    = person_from_persons(PERSONS_MARIE);
+      const person_t* pierre   = person_from_persons(PERSONS_PIERRE);
    
       assert(person_woman(marie));
       assert(!person_woman(pierre));
+      
+      // test iterator
+      person_iter_t iter = person_woman_range(true, true);
+      assert( person_next(&iter)==person_from_persons(PERSONS_MARIE) );
+      assert( person_next(&iter)==person_from_persons(PERSONS_IRENE) );
+      assert( person_next(&iter)==NULL );
 }
 
 void test_float(void) {
-      const person_t* marie    = person_from_persons(PERSONS_MARIE   );
-      const person_t* pierre   = person_from_persons(PERSONS_PIERRE  );
+      const person_t* marie    = person_from_persons(PERSONS_MARIE);
+      const person_t* pierre   = person_from_persons(PERSONS_PIERRE);
    
       assert(person_score(marie)==1.0);
       assert(person_score(pierre)==2.1);
+      
+      // test closedrange iterator
+      person_iter_t iter = person_score_range(2.1, 3.2);
+      assert( person_next(&iter)==person_from_persons(PERSONS_PIERRE) );
+      assert( person_next(&iter)==person_from_persons(PERSONS_IRENE) );
+      assert( person_next(&iter)==NULL );
 }
-
 
 // Pattern matching : retrieve label from fic record reference
 uint16_t nobel_year(const person_t* x)  {

@@ -27,7 +27,61 @@ pub struct Person {
 impl Person {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn woman(&self) -> bool { self.woman_ }
+
+    pub fn woman_range(start:bool, stop:bool) -> person::IndexIter {
+        let mut lo = 0;
+        let mut hi = person::WOMAN_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if start > person::TABLE[person::WOMAN_INDEX[mid] as usize].woman_ {
+                 lo = mid + 1;
+            } else {
+                 hi = mid;
+            }
+        }
+
+        let begin = lo;
+        hi = person::WOMAN_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if stop < person::TABLE[person::WOMAN_INDEX[mid] as usize].woman_ {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+        person::IndexIter {
+            indexes: Box::new(person::WOMAN_INDEX[begin..lo].iter()),
+        }
+    }
     pub fn score(&self) -> f64 { self.score_ }
+
+    pub fn score_range(start:f64, stop:f64) -> person::IndexIter {
+        let mut lo = 0;
+        let mut hi = person::SCORE_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if start > person::TABLE[person::SCORE_INDEX[mid] as usize].score_ {
+                 lo = mid + 1;
+            } else {
+                 hi = mid;
+            }
+        }
+
+        let begin = lo;
+        hi = person::SCORE_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if stop < person::TABLE[person::SCORE_INDEX[mid] as usize].score_ {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+        person::IndexIter {
+            indexes: Box::new(person::SCORE_INDEX[begin..lo].iter()),
+        }
+    }
     pub fn spouse(&self) -> &'static Person {
         &person::TABLE[self.spouse_ as usize]
     }
@@ -43,6 +97,29 @@ impl Person {
 
 mod person {
 
+
+use std::mem;
+
+pub struct IndexIter {
+    pub indexes : Box<dyn Iterator<Item=&'static u8>>,
+}
+
+impl Iterator for IndexIter {
+    type Item = & 'static super::Person;
+
+    fn next(&mut self) -> Option<&'static super::Person> {
+        let idx = self.indexes.next();
+        match idx {
+            Some(v) => Some(&TABLE[*v as usize]),
+            None => None,
+        }
+    }
+}
+
+pub fn index_of(fic:&super::Person) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Person>()
+}
+
 const fn r(name:&'static str, woman:bool, score:f64, spouse:u8, father:u8, mother:u8, ) -> super::Person {
     super::Person{name_:name, woman_:woman, score_:score, spouse_:spouse, father_:father, mother_:mother, }
 }
@@ -53,9 +130,16 @@ pub static TABLE : [ super::Person ; 4 ] = [
    {r("Irène Joliot-Curie", true, 3.2, 3, 2, 1, )},
    {r("Frédéric Joliot-Curie", false, 4.3, 2, 0, 0, )},
 ];
+pub static WOMAN_INDEX : [ u8 ; 4 ] = [
+    1, 3, 0, 2, 
+];
+pub static SCORE_INDEX : [ u8 ; 4 ] = [
+    0, 1, 2, 3, 
+];
 
 } // mod person
 
+pub use person::IndexIter as PersonIter;
 pub struct Strencoding {
     text_ : &'static str,
 }
