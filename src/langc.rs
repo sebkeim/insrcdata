@@ -333,7 +333,6 @@ fn header_col_labels(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let info = col.info();
-
     writeln!(output, "typedef enum {{")?;
 
     let enumname = enum_name(col);

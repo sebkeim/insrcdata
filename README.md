@@ -67,8 +67,13 @@ More information can be found in [template.toml](https://github.com/sebkeim/insr
 The [wiki](https://github.com/sebkeim/insrcdata/wiki) contains detailled documentation.
 
 ### Running insrcdata
+Type the following command in a terminal window :
 
-insrcdata <PATH> where <PATH> is configuation file path
+```console
+insrcdata myconfig.toml
+```
+
+where *myconfig.toml* is the path of your configuation file 
 
 insrcdata --help to get the list of options.
  

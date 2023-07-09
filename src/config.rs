@@ -43,8 +43,7 @@ pub struct Runtime<'a> {
 
 impl Runtime<'_> {
     pub fn projectdir(&self) -> &Path {
-        let path = self.projectpath.parent().unwrap_or(Path::new("."));
-        path
+        self.projectpath.parent().unwrap_or(Path::new("."))
     }
 
     pub fn indir_path(&self) -> &Path {
