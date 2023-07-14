@@ -1,0 +1,50 @@
+#
+# insrcdata : helloworld
+#
+
+dest ="../rust-nnjoin/src/insrcdata.rs"
+
+[[table]]
+src = "client.csv"
+name = 'Client'
+ 
+[[table.col]]
+name = 'Clients'
+src = 'label'
+format = 'label'
+
+[[table.col]]
+name = 'name'
+ 
+
+[[table]]
+src = "product.csv"
+name = 'Product'
+ 
+[[table.col]]
+name = 'Products'
+src = 'label'
+format = 'label'
+
+[[table.col]]
+name = 'name'
+
+
+[[table]]
+src = "transaction.csv"
+name = 'Transaction'
+
+[[table.join]]
+name = 'client'
+src = 'client'
+to = 'label'
+external = 'Client'
+reverse = 'transactions'
+
+
+[[table.join]]
+name = 'product'
+src = 'product'
+to = 'label'
+external = 'Product'
+reverse = 'transactions'
