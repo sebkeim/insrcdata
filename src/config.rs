@@ -134,6 +134,7 @@ impl Col {
         tablecols: &HashMap<String, Vec<String>>,
         ctx: &ColContext,
     ) -> aperror::Result<Box<dyn table::Column>> {
+        log::log(&format!("create col {}", self.name));
         // retrieve src values
         let src = self.src_name();
         let key = table.key(src);
@@ -202,6 +203,8 @@ impl Join {
         table: &Table,
         tablecols: &HashMap<String, Vec<String>>,
     ) -> aperror::Result<Box<dyn table::Column>> {
+        log::log(&format!("create join {}", self.name));
+
         // retrieve src values
         let src = self.src_name();
         let key = table.key(src);
@@ -366,6 +369,7 @@ impl Table {
 
     /// create table object
     fn create(&self, tablecols: &HashMap<String, Vec<String>>, ctx: &TableContext) -> table::Table {
+        log::log(&format!("create table {}", self.name));
         let _sorted = self.sorted; // silent dead code warning until the option is actually used
 
         let mut columns = vec![];

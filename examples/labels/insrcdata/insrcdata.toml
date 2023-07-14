@@ -1,3 +1,8 @@
+#
+# insrcdata : label sample
+#
+
+
 dest ="../rust-labels/src/insrcdata.rs"
 
 [[table]]

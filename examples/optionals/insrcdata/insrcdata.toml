@@ -1,0 +1,87 @@
+#
+# insrcdata : optionals sample
+#
+
+dest ="../rust-optionals/src/insrcdata.rs"
+
+#
+# adhoc strategy
+# we use placeholder value to represent 'no value'
+# we must be certain that placeholder will never be needed for real data
+#
+
+[[table]]
+src = "adhoc.csv"
+name = 'Adhoc'
+trait = 'crate::adhoc::Adhoc'
+
+[[table.col]]
+name = 'Adhocs'
+src = 'label'
+format = 'label'
+
+[[table.col]]
+name = 'score_data'
+src = 'score'
+format = 'f32'
+
+[[table.col]]
+name = 'count_data'
+src = 'count'
+format = 'u16'
+
+# 
+# optjoin strategy
+# we use optional joint table  
+# 
+
+[[table]]
+src = "optjoin.csv"
+name = 'Score'
+
+[[table.col]]
+name = 'value'
+format  = 'f32'
+src = 'score'
+# we exclude empty values
+single = true
+
+
+
+[[table]]
+src = "optjoin.csv"
+name = 'Count'
+
+[[table.col]]
+name = 'value'
+format  = 'u16'
+src = 'count'
+# we exclude empty values
+single = true
+
+
+
+[[table]]
+src = "optjoin.csv"
+name = 'Optjoin'
+trait = 'crate::optjoin::Optjoin'
+
+[[table.col]]
+name = 'Optjoins'
+src = 'label'
+format = 'label'
+
+[[table.join]]
+name = 'score_join'
+src = 'score'
+to = 'score'
+external = 'Score'
+allow_null = true
+
+
+[[table.join]]
+name = 'count_join'
+src = 'count'
+to = 'count'
+external = 'Count'
+allow_null = true
