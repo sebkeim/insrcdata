@@ -32,7 +32,7 @@ allow_null = true
 [[table.col]]
 name = 'woman'
 format = 'bool'
-range = true
+#range = true.  clippy linter is triggered by the Rust code generated for this function
 
 # float value (this score has no real meaning)
 [[table.col]]

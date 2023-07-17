@@ -46,7 +46,6 @@ persons_t person_persons(const person_t *s);
             
 static inline const char* person_name(const person_t* s) { return s->name_; }
 static inline bool person_woman(const person_t* s) { return s->woman_; }
-extern person_iter_t  person_woman_range( bool start, bool stop);
 static inline double person_score(const person_t* s) { return s->score_; }
 extern person_iter_t  person_score_range( double start, double stop);
 extern const person_t* person_spouse(const person_t* s);

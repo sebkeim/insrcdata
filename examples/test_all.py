@@ -98,7 +98,7 @@ class sample:
             else:
                   if new_output!=consigne:
                         open(f"{self.regress_path()}/{consigne_name}_new.txt", "wb").write(new_output)
-                        assert False, f"output differ from regression : {self.name} {consigne_name}"
+                        assert False, f"output differ from regression : {self.name} {self.LANG} {consigne_name}"
 
       def test(self):
       

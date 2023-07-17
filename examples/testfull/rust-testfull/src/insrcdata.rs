@@ -27,33 +27,6 @@ pub struct Person {
 impl Person {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn woman(&self) -> bool { self.woman_ }
-
-    pub fn woman_range(start:bool, stop:bool) -> person::IndexIter {
-        let mut lo = 0;
-        let mut hi = person::WOMAN_INDEX.len();
-        while lo < hi {
-            let mid = (lo + hi) / 2;
-            if start > person::TABLE[person::WOMAN_INDEX[mid] as usize].woman_ {
-                 lo = mid + 1;
-            } else {
-                 hi = mid;
-            }
-        }
-
-        let begin = lo;
-        hi = person::WOMAN_INDEX.len();
-        while lo < hi {
-            let mid = (lo + hi) / 2;
-            if stop < person::TABLE[person::WOMAN_INDEX[mid] as usize].woman_ {
-                hi = mid;
-            } else {
-                lo = mid + 1;
-            }
-        }
-        person::IndexIter {
-            indexes: Box::new(person::WOMAN_INDEX[begin..lo].iter()),
-        }
-    }
     pub fn score(&self) -> f64 { self.score_ }
 
     pub fn score_range(start:f64, stop:f64) -> person::IndexIter {
@@ -129,9 +102,6 @@ pub static TABLE : [ super::Person ; 4 ] = [
    {r("Pierre Curie", false, 2.1, 0, 0, 0, )},
    {r("Irène Joliot-Curie", true, 3.2, 3, 2, 1, )},
    {r("Frédéric Joliot-Curie", false, 4.3, 2, 0, 0, )},
-];
-pub static WOMAN_INDEX : [ u8 ; 4 ] = [
-    1, 3, 0, 2, 
 ];
 pub static SCORE_INDEX : [ u8 ; 4 ] = [
     0, 1, 2, 3, 

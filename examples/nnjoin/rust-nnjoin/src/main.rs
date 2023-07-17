@@ -27,13 +27,13 @@ fn print_client_list(product: &insrcdata::Product) {
 
 fn main() {
     println!("By clients");
-    print_product_list(&*insrcdata::Clients::John);
-    print_product_list(&*insrcdata::Clients::Alix);
-    print_product_list(&*insrcdata::Clients::David);
+    print_product_list(&insrcdata::Clients::John);
+    print_product_list(&insrcdata::Clients::Alix);
+    print_product_list(&insrcdata::Clients::David);
 
     println!("\nBy products");
-    print_client_list(&*insrcdata::Products::Apple);
-    print_client_list(&*insrcdata::Products::Banana);
-    print_client_list(&*insrcdata::Products::Peach);
-    print_client_list(&*insrcdata::Products::Cherry);
+    print_client_list(&insrcdata::Products::Apple);
+    print_client_list(&insrcdata::Products::Banana);
+    print_client_list(&insrcdata::Products::Peach);
+    print_client_list(&insrcdata::Products::Cherry);
 }
