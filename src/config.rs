@@ -9,8 +9,8 @@
 use crate::language::Language;
 use crate::table::Project;
 use crate::{
-    aperror, basetype, colbool, colfloat, colint, coljoin, collabel, colobject, colstr, langrust,
-    language, lint, log, table,
+    aperror, basetype, colbool, colfloat, colint, coljoin, collabel, colobject, colstr, language,
+    lint, log, table,
 };
 use csv::StringRecord;
 use std::collections::{HashMap, HashSet};
@@ -115,15 +115,12 @@ impl Col {
             return Err(aperror::Error::new(&format!("target language {} not defined for column {}", lang, self.name)));
         };
 
-        let default_template = "{}".to_string();
-        let default_import = "".to_string();
-
         Ok(Box::new(colobject::ColObject::new(
             &self.name,
             strvals.to_owned(),
             &target.r#type,
-            target.template.as_ref().unwrap_or(&default_template),
-            target.import.as_ref().unwrap_or(&default_import),
+            target.template.as_deref().unwrap_or("{}"),
+            target.import.as_deref().unwrap_or(""),
         )))
     }
 
@@ -146,9 +143,8 @@ impl Col {
         let iterable = self.range.unwrap_or(false);
 
         // generate column from field type
-        let default_format = "str".to_string();
-        let format = self.format.as_ref().unwrap_or(&default_format);
-        match format.as_str() {
+        let format = self.format.as_deref().unwrap_or("str");
+        match format {
             "bool" => colbool::ColBool::parse(name, strvals, iterable),
             "f32" => colfloat::ColF32::parse(name, strvals, iterable),
             "f64" => colfloat::ColF64::parse(name, strvals, iterable),
@@ -445,19 +441,20 @@ impl Config {
 
     /// path of generated file
     fn dst_path(&self, runtime: &Runtime) -> PathBuf {
+        let projectname;
         let dst = if runtime.dest.is_empty() {
             match &self.dest {
-                Some(dst) => dst.to_string(),
-                None => {
-                    let defaultname = match runtime.projectpath.file_stem() {
-                        Some(name) => name.to_os_string().into_string().unwrap(),
-                        None => "unnamed".to_string(),
-                    };
-                    format!("{}.{}", defaultname, langrust::RUST.extension())
-                }
+                Some(dst) => dst,
+                None => match runtime.projectpath.file_stem() {
+                    Some(name) => {
+                        projectname = format!("{}.rs", name.to_str().unwrap_or("invalid"));
+                        &projectname
+                    }
+                    None => "unnamed.rs",
+                },
             }
         } else {
-            runtime.dest.to_string()
+            &runtime.dest
         };
         let confpath = Path::new(&dst);
         if confpath.is_absolute() {
