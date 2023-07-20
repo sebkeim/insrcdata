@@ -20,13 +20,13 @@ to = 'ref'
 [[table.join]]
 name = 'father'
 to = 'ref'
-allow_null = true
+optional = true
 
 # Other inner join with cardinality 0..1
 [[table.join]]
 name = 'mother'
 to = 'ref'
-allow_null = true
+optional = true
 
 # bool value
 [[table.col]]

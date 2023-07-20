@@ -187,7 +187,7 @@ struct Join {
     /// name of of table for join target
     external: Option<String>,
     /// allow getter to return an Option
-    allow_null: Option<bool>,
+    optional: Option<bool>,
     /// generate accessor for reverse join
     reverse: Option<String>,
 }
@@ -220,7 +220,7 @@ impl Join {
             values,
             dest_table,
             dest_keys,
-            self.allow_null.unwrap_or_default(),
+            self.optional.unwrap_or_default(),
             self.reverse.as_ref().unwrap_or(&String::new()),
         )))
     }

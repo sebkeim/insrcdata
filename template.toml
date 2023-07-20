@@ -98,7 +98,7 @@ external= 'Person'
 
 #  accessor method will return a Option<>
 # optional : false by default
-allow_null = false
+optional = false
 
 # create accessor method in to table for reverse join
 # optional : no creation by default

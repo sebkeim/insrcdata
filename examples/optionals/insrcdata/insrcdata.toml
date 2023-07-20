@@ -76,7 +76,7 @@ name = 'score_join'
 src = 'score'
 to = 'score'
 external = 'Score'
-allow_null = true
+optional = true
 
 
 [[table.join]]
@@ -84,4 +84,4 @@ name = 'count_join'
 src = 'count'
 to = 'count'
 external = 'Count'
-allow_null = true
+optional = true

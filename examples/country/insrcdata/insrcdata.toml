@@ -75,7 +75,7 @@ name = 'subregion'
 src = 'sub-region-code'
 to = 'sub-region-code'
 external = 'Subregion'
-allow_null = true
+optional = true
 reverse = 'countries'
 
 [[table.col]]
