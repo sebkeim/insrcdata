@@ -8,9 +8,9 @@
 // N-N join : many-to-many relationships
 //
 // insrcdata doesn't support natively many-to-many relationship between two tables.
-// You can solve the prblem with a third table which maintain two one-to-many relationships with the previous tables.
+// You can solve the problem with a third table which maintain two one-to-many relationships with the previous tables.
 //
-// This exemple maintain the many-to-many relationship between Client et Product with the Transaction table
+// This example maintain the many-to-many relationship between Client et Product with the Transaction table.
 
 // All product for a client
 void print_product_list(clients_t label) {

@@ -56,11 +56,11 @@ static void optjoin_sample() {
 
 
 // ================================================================================================
-// adhoc strategy use placeholder to represent 'no value'
+// ad-hoc strategy use placeholder to represent 'no value'
 // ================================================================================================
  
 // placeholder values that represent 'no value'
-// we must be certain that theses values will never be needed by real data
+// we must be certain that theses values will never be needed for real data
 static const float SCORE_EMPTY = -1.0;
 static const uint16_t COUNT_EMPTY = 0;
 
@@ -100,7 +100,7 @@ static void adhoc_print(adhocs_t label, char* name){
       printf("\n");
 }
 
-//  adhoc strategy usage sample
+//  ad-hoc strategy usage sample
 static void adhoc_sample() {
       printf("    Optional join strategy\n");
       adhoc_print(ADHOCS_FILLED, "Filled");

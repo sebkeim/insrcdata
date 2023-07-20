@@ -1,10 +1,10 @@
 use crate::insrcdata;
 //
-// adhoc strategy use placeholder to represent 'no value'
+// ad-hoc strategy use placeholder to represent 'no value'
 //
 
 // placeholder values that represent 'no value'
-// we must be certain that theses values will never be needed by real data
+// we must be certain that theses values will never be needed for real data
 const SCORE_EMPTY: f32 = -1.0;
 const COUNT_EMPTY: u16 = 0;
 
@@ -45,7 +45,7 @@ fn print(row: &dyn Adhoc, name: &str) {
     println!();
 }
 
-//  adhoc strategy usage sample
+//  ad-hoc strategy usage sample
 pub fn sample() {
     println!("    Adhoc strategy");
     print(&*insrcdata::Adhocs::Filled, "Filled");
