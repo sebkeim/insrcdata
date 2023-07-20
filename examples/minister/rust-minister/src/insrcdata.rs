@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 use std::ops::Deref;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Ministers {
     DavidCameron = 0,
     GordonBrown = 1,
@@ -15,10 +15,21 @@ impl Deref for Ministers {
         &minister::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Minister> for Ministers {
+    fn eq(&self, other: &&Minister) -> bool {
+        std::ptr::eq(self as &Minister, *other)
+    }
+}
+
 pub struct Minister {
     name_ : &'static str,
     birth_ : u16,
     country_ : u8,
+}
+impl PartialEq<Self> for Minister {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Minister {
     pub fn name(&self) -> &'static str { self.name_ }
@@ -99,7 +110,7 @@ pub static COUNTRY_INDEX : [ u8 ; 3 ] = [
 } // mod minister
 
 pub use minister::IndexIter as MinisterIter;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Countries {
     Gb = 0,
     It = 1,
@@ -110,9 +121,20 @@ impl Deref for Countries {
         &country::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Country> for Countries {
+    fn eq(&self, other: &&Country) -> bool {
+        std::ptr::eq(self as &Country, *other)
+    }
+}
+
 pub struct Country {
     code_ : &'static str,
     name_ : &'static str,
+}
+impl PartialEq<Self> for Country {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Country {
     pub fn code(&self) -> &'static str { self.code_ }

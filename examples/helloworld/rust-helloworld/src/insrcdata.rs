@@ -5,6 +5,11 @@
 pub struct HelloWorld {
     sentence_ : &'static str,
 }
+impl PartialEq<Self> for HelloWorld {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
 impl HelloWorld {
     pub fn sentence(&self) -> &'static str { self.sentence_ }
     pub fn array() -> &'static [HelloWorld; 2]  { &hello_world::TABLE }

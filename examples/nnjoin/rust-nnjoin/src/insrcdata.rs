@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 use std::ops::Deref;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Clients {
     John = 0,
     Alix = 1,
@@ -15,8 +15,19 @@ impl Deref for Clients {
         &client::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Client> for Clients {
+    fn eq(&self, other: &&Client) -> bool {
+        std::ptr::eq(self as &Client, *other)
+    }
+}
+
 pub struct Client {
     name_ : &'static str,
+}
+impl PartialEq<Self> for Client {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Client {
     pub fn name(&self) -> &'static str { self.name_ }
@@ -92,7 +103,7 @@ pub static TABLE : [ super::Client ; 3 ] = [
 } // mod client
 
 pub use client::IndexIter as ClientIter;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Products {
     Apple = 0,
     Banana = 1,
@@ -105,8 +116,19 @@ impl Deref for Products {
         &product::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Product> for Products {
+    fn eq(&self, other: &&Product) -> bool {
+        std::ptr::eq(self as &Product, *other)
+    }
+}
+
 pub struct Product {
     name_ : &'static str,
+}
+impl PartialEq<Self> for Product {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Product {
     pub fn name(&self) -> &'static str { self.name_ }
@@ -186,6 +208,11 @@ pub use product::IndexIter as ProductIter;
 pub struct Transaction {
     client_ : u8,
     product_ : u8,
+}
+impl PartialEq<Self> for Transaction {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Transaction {
     pub fn client(&self) -> &'static Client {

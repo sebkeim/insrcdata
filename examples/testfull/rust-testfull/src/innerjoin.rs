@@ -13,10 +13,10 @@ pub fn test_innerjoin() {
     assert!(frederic.name() == "Frédéric Joliot-Curie");
 
     // inner join with 1-1 cardinality
-    assert!(std::ptr::eq(marie.spouse(), &*pierre));
-    assert!(std::ptr::eq(pierre.spouse(), &*marie));
-    assert!(std::ptr::eq(irene.spouse(), &*frederic));
-    assert!(std::ptr::eq(frederic.spouse(), &*irene));
+    assert!(pierre == marie.spouse());
+    assert!(marie == pierre.spouse());
+    assert!(frederic == irene.spouse());
+    assert!(irene == frederic.spouse());
 
     // inner join with 0-1 cardinality
     assert!(marie.mother().is_none());
@@ -25,14 +25,8 @@ pub fn test_innerjoin() {
     assert!(pierre.father().is_none());
     assert!(frederic.mother().is_none());
     assert!(frederic.father().is_none());
-    assert!(std::ptr::eq(
-        irene.mother().expect("Irene has mother"),
-        &*marie
-    ));
-    assert!(std::ptr::eq(
-        irene.father().expect("Irene has father"),
-        &*pierre
-    ));
+    assert!(marie == irene.mother().expect("Irene has mother"));
+    assert!(pierre == irene.father().expect("Irene has father"));
 }
 
 pub fn test_bool() {

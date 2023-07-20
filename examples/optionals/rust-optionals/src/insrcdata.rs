@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 use std::ops::Deref;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Adhocs {
     Filled = 0,
     Empty = 1,
@@ -14,9 +14,20 @@ impl Deref for Adhocs {
         &adhoc::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Adhoc> for Adhocs {
+    fn eq(&self, other: &&Adhoc) -> bool {
+        std::ptr::eq(self as &Adhoc, *other)
+    }
+}
+
 pub struct Adhoc {
     score_data_ : f32,
     count_data_ : u8,
+}
+impl PartialEq<Self> for Adhoc {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl crate::adhoc::Adhoc for Adhoc {
     fn score_data(&self) -> f32 { self.score_data_ }
@@ -39,6 +50,11 @@ pub static TABLE : [ super::Adhoc ; 2 ] = [
 pub struct Score {
     value_ : f32,
 }
+impl PartialEq<Self> for Score {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
 impl Score {
     pub fn value(&self) -> f32 { self.value_ }
 }
@@ -58,6 +74,11 @@ pub static TABLE : [ super::Score ; 1 ] = [
 pub struct Count {
     value_ : u8,
 }
+impl PartialEq<Self> for Count {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
 impl Count {
     pub fn value(&self) -> u16 { self.value_ as u16 }
 }
@@ -74,7 +95,7 @@ pub static TABLE : [ super::Count ; 1 ] = [
 
 } // mod count
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Optjoins {
     Filled = 0,
     Empty = 1,
@@ -85,9 +106,20 @@ impl Deref for Optjoins {
         &optjoin::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Optjoin> for Optjoins {
+    fn eq(&self, other: &&Optjoin) -> bool {
+        std::ptr::eq(self as &Optjoin, *other)
+    }
+}
+
 pub struct Optjoin {
     score_join_ : u8,
     count_join_ : u8,
+}
+impl PartialEq<Self> for Optjoin {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl crate::optjoin::Optjoin for Optjoin {
     fn score_join(&self) -> Option<&'static Score> {

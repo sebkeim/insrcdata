@@ -2,7 +2,7 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Labels {
     Foo = 0,
     Bar = 1,

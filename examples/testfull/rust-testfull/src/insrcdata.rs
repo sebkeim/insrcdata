@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 use std::ops::Deref;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Persons {
     Marie = 0,
     Pierre = 1,
@@ -16,6 +16,12 @@ impl Deref for Persons {
         &person::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Person> for Persons {
+    fn eq(&self, other: &&Person) -> bool {
+        std::ptr::eq(self as &Person, *other)
+    }
+}
+
 pub struct Person {
     name_ : &'static str,
     woman_ : bool,
@@ -23,6 +29,11 @@ pub struct Person {
     spouse_ : u8,
     father_ : u8,
     mother_ : u8,
+}
+impl PartialEq<Self> for Person {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Person {
     pub fn name(&self) -> &'static str { self.name_ }
@@ -113,6 +124,11 @@ pub use person::IndexIter as PersonIter;
 pub struct Strencoding {
     text_ : &'static str,
 }
+impl PartialEq<Self> for Strencoding {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
 impl Strencoding {
     pub fn text(&self) -> &'static str { self.text_ }
 
@@ -189,7 +205,7 @@ pub static TEXT_INDEX : [ u8 ; 6 ] = [
 } // mod strencoding
 
 pub use strencoding::IndexIter as StrencodingIter;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Lettercases {
     Capital = 0,
     Upper = 1,
@@ -201,10 +217,21 @@ impl Deref for Lettercases {
         &lettercase::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Lettercase> for Lettercases {
+    fn eq(&self, other: &&Lettercase) -> bool {
+        std::ptr::eq(self as &Lettercase, *other)
+    }
+}
+
 pub struct Lettercase {
     name_ : &'static str,
     transformer_ : fn(&str)->String,
     point_ : &'static crate::colobject::Point,
+}
+impl PartialEq<Self> for Lettercase {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Lettercase {
     pub fn name(&self) -> &'static str { self.name_ }

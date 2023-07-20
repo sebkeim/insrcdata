@@ -7,6 +7,11 @@ pub struct Region {
     name_ : &'static str,
     code_ : u8,
 }
+impl PartialEq<Self> for Region {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
 impl crate::country::Region for Region {
     fn name(&self) -> &'static str { self.name_ }
     fn code(&self) -> u8 { self.code_ }
@@ -88,6 +93,11 @@ pub struct Subregion {
     name_ : &'static str,
     code_ : u16,
     region_ : u8,
+}
+impl PartialEq<Self> for Subregion {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Subregion {
     pub fn name(&self) -> &'static str { self.name_ }
@@ -184,7 +194,7 @@ pub static REGION_INDEX : [ u8 ; 17 ] = [
 } // mod subregion
 
 pub use subregion::IndexIter as SubregionIter;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Countries {
     Antarctica = 8,
     Belgium = 21,
@@ -195,12 +205,23 @@ impl Deref for Countries {
         &country::TABLE[*self as usize]
     }
 }
+impl PartialEq<&Country> for Countries {
+    fn eq(&self, other: &&Country) -> bool {
+        std::ptr::eq(self as &Country, *other)
+    }
+}
+
 pub struct Country {
     name_ : &'static str,
     alpha2_ : &'static str,
     alpha3_ : &'static str,
     code_ : u16,
     subregion_ : u8,
+}
+impl PartialEq<Self> for Country {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
 }
 impl Country {
     pub fn name(&self) -> &'static str { self.name_ }

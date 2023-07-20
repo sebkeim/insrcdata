@@ -344,7 +344,10 @@ fn impl_col_labels(
 ) -> io::Result<()> {
     let info = col.info();
     let enumname = strtype(&info.interface_type);
-    write!(output, "#[derive(Clone, Copy)]\npub enum {enumname} {{\n")?;
+    write!(
+        output,
+        "#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]\npub enum {enumname} {{\n"
+    )?;
 
     for row in 0..info.len {
         let label = col.emit_label(row);
@@ -365,7 +368,13 @@ fn impl_col_labels(
     fn deref(&self) -> &'static {strname} {{
         &{modname}::TABLE[*self as usize]
     }}
-}}"
+}}
+impl PartialEq<&{strname}> for {enumname} {{
+    fn eq(&self, other: &&{strname}) -> bool {{
+        std::ptr::eq(self as &{strname}, *other)
+    }}
+}}
+"
         )?;
     }
     Ok(())
@@ -464,13 +473,21 @@ fn impl_table_data(
     // define structure
     let datacols: Vec<&dyn table::Column> = table.data_columns();
 
-    writeln!(output, "pub struct {} {{", strname)?;
+    writeln!(output, "pub struct {strname} {{")?;
     for col in &datacols {
         let info = col.info();
         let fieldtype = strtype(&info.table_type);
         writeln!(output, "    {}_ : {},", info.name, fieldtype)?;
     }
-    writeln!(output, "}}")?;
+    writeln!(
+        output,
+        "}}
+impl PartialEq<Self> for {strname} {{
+    fn eq(&self, other: &Self) -> bool {{
+        std::ptr::eq(self, other)
+    }}
+}}"
+    )?;
 
     // stucture implementation
     let use_trait = !table.itrait.is_empty();
