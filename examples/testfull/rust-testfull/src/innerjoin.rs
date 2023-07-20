@@ -55,8 +55,23 @@ pub fn test_float() {
     assert!(pierre.score() == 2.1);
 
     // test closed range iterator
+    // the iterator is stable : table order is preserved for equal values
+    // we get all lower bound values
     let middle: Vec<String> = db::Person::score_range(2.1, 3.2)
         .map(|n| n.name().to_string())
         .collect();
-    assert!(middle == vec!["Pierre Curie", "Irène Joliot-Curie"]);
+    assert!(
+        middle
+            == vec![
+                "Pierre Curie",
+                "Frédéric Joliot-Curie",
+                "Irène Joliot-Curie",
+            ]
+    );
+
+    // we get all upper bound values
+    let middle: Vec<String> = db::Person::score_range(1.0, 2.1)
+        .map(|n| n.name().to_string())
+        .collect();
+    assert!(middle == vec!["Marie Curie", "Pierre Curie", "Frédéric Joliot-Curie",]);
 }

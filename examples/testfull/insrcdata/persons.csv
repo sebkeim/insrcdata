@@ -2,4 +2,4 @@ ref,name,spouse,father,mother,woman,score
 Marie,Marie Curie,Pierre,,,true,1.0
 Pierre,Pierre Curie,Marie,,,false,2.1
 Irene,Irène Joliot-Curie,Frederic,Pierre,Marie,true,3.2
-Frederic,Frédéric Joliot-Curie,Irene,,,false,4.3
+Frederic,Frédéric Joliot-Curie,Irene,,,false,2.1

@@ -8,7 +8,7 @@ static const person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
    {"Marie Curie", true, 1.0, 1, 0, 0, },
    {"Pierre Curie", false, 2.1, 0, 0, 0, },
    {"Irène Joliot-Curie", true, 3.2, 3, 2, 1, },
-   {"Frédéric Joliot-Curie", false, 4.3, 2, 0, 0, },
+   {"Frédéric Joliot-Curie", false, 2.1, 2, 0, 0, },
 };
 
 const person_t* person_next(person_iter_t* idx) { return idx->ptr<idx->end ? &PERSON_TABLE[*idx->ptr++] : NULL; }
@@ -16,7 +16,7 @@ const person_t* person_next(person_iter_t* idx) { return idx->ptr<idx->end ? &PE
 
 static unsigned const PERSON_SCORE_INDEX_COUNT  =  4;
 static uint8_t PERSON_SCORE_INDEX   [PERSON_SCORE_INDEX_COUNT] = {
-    0, 1, 2, 3, 
+    0, 1, 3, 2, 
 };
 
 const person_t* person_from_persons(persons_t label) {

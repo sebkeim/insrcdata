@@ -112,10 +112,10 @@ pub static TABLE : [ super::Person ; 4 ] = [
    {r("Marie Curie", true, 1.0, 1, 0, 0, )},
    {r("Pierre Curie", false, 2.1, 0, 0, 0, )},
    {r("Irène Joliot-Curie", true, 3.2, 3, 2, 1, )},
-   {r("Frédéric Joliot-Curie", false, 4.3, 2, 0, 0, )},
+   {r("Frédéric Joliot-Curie", false, 2.1, 2, 0, 0, )},
 ];
 pub static SCORE_INDEX : [ u8 ; 4 ] = [
-    0, 1, 2, 3, 
+    0, 1, 3, 2, 
 ];
 
 } // mod person

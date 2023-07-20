@@ -64,7 +64,14 @@ void test_float(void) {
       // test closedrange iterator
       person_iter_t iter = person_score_range(2.1, 3.2);
       assert( person_next(&iter)==person_from_persons(PERSONS_PIERRE) );
+      assert( person_next(&iter)==person_from_persons(PERSONS_FREDERIC) );
       assert( person_next(&iter)==person_from_persons(PERSONS_IRENE) );
+      assert( person_next(&iter)==NULL );
+      
+      iter = person_score_range(1.0, 2.1);
+      assert( person_next(&iter)==person_from_persons(PERSONS_MARIE) );
+      assert( person_next(&iter)==person_from_persons(PERSONS_PIERRE) );
+      assert( person_next(&iter)==person_from_persons(PERSONS_FREDERIC) );
       assert( person_next(&iter)==NULL );
 }
 
