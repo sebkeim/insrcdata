@@ -71,12 +71,18 @@ fn index_name(strname: &str, field: &str) -> String {
 // Struct definition
 // ================================================================================================
 
-fn write_iter_index_struct(strname: &String, output: &mut dyn io::Write) -> io::Result<()> {
+fn write_iter_index_struct(
+    table: &table::Table,
+    strname: &String,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let indextype = strtype(&table.index_type());
+
     writeln!(output, "
 use std::mem;
 
 pub struct IndexIter {{
-    pub indexes : Box<dyn Iterator<Item=&'static u8>>,
+    pub indexes : Box<dyn Iterator<Item=&'static {indextype}>>,
 }}
 
 impl Iterator for IndexIter {{
@@ -421,7 +427,7 @@ impl PartialEq<Self> for {strname} {{
     writeln!(output)?;
 
     if project.table_need_iter(table) {
-        write_iter_index_struct(&strname, output)?;
+        write_iter_index_struct(table, &strname, output)?;
     }
     write_ctor_function(&strname, &datacols, output)?;
 

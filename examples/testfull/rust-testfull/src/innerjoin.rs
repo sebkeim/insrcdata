@@ -74,4 +74,15 @@ pub fn test_float() {
         .map(|n| n.name().to_string())
         .collect();
     assert!(middle == vec!["Marie Curie", "Pierre Curie", "Frédéric Joliot-Curie",]);
+
+    // test reversed
+    assert!(db::Person::score_range(2.0, 1.9).count() == 0);
+
+    // under
+    assert!(db::Person::score_range(0.0, 0.9).count() == 0);
+    assert!(db::Person::score_range(0.0, 1.0).count() == 1);
+
+    // over
+    assert!(db::Person::score_range(10.0, 9000.0).count() == 0);
+    assert!(db::Person::score_range(3.2, 9000.0).count() == 1);
 }

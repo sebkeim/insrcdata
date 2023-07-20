@@ -186,9 +186,10 @@ fn header_iter_range(
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
+    let info = col.info();
     let strname = struct_name(&table.name);
-    let colname = &col.info().name;
-    let argtype = strtype(&col.info().table_type);
+    let colname = struct_name(&info.name);
+    let argtype = strtype(&info.interface_type);
     writeln!(
         output,
         "extern {strname}_iter_t  {strname}_{colname}_range( {argtype} start, {argtype} stop);"
@@ -201,14 +202,12 @@ fn impl_iter_range(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let info = col.info();
-    let indextyp = strtype(&table.index_type());
-
     let strname = struct_name(&table.name);
     let colname = struct_name(&info.name);
     let argtype = strtype(&info.interface_type);
     let strtable = table_name(&table.name);
+    let indextyp = strtype(&table.index_type());
     let field = table_name(&info.name);
-
     let right = format!("{strtable}_TABLE[*mid].{colname}_ ");
     let gt = gt(&col.info().table_type, "start", &right);
     let lt = lt(&col.info().table_type, "stop", &right);
@@ -248,7 +247,6 @@ fn impl_iter_range(
 // ================================================================================================
 // Reverse join
 // ================================================================================================
-
 fn header_reverse_join(
     table: &table::Table,
     srccol: &dyn table::Column,
@@ -326,7 +324,6 @@ fn impl_reverse_join(
 // ================================================================================================
 // Labels
 // ================================================================================================
-
 fn header_col_labels(
     table: &table::Table,
     col: &dyn table::Column,
@@ -391,7 +388,6 @@ fn impl_col_labels(
 // ================================================================================================
 // Indexes
 // ================================================================================================
-
 fn header_index(table: &table::Table, output: &mut dyn io::Write) -> io::Result<()> {
     let strname = struct_name(&table.name);
     let indextyp = strtype(&table.index_type());

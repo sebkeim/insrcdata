@@ -3,11 +3,11 @@ use crate::insrcdata as db;
 // Pattern matching : retrieve label from fic record reference
 
 fn nobel_year(x: &db::Person) -> u16 {
-    match x as *const _ {
-        x if x == &*db::Persons::Marie => 1911, // also in 1903
-        x if x == &*db::Persons::Pierre => 1903,
-        x if x == &*db::Persons::Irene => 1935,
-        x if x == &*db::Persons::Frederic => 1935,
+    match x {
+        x if db::Persons::Marie == x => 1911, // also in 1903
+        x if db::Persons::Pierre == x => 1903,
+        x if db::Persons::Irene == x => 1935,
+        x if db::Persons::Frederic == x => 1935,
         _ => 0,
     }
 

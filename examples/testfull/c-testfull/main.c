@@ -73,6 +73,24 @@ void test_float(void) {
       assert( person_next(&iter)==person_from_persons(PERSONS_PIERRE) );
       assert( person_next(&iter)==person_from_persons(PERSONS_FREDERIC) );
       assert( person_next(&iter)==NULL );
+      
+      // test reversed
+      iter = person_score_range(2.0, 1.9);
+      assert( person_next(&iter)==NULL );
+    
+      // under
+      iter = person_score_range(0.0, 0.9);
+      assert( person_next(&iter)==NULL );
+      iter = person_score_range(0.0, 1.0);
+      assert( person_next(&iter)==person_from_persons(PERSONS_MARIE)  );
+      assert( person_next(&iter)==NULL );
+      
+      // over
+      iter = person_score_range(10.0, 9000.0);
+      assert( person_next(&iter)==NULL ); 
+      iter = person_score_range(3.2, 9000.0);
+      assert( person_next(&iter)==person_from_persons(PERSONS_IRENE) );
+      assert( person_next(&iter)==NULL );
 }
 
 // Pattern matching : retrieve label from fic record reference
