@@ -4,12 +4,11 @@
 #include <string.h>
 #include <stdio.h>
 
-// simulate rust trait by a function
+// custom extension function
 static bool region_in_eurasia(const region_t* s) {
       int code = region_code(s);
       return code == 142 || code == 150 ;
 }
-
 
 // This function will print some information from a country
 static void print_country(const country_t* country)
@@ -31,10 +30,8 @@ static void print_country(const country_t* country)
                    country_name(country),
                    country_alpha3(country)
                    );
-            
       }
 }
-
 
 static void demo() {
       // row access by label
@@ -116,7 +113,6 @@ static void test_sdn_sgp(char* start, char* stop){
       assert( country!=NULL && strcmp(country_alpha3(country), "SGP")==0 ); // Singapore
       country = country_next(&iter);
       assert( country==NULL  );
-
 }
 
 static void test(void) {

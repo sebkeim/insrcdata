@@ -46,10 +46,6 @@ struct Args {
     #[arg(long)]
     lint: bool,
 
-    /// print source code template
-    #[arg(long)]
-    interface: bool,
-
     /// force rebuild even if modifications detected
     #[arg(long)]
     rebuild: bool,
@@ -105,9 +101,7 @@ fn main() -> aperror::Result<()> {
     }
 
     // generate
-    if args.interface {
-        project.interface()?;
-    } else if !args.lint && (args.rebuild || project.modified()) {
+    if !args.lint && (args.rebuild || project.modified()) {
         project.emit()?;
     }
 

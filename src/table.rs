@@ -74,7 +74,6 @@ pub struct Table {
     pub name: String,
     pub len: usize,
     pub columns: Vec<Box<dyn Column>>,
-    pub itrait: String,
     pub get_array: bool,
 
     pub outcol_indexes: Vec<usize>, // value columns
@@ -83,7 +82,7 @@ pub struct Table {
 
 impl Table {
     // create Table structure
-    pub fn new(name: &str, columns: Vec<Box<dyn Column>>, itrait: &str, get_array: bool) -> Table {
+    pub fn new(name: &str, columns: Vec<Box<dyn Column>>, get_array: bool) -> Table {
         let mut allcolumns: Vec<Box<dyn Column>> = Vec::new();
         let mut outcol_indexes: Vec<usize> = Vec::new();
         let mut labcol_indexes: Vec<usize> = Vec::new();
@@ -108,7 +107,6 @@ impl Table {
             name: name.to_string(),
             len,
             columns: allcolumns,
-            itrait: itrait.to_string(),
             get_array,
             outcol_indexes,
             labcol_indexes,
@@ -119,11 +117,6 @@ impl Table {
     fn lint(&self, linter: &lint::Linter) {
         linter.context(&self.name, |lt_table| {
             lt_table.err(lint::label(&self.name), "invalid table name");
-
-            lt_table.err(
-                self.has_data() || self.itrait.is_empty(),
-                "unable to use trait on table without values",
-            );
 
             lt_table.err(
                 self.has_data() || !self.get_array,
@@ -216,10 +209,6 @@ impl Project {
 
     pub fn emit(&self) -> aperror::Result<()> {
         self.lang.emit(self)
-    }
-
-    pub fn interface(&self) -> aperror::Result<()> {
-        self.lang.interface(self)
     }
 
     pub fn has_deref_labels(&self) -> bool {

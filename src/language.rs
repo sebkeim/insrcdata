@@ -12,9 +12,6 @@ use std::path::PathBuf;
 pub trait Language {
     fn emit(&self, project: &table::Project) -> aperror::Result<()>;
 
-    // print interface definitions (traits)
-    fn interface(&self, project: &table::Project) -> aperror::Result<()>;
-
     fn extension(&self) -> String;
 
     fn dst_modified(&self, project: &table::Project) -> aperror::Result<std::time::SystemTime> {

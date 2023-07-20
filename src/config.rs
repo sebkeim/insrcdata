@@ -242,7 +242,6 @@ struct TableContext<'a> {
 struct Table {
     name: String,
     src: Option<String>,
-    r#trait: Option<String>,
     array: Option<bool>,
     sorted: Option<bool>,
     col: Option<Vec<Col>>,
@@ -394,14 +393,9 @@ impl Table {
             }
         }
 
-        let itrait = match &self.r#trait {
-            Some(itrait) => itrait,
-            None => "",
-        };
-
         let get_array = self.array.unwrap_or(false);
 
-        table::Table::new(&self.name, columns, itrait, get_array)
+        table::Table::new(&self.name, columns, get_array)
     }
 
     /// modification time of table source.csv

@@ -13,7 +13,6 @@ dest ="../rust-optionals/src/insrcdata.rs"
 [[table]]
 src = "adhoc.csv"
 name = 'Adhoc'
-trait = 'crate::adhoc::Adhoc'
 
 [[table.col]]
 name = 'Adhocs'
@@ -64,7 +63,6 @@ single = true
 [[table]]
 src = "optjoin.csv"
 name = 'Optjoin'
-trait = 'crate::optjoin::Optjoin'
 
 [[table.col]]
 name = 'Optjoins'

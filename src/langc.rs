@@ -656,10 +656,6 @@ impl language::Language for LangC {
         impl_project(project)
     }
 
-    fn interface(&self, _project: &table::Project) -> aperror::Result<()> {
-        Ok(())
-    }
-
     fn extension(&self) -> String {
         "c".to_string()
     }

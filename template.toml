@@ -34,10 +34,6 @@ src = "helloworld.csv"
 # optional : default to false
 array  = true
 
-# declare table struct to implement that trait
-# optional : no trait if not defined
-trait = 'crate::hello::HelloWorld'
-
 # in future version, some optimisation strategy may need to rearange row order.
 # set this flag to true if input row order must not be altered in table.
 # optional : default to false

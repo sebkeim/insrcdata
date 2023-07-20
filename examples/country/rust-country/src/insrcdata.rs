@@ -12,11 +12,11 @@ impl PartialEq<Self> for Region {
         std::ptr::eq(self, other)
     }
 }
-impl crate::country::Region for Region {
-    fn name(&self) -> &'static str { self.name_ }
-    fn code(&self) -> u8 { self.code_ }
+impl Region {
+    pub fn name(&self) -> &'static str { self.name_ }
+    pub fn code(&self) -> u8 { self.code_ }
 
-    fn subregions(&self) -> SubregionIter {
+    pub fn subregions(&self) -> SubregionIter {
         let cons = region::index_of(self) as u8;
 
         // bissect left

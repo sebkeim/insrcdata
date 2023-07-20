@@ -29,9 +29,9 @@ impl PartialEq<Self> for Adhoc {
         std::ptr::eq(self, other)
     }
 }
-impl crate::adhoc::Adhoc for Adhoc {
-    fn score_data(&self) -> f32 { self.score_data_ }
-    fn count_data(&self) -> u16 { self.count_data_ as u16 }
+impl Adhoc {
+    pub fn score_data(&self) -> f32 { self.score_data_ }
+    pub fn count_data(&self) -> u16 { self.count_data_ as u16 }
 }
 
 mod adhoc {
@@ -121,12 +121,12 @@ impl PartialEq<Self> for Optjoin {
         std::ptr::eq(self, other)
     }
 }
-impl crate::optjoin::Optjoin for Optjoin {
-    fn score_join(&self) -> Option<&'static Score> {
+impl Optjoin {
+    pub fn score_join(&self) -> Option<&'static Score> {
         let index = self.score_join_;
         if index==0 { None } else { Some(&score::TABLE[index as usize -1]) }
     }
-    fn count_join(&self) -> Option<&'static Count> {
+    pub fn count_join(&self) -> Option<&'static Count> {
         let index = self.count_join_;
         if index==0 { None } else { Some(&count::TABLE[index as usize -1]) }
     }

@@ -100,13 +100,6 @@ pub fn index_of(fic:&super::{strname}) -> usize {{
 // ================================================================================================
 // Getters
 // ================================================================================================
-fn use_pub(table: &table::Table) -> &str {
-    if table.itrait.is_empty() {
-        "pub "
-    } else {
-        ""
-    }
-}
 fn cast_to_interface_type(info: &table::ColumnInfo) -> String {
     if info.interface_type == info.table_type {
         String::from("")
@@ -115,42 +108,9 @@ fn cast_to_interface_type(info: &table::ColumnInfo) -> String {
     }
 }
 
-fn trait_getter_col(col: &dyn table::Column, output: &mut dyn io::Write) -> io::Result<()> {
+fn getter_col(col: &dyn table::Column, output: &mut dyn io::Write) -> io::Result<()> {
     let info = col.info();
     let field = &info.name;
-
-    match &info.interface_type.type_impl() {
-        basetype::TypeImpl::Label => {
-            log::verbose("unexpected getter_col for Label type");
-        }
-        basetype::TypeImpl::Join01 => {
-            let outtype = struct_name(&info.join_table());
-            writeln!(
-                output,
-                "    fn {field}(&self) -> Option<&'static {outtype}>;"
-            )?;
-        }
-        basetype::TypeImpl::Join11 => {
-            let outtype = struct_name(&info.join_table());
-            writeln!(output, "    fn {field}(&self) -> &'static {outtype};",)?;
-        }
-
-        basetype::TypeImpl::Scalar => {
-            let outtype = strtype(&info.interface_type);
-            writeln!(output, "    fn {field}(&self) -> {outtype} ;",)?;
-        }
-    }
-    Ok(())
-}
-
-fn impl_getter_col(
-    table: &table::Table,
-    col: &dyn table::Column,
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
-    let info = col.info();
-    let field = &info.name;
-    let usepub = use_pub(table);
     match &info.interface_type.type_impl() {
         basetype::TypeImpl::Label => {
             log::verbose("unexpected getter_col for Label type");
@@ -160,7 +120,7 @@ fn impl_getter_col(
             let jointable = table_name(&outtype);
             writeln!(
                 output,
-                "    {usepub}fn {field}(&self) -> Option<&'static {outtype}> {{
+                "    pub fn {field}(&self) -> Option<&'static {outtype}> {{
         let index = self.{field}_;
         if index==0 {{ None }} else {{ Some(&{jointable}[index as usize -1]) }}
     }}"
@@ -171,7 +131,7 @@ fn impl_getter_col(
             let jointable = table_name(&outtype);
             writeln!(
                 output,
-                "    {usepub}fn {field}(&self) -> &'static {outtype} {{
+                "    pub fn {field}(&self) -> &'static {outtype} {{
         &{jointable}[self.{field}_ as usize]
     }}"
             )?;
@@ -182,7 +142,7 @@ fn impl_getter_col(
             let cast = cast_to_interface_type(info);
             writeln!(
                 output,
-                "    {usepub}fn {field}(&self) -> {outtype} {{ self.{field}_{cast} }}",
+                "    pub fn {field}(&self) -> {outtype} {{ self.{field}_{cast} }}",
             )?;
         }
     }
@@ -192,33 +152,13 @@ fn impl_getter_col(
 // ================================================================================================
 // Range iterator
 // ================================================================================================
-
-fn trait_iter_col(
-    project: &table::Project,
-    strname: &str,
-    col: &dyn table::Column,
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
-    let info = col.info();
-    let field = &info.name;
-    let argtype = strtype(&info.interface_type);
-    let projectname = project.name();
-    let srcstruct = struct_name(strname);
-
-    writeln!(
-        output,
-        "    fn {field}_range(start:{argtype}, stop:{argtype}) -> {projectname}::{srcstruct}Iter "
-    )
-}
-
-fn impl_iter_col(
+fn iter_col(
     table: &table::Table,
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let info = col.info();
 
-    let usepub = use_pub(table);
     let field = &info.name;
     let argtype = argtype(&info.interface_type);
     let modname = mod_name(&table.name);
@@ -229,7 +169,7 @@ fn impl_iter_col(
     writeln!(
         output,
         "
-    {usepub}fn {field}_range(start:{argtype}, stop:{argtype}) -> {modname}::IndexIter {{
+    pub fn {field}_range(start:{argtype}, stop:{argtype}) -> {modname}::IndexIter {{
         let mut lo = 0;
         let mut hi = {indexname}.len();
         while lo < hi {{
@@ -261,23 +201,7 @@ fn impl_iter_col(
 // ================================================================================================
 // Reverse join
 // ================================================================================================
-fn trait_reverse_join(
-    project: &table::Project,
-    srcname: &str,
-    col: &dyn table::Column,
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
-    let reverse = col.reverse_name();
-    let projectname = project.name();
-    let srcstruct = struct_name(srcname);
-
-    writeln!(
-        output,
-        "    fn {reverse}(&self) -> {projectname}::{srcstruct}Iter;"
-    )
-}
-
-fn impl_reverse_join(
+fn reverse_join(
     table: &table::Table,
     srccol: &dyn table::Column,
     srcname: &str,
@@ -288,7 +212,6 @@ fn impl_reverse_join(
     }
 
     let info = srccol.info();
-    let usepub = use_pub(table);
     let field = &info.name;
     let reverse = srccol.reverse_name();
     let srcmod = mod_name(srcname);
@@ -301,7 +224,7 @@ fn impl_reverse_join(
     writeln!(
         output,
         "
-    {usepub}fn {reverse}(&self) -> {srcstruct}Iter {{
+    pub fn {reverse}(&self) -> {srcstruct}Iter {{
         let cons = {joinmod}::index_of(self) as {tabletype}{offset};
 
         // bissect left
@@ -337,7 +260,7 @@ fn impl_reverse_join(
 // ================================================================================================
 // Labels
 // ================================================================================================
-fn impl_col_labels(
+fn col_labels(
     table: &table::Table,
     col: &dyn table::Column,
     output: &mut dyn io::Write,
@@ -411,34 +334,6 @@ fn write_index(
 // ================================================================================================
 // Table
 // ================================================================================================
-fn trait_table(
-    project: &table::Project,
-    table: &table::Table,
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
-    let strname = struct_name(&table.name);
-
-    writeln!(output, "trait {} {{", table.itrait)?;
-
-    // data columns
-    let datacols: Vec<&dyn table::Column> = table.data_columns();
-    for col in datacols {
-        trait_getter_col(col, output)?;
-
-        if col.info().has_iter_range() {
-            trait_iter_col(project, &strname, col, output)?;
-        }
-    }
-
-    // reverse table join
-    let reverse_join = project.join_to_columns(table);
-    for (join, col) in reverse_join {
-        trait_reverse_join(project, &join.name, col, output)?;
-    }
-
-    writeln!(output, "}}")
-}
-
 // define ctor fuction  : const fn r(hello:u8, ) -> Table1 { return Table1{hello_:hello, }; }
 fn write_ctor_function(
     strname: &String,
@@ -463,7 +358,7 @@ fn write_ctor_function(
     write!(output, "}}\n}}\n\n")
 }
 
-fn impl_table_data(
+fn table_data(
     project: &table::Project,
     table: &table::Table,
     output: &mut dyn io::Write,
@@ -490,30 +385,22 @@ impl PartialEq<Self> for {strname} {{
     )?;
 
     // stucture implementation
-    let use_trait = !table.itrait.is_empty();
-    if use_trait {
-        writeln!(output, "impl {} for {} {{", table.itrait, strname)?;
-    } else {
-        writeln!(output, "impl {} {{", strname)?;
-    }
+    writeln!(output, "impl {} {{", strname)?;
 
     // data column
     for col in &datacols {
-        impl_getter_col(table, *col, output)?;
+        getter_col(*col, output)?;
         if col.info().has_iter_range() {
-            impl_iter_col(table, *col, output)?;
+            iter_col(table, *col, output)?;
         }
     }
 
-    let reverse_join = project.join_to_columns(table);
-    for (join, col) in reverse_join {
-        impl_reverse_join(table, col, &join.name, output)?;
+    let joins_to = project.join_to_columns(table);
+    for (join, col) in joins_to {
+        reverse_join(table, col, &join.name, output)?;
     }
 
     if table.get_array {
-        if use_trait {
-            writeln!(output, "}}\n impl {}  {{", strname)?;
-        }
         let srcstruct = struct_name(&table.name);
         let tablelen = table.len;
         let srcmod = mod_name(&table.name);
@@ -569,7 +456,7 @@ impl PartialEq<Self> for {strname} {{
     Ok(())
 }
 
-fn impl_table(
+fn emit_table(
     project: &table::Project,
     table: &table::Table,
     output: &mut dyn io::Write,
@@ -577,10 +464,10 @@ fn impl_table(
     // Labels
     let labelcols: Vec<&dyn table::Column> = table.label_columns();
     for col in labelcols {
-        impl_col_labels(table, col, output)?;
+        col_labels(table, col, output)?;
     }
     if table.has_data() {
-        impl_table_data(project, table, output)?;
+        table_data(project, table, output)?;
     }
     Ok(())
 }
@@ -608,19 +495,7 @@ impl language::Language for Rust {
         }
 
         for table in &project.tables {
-            impl_table(project, table, output)?;
-        }
-        Ok(())
-    }
-
-    // print definition of traits
-    fn interface(&self, project: &table::Project) -> aperror::Result<()> {
-        let output = &mut io::stdout() as &mut dyn io::Write;
-
-        for table in &project.tables {
-            if !table.itrait.is_empty() {
-                trait_table(project, table, output)?;
-            }
+            emit_table(project, table, output)?;
         }
         Ok(())
     }

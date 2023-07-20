@@ -9,7 +9,6 @@ dest = '../rust-country/src/insrcdata.rs'
 [[table]]
 src = "countries.csv"
 name = 'Region'
-trait = 'crate::country::Region'
          
 [[table.col]]
 name = 'name'

@@ -77,15 +77,7 @@ class sample:
             output = cmd.communicate()[0]
             assert cmd.returncode==0, f"failed run : {self.name}"
             return output
-
-      def get_template(self):
-            """return generated template for trait"""
-            
-            cmd  =  subprocess.Popen([INSRCDATA, f"{self.project_path()}/insrcdata/insrcdata.toml", "--interface", "--dest", self.dest() ], stdout=subprocess.PIPE)
-            output = cmd.communicate()[0]
-            assert cmd.returncode==0, f"failed insrcdata interface : {self.name}"
-            return output
-
+ 
       def check_regression(self, new_output, consigne_name):
             path = f"{self.regress_path()}/{consigne_name}.txt"
             try:
@@ -111,10 +103,6 @@ class sample:
 
             # sample output
             self.check_regression(output, "output")
-
-            # trait template generation
-            template = self.get_template()
-            self.check_regression(template, "template")
 
 class sample_rust(sample):
       LANG = "rust"
