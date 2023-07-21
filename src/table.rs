@@ -88,7 +88,6 @@ pub struct Table {
 impl Table {
     // create Table structure
     pub fn new(name: &str, columns: Vec<Box<dyn Column>>, get_array: bool) -> Table {
-        let mut allcolumns: Vec<Box<dyn Column>> = Vec::new();
         let mut outcol_indexes: Vec<usize> = Vec::new();
         let mut labcol_indexes: Vec<usize> = Vec::new();
 
@@ -97,32 +96,31 @@ impl Table {
             Some(c) => c.info().len,
         };
 
-        for c in columns {
-            let info = c.info();
+        for (index, col) in columns.iter().enumerate() {
+            let info = col.info();
 
             match info.table_type {
                 basetype::BaseType::Label { .. } => {
                     if !info.name.is_empty() {
-                        outcol_indexes.push(allcolumns.len())
+                        outcol_indexes.push(index)
                     }
-                    labcol_indexes.push(allcolumns.len())
+                    labcol_indexes.push(index)
                 }
-                _ => outcol_indexes.push(allcolumns.len()),
+                _ => outcol_indexes.push(index),
             }
-            allcolumns.push(c)
         }
 
         Table {
-            name: name.to_string(),
+            name: name.to_owned(),
             len,
-            columns: allcolumns,
+            columns,
             get_array,
             outcol_indexes,
             labcol_indexes,
         }
     }
 
-    // check
+    // check table configuration
     fn lint(&self, linter: &lint::Linter) {
         linter.context(&self.name, |lt_table| {
             lt_table.err(lint::label(&self.name), "invalid table name");
@@ -186,7 +184,6 @@ impl Table {
 // ================================================================================================
 pub struct Project {
     pub dst_path: PathBuf,
-
     pub lang: &'static dyn language::Language,
     pub tables: Vec<Table>,
     pub src_modified: std::time::SystemTime,
