@@ -1,0 +1,32 @@
+#
+# insrcdata : bench
+#
+
+dest ="../rust-bench/src/insrcdata.rs"
+
+[[table]]
+src = "./databench.csv"
+name = 'Bench'
+array  = true    # we need the  method array 
+
+[[table.col]]
+
+name = 'byte'
+format = 'u32'
+range = true
+
+[[table.col]]
+name = 'short'
+format = 'u32'
+range = true
+
+[[table.col]]
+name = 'int'
+format = 'u32'
+range = true
+
+[[table.col]]
+name = 'str'
+format = 'str'
+range = true
+ 
