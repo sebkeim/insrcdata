@@ -304,16 +304,14 @@ impl Table {
         cols: &mut HashMap<String, Vec<String>>,
     ) -> aperror::Result<()> {
         let path = self.src_path(indir);
-        log::log(&format!(
-            "open file {}",
-            path.to_str().unwrap_or("<undefined>")
-        ));
+        let path_str = path.to_str().unwrap_or("<undefined>");
+        log::log(&format!("open file {path_str}",));
         let file = File::open(&path)?;
         let mut reader = csv::Reader::from_reader(file);
 
         let headers: csv::StringRecord = match reader.headers() {
             Ok(v) => v.clone(),
-            Err(_) => return Err(aperror::Error::new("empty file")),
+            Err(_) => return Err(aperror::Error::new("empty file {path_str}")),
         };
 
         // read column names
@@ -322,7 +320,9 @@ impl Table {
             let key = self.key(&headers[i]);
             keys.push(key.to_string());
             if cols.contains_key(&key) {
-                return Err(aperror::Error::new(&format!("duplicate column : {}", key)));
+                return Err(aperror::Error::new(&format!(
+                    "duplicate column {key} in {path_str}"
+                )));
             }
             cols.insert(key, vec![]);
         }

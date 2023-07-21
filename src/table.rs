@@ -50,19 +50,24 @@ impl ColumnInfo {
 pub trait Column {
     fn info(&self) -> &ColumnInfo;
 
+    // cell value
     fn emit_table_cell(&self, row: usize) -> String;
     fn emit_label(&self, _row: usize) -> String {
         "EMIT_LABEL_UNSUPORTED".to_string()
     }
 
+    // for indexed lookup
     fn indexes(&self) -> Vec<usize>;
 
+    // check validity of input params
     fn lint(&self, linter: &lint::Linter);
 
+    // used by reverse join
     fn reverse_name(&self) -> String {
         "".to_string()
     }
 
+    // import dependacies for object data type column
     fn fill_import(&self, _out: &mut HashSet<String>) {}
 }
 
@@ -87,10 +92,14 @@ impl Table {
         let mut outcol_indexes: Vec<usize> = Vec::new();
         let mut labcol_indexes: Vec<usize> = Vec::new();
 
-        let mut len: usize = 0;
+        let len = match columns.first() {
+            None => 0,
+            Some(c) => c.info().len,
+        };
+
         for c in columns {
             let info = c.info();
-            len = info.len;
+
             match info.table_type {
                 basetype::BaseType::Label { .. } => {
                     if !info.name.is_empty() {
@@ -124,13 +133,16 @@ impl Table {
             );
 
             // check columns
-            for col in &self.columns {
+            let mut colnames = HashSet::<&String>::new();
+            for col in &self.data_columns() {
                 let info = col.info();
                 lt_table.context(&info.name, |lt_col| {
-                    lt_col.err(lint::label(&self.name), "invalid column name");
+                    lt_col.err(lint::label(&info.name), "invalid column name");
+                    lt_col.err(!colnames.contains(&info.name), "duplicated column name");
                     lt_col.err(self.len == info.len, "mismatched number of rows");
                     col.lint(lt_col)
-                })
+                });
+                colnames.insert(&info.name);
             }
         })
     }
@@ -185,7 +197,11 @@ impl Project {
         let projectname = self.name();
         linter.context(&projectname, |lt| {
             lt.err(lint::label(&projectname), "invalid project name");
+
+            let mut tblnames = HashSet::<&String>::new();
+
             for table in &self.tables {
+                lt.err(!tblnames.contains(&table.name), "duplicated table name");
                 table.lint(lt);
 
                 lt.err(
@@ -195,6 +211,7 @@ impl Project {
                         table.name
                     ),
                 );
+                tblnames.insert(&table.name);
             }
         })
     }
@@ -227,7 +244,7 @@ impl Project {
         }
     }
 
-    // need iter
+    // check if iterator datatype must be declared
     pub fn table_need_iter(&self, table: &Table) -> bool {
         for col in &table.columns {
             if col.info().iterable {
@@ -237,7 +254,7 @@ impl Project {
         !self.join_to_columns(table).is_empty()
     }
 
-    /// Reverse join to table
+    // reverse join to table
     pub fn join_to_columns(&self, table: &Table) -> Vec<(&Table, &dyn Column)> {
         let mut columns: Vec<(&Table, &dyn Column)> = vec![];
 
@@ -280,4 +297,42 @@ pub fn parse_vec<T: FromStr>(strvals: &[String]) -> aperror::Result<Vec<T>> {
         vals.push(v);
     }
     Ok(vals)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::colstr::ColStr;
+    use crate::langrust;
+    use crate::lint::test_linter;
+    use std::time::SystemTime;
+
+    #[test]
+    fn duplicate_table_name() {
+        let t1 = Table::new("mytable", vec![], false);
+        let t2 = Table::new("mytable", vec![], false);
+
+        let project = Project {
+            dst_path: PathBuf::new(),
+            lang: langrust::RUST,
+            tables: vec![t1, t2],
+            src_modified: SystemTime::now(),
+        };
+
+        let linter = test_linter();
+        project.lint(&linter);
+        assert!(linter.errors() == 1);
+    }
+
+    #[test]
+    fn duplicate_col_name() {
+        let a1 = ColStr::parse("mycol", &vec![], false).unwrap();
+        let a2 = ColStr::parse("mycol", &vec![], false).unwrap();
+
+        let t = Table::new("table", vec![a1, a2], false);
+
+        let linter = test_linter();
+        t.lint(&linter);
+        assert!(linter.errors() == 1);
+    }
 }

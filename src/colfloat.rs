@@ -2,7 +2,7 @@
 // Copyright (c)  2023 Sébastien Keim
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// string data type column
+// floating point number data type column
 //
 
 use crate::{aperror, table};
