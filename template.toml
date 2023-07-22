@@ -73,6 +73,10 @@ single = false
 # specify implementation for each target language
 target = [ { lang= 'rs', type = '...', template="...{}...", import='...'  }, ]
 
+# for label format column
+# in rust allow to retrieve label from frow
+# optional : default to false
+tolabel = false
 
 #
 # Level 3 : join

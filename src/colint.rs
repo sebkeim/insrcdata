@@ -5,6 +5,7 @@
 // integer data type column
 //
 
+use crate::language::Language;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 use std::cmp;
@@ -23,7 +24,7 @@ impl table::Column for ColInt {
         &self.info
     }
 
-    fn emit_table_cell(&self, row: usize) -> String {
+    fn emit_table_cell(&self, row: usize, _lang: &dyn Language) -> String {
         let v = self.values[row];
         v.to_string()
     }

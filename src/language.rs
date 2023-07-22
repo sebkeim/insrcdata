@@ -5,6 +5,7 @@
 // target language abstraction
 //
 
+use crate::basetype::BaseType;
 use crate::{aperror, langc, langrust, table};
 use std::fs;
 use std::path::PathBuf;
@@ -18,6 +19,14 @@ pub trait Language {
         let metadata = fs::metadata(&project.dst_path)?;
         let modified = metadata.modified()?;
         Ok(modified)
+    }
+    // support tolabel for label format
+    fn to_label(&self) -> bool {
+        false
+    }
+
+    fn emit_enum(&self, _typ: &BaseType, _label: &str) -> String {
+        "TO LABEL UNSUPORTED".to_string()
     }
 }
 

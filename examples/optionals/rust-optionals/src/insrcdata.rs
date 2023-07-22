@@ -41,16 +41,16 @@ impl Adhoc {
     pub fn count_data(&self) -> u16 { self.count_data_ as u16 }
 }
 
-mod adhoc {
+mod adhoc {use super::*;
 
-pub fn index_of(fic:&super::Adhoc) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Adhoc>()
+pub fn index_of(fic:&Adhoc) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Adhoc>()
 }
-const fn r(score_data:f32, count_data:u8, ) -> super::Adhoc {
-    super::Adhoc{score_data_:score_data, count_data_:count_data, }
+const fn r(score_data:f32, count_data:u8, ) -> Adhoc {
+    Adhoc{score_data_:score_data, count_data_:count_data, }
 }
 
-pub static TABLE : [ super::Adhoc ; 2 ] = [
+pub static TABLE : [ Adhoc ; 2 ] = [
    {r(100.0, 42, )},
    {r(-1.0, 0, )},
 ];
@@ -76,16 +76,16 @@ impl Score {
     pub fn value(&self) -> f32 { self.value_ }
 }
 
-mod score {
+mod score {use super::*;
 
-pub fn index_of(fic:&super::Score) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Score>()
+pub fn index_of(fic:&Score) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Score>()
 }
-const fn r(value:f32, ) -> super::Score {
-    super::Score{value_:value, }
+const fn r(value:f32, ) -> Score {
+    Score{value_:value, }
 }
 
-pub static TABLE : [ super::Score ; 1 ] = [
+pub static TABLE : [ Score ; 1 ] = [
    {r(100.0, )},
 ];
 
@@ -110,16 +110,16 @@ impl Count {
     pub fn value(&self) -> u16 { self.value_ as u16 }
 }
 
-mod count {
+mod count {use super::*;
 
-pub fn index_of(fic:&super::Count) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Count>()
+pub fn index_of(fic:&Count) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Count>()
 }
-const fn r(value:u8, ) -> super::Count {
-    super::Count{value_:value, }
+const fn r(value:u8, ) -> Count {
+    Count{value_:value, }
 }
 
-pub static TABLE : [ super::Count ; 1 ] = [
+pub static TABLE : [ Count ; 1 ] = [
    {r(42, )},
 ];
 
@@ -169,16 +169,16 @@ impl Optjoin {
     }
 }
 
-mod optjoin {
+mod optjoin {use super::*;
 
-pub fn index_of(fic:&super::Optjoin) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Optjoin>()
+pub fn index_of(fic:&Optjoin) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Optjoin>()
 }
-const fn r(score_join:u8, count_join:u8, ) -> super::Optjoin {
-    super::Optjoin{score_join_:score_join, count_join_:count_join, }
+const fn r(score_join:u8, count_join:u8, ) -> Optjoin {
+    Optjoin{score_join_:score_join, count_join_:count_join, }
 }
 
-pub static TABLE : [ super::Optjoin ; 2 ] = [
+pub static TABLE : [ Optjoin ; 2 ] = [
    {r(1, 1, )},
    {r(0, 0, )},
 ];

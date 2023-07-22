@@ -5,6 +5,7 @@
 // bolean data type column
 //
 
+use crate::language::Language;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 
@@ -18,7 +19,7 @@ impl table::Column for ColBool {
         &self.info
     }
 
-    fn emit_table_cell(&self, row: usize) -> String {
+    fn emit_table_cell(&self, row: usize, _lang: &dyn Language) -> String {
         if self.values[row] {
             "true".to_string()
         } else {

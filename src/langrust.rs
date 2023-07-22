@@ -43,10 +43,7 @@ fn argtype(typ: &basetype::BaseType) -> String {
     }
 }
 fn modtype(typ: &basetype::BaseType) -> String {
-    match typ {
-        basetype::BaseType::Label { name } => format!("super::{}", struct_name(name)),
-        _ => strtype(typ),
-    }
+    strtype(typ)
 }
 // ================================================================================================
 // format name to rust conventions
@@ -58,6 +55,9 @@ fn const_name(table_name: &str) -> String {
     table_name.to_shouty_snake_case()
 }
 fn mod_name(table_name: &str) -> String {
+    table_name.to_snake_case()
+}
+fn field_name(table_name: &str) -> String {
     table_name.to_snake_case()
 }
 fn table_name(strname: &str) -> String {
@@ -85,9 +85,9 @@ fn write_iter_index_struct(
 }}
 
 impl Iterator for IndexIter {{
-    type Item = & 'static super::{strname};
+    type Item = & 'static {strname};
 
-    fn next(&mut self) -> Option<&'static super::{strname}> {{
+    fn next(&mut self) -> Option<&'static {strname}> {{
         let idx = self.indexes.next();
         match idx {{
             Some(v) => Some(&TABLE[*v as usize]),
@@ -113,10 +113,14 @@ fn cast_to_interface_type(info: &table::ColumnInfo) -> String {
 
 fn getter_col(col: &dyn table::Column, output: &mut dyn io::Write) -> io::Result<()> {
     let info = col.info();
-    let field = &info.name;
+    let field = field_name(&info.name);
     match &info.interface_type.type_impl() {
         basetype::TypeImpl::Label => {
-            log::verbose("unexpected getter_col for Label type");
+            let outtype = strtype(&info.interface_type);
+            writeln!(
+                output,
+                "    pub fn {field}(&self) -> &{outtype} {{ &self.{field}_}}",
+            )?;
         }
         basetype::TypeImpl::Join01 => {
             let outtype = struct_name(&info.join_table());
@@ -160,7 +164,7 @@ fn iter_col(
 ) -> io::Result<()> {
     let info = col.info();
 
-    let field = &info.name;
+    let field = field_name(&info.name);
     let argtype = argtype(&info.interface_type);
     let modname = mod_name(&table.name);
     let tablename = table_name(&table.name);
@@ -213,7 +217,7 @@ fn reverse_join(
     }
 
     let info = srccol.info();
-    let field = &info.name;
+    let field = field_name(&info.name);
     let reverse = srccol.reverse_name();
     let srcmod = mod_name(srcname);
     let srcstruct = struct_name(srcname);
@@ -276,9 +280,11 @@ fn col_labels(
     for row in 0..info.len {
         let label = col.emit_label(row);
         if !label.is_empty() {
-            let camel = label.to_upper_camel_case();
-            writeln!(output, "    {label} = {row},", label = camel, row = row)?;
+            writeln!(output, "    {} = {},", label.to_upper_camel_case(), row)?;
         }
+    }
+    if let Some(none) = col.none_label() {
+        writeln!(output, "    {} = {},", none.to_upper_camel_case(), -1)?;
     }
     writeln!(output, "}}")?;
 
@@ -346,15 +352,20 @@ fn write_ctor_function(
     for col in outcols {
         let info = col.info();
         let typ = modtype(&info.table_type);
-        write!(output, "{}:{}, ", info.name, typ)?;
+        write!(output, "{}:{}, ", field_name(&info.name), typ)?;
     }
-    write!(output, ") -> super::{} ", strname)?;
+    write!(output, ") -> {} ", strname)?;
 
     // body
-    write!(output, "{{\n    super::{}{{", strname)?;
+    write!(output, "{{\n    {}{{", strname)?;
     for col in outcols {
         let info = col.info();
-        write!(output, "{}_:{}, ", info.name, info.name)?;
+        write!(
+            output,
+            "{}_:{}, ",
+            field_name(&info.name),
+            field_name(&info.name)
+        )?;
     }
     write!(output, "}}\n}}\n\n")
 }
@@ -374,7 +385,7 @@ fn table_data(
     for col in &datacols {
         let info = col.info();
         let fieldtype = strtype(&info.table_type);
-        writeln!(output, "    {}_ : {},", info.name, fieldtype)?;
+        writeln!(output, "    {}_ : {},", field_name(&info.name), fieldtype)?;
     }
     writeln!(
         output,
@@ -422,13 +433,17 @@ impl std::hash::Hash for {strname} {{
     write!(output, "}}\n\n")?;
 
     // begin module private
-    writeln!(output, "mod {modname} {{")?;
+    writeln!(
+        output,
+        "mod {modname} {{\
+use super::*;"
+    )?;
     for import in table.imports() {
         writeln!(output, "use {import};")?;
     }
     writeln!(output,"
-pub fn index_of(fic:&super::{strname}) -> usize {{
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::{strname}>()
+pub fn index_of(fic:&{strname}) -> usize {{
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<{strname}>()
 }}", )?;
 
     if project.table_need_iter(table) {
@@ -439,13 +454,13 @@ pub fn index_of(fic:&super::{strname}) -> usize {{
     // table data
     writeln!(
         output,
-        "pub static TABLE : [ super::{} ; {} ] = [",
+        "pub static TABLE : [ {} ; {} ] = [",
         strname, table.len
     )?;
     for row in 0..table.len {
         write!(output, "   {{r(")?;
         for col in &datacols {
-            write!(output, "{}, ", col.emit_table_cell(row))?;
+            write!(output, "{}, ", col.emit_table_cell(row, project.lang))?;
         }
         writeln!(output, ")}},")?;
     }
@@ -513,6 +528,17 @@ impl language::Language for Rust {
 
     fn extension(&self) -> String {
         "rs".to_string()
+    }
+
+    // support tolabel for label format
+    fn to_label(&self) -> bool {
+        true
+    }
+
+    fn emit_enum(&self, typ: &BaseType, label: &str) -> String {
+        let enumstr = strtype(typ);
+        let camel = label.to_upper_camel_case();
+        format!("{enumstr}::{camel}")
     }
 }
 

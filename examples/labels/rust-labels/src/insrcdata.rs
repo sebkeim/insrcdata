@@ -2,6 +2,7 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
+use std::ops::Deref;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Labels {
     Foo = 0,
@@ -15,3 +16,81 @@ pub enum Labels {
     ShoutyKebabCase = 8,
     TrainCase = 9,
 }
+impl Deref for Labels {
+    type Target =  Label;
+    fn deref(&self) -> &'static Label {
+        &label::TABLE[*self as usize]
+    }
+}
+impl PartialEq<&Label> for Labels {
+    fn eq(&self, other: &&Label) -> bool {
+        std::ptr::eq(self as &Label, *other)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Partials {
+    Spam = 0,
+    None = -1,
+}
+impl Deref for Partials {
+    type Target =  Label;
+    fn deref(&self) -> &'static Label {
+        &label::TABLE[*self as usize]
+    }
+}
+impl PartialEq<&Label> for Partials {
+    fn eq(&self, other: &&Label) -> bool {
+        std::ptr::eq(self as &Label, *other)
+    }
+}
+
+pub struct Label {
+    title_ : &'static str,
+    labels_ : Labels,
+    partials_ : Partials,
+}
+impl PartialEq<Self> for Label {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
+impl Eq for Label {}
+impl std::hash::Hash for Label {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        label::index_of(self).hash(state);
+    }
+}
+
+impl Label {
+    pub fn title(&self) -> &'static str { self.title_ }
+    pub fn labels(&self) -> &Labels { &self.labels_}
+    pub fn partials(&self) -> &Partials { &self.partials_}
+    pub fn array() -> &'static [Label; 10] { &label::TABLE }
+    pub fn as_index(&self) -> usize { label::index_of(self) }
+}
+
+mod label {use super::*;
+
+pub fn index_of(fic:&Label) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Label>()
+}
+const fn r(title:&'static str, labels:Labels, partials:Partials, ) -> Label {
+    Label{title_:title, labels_:labels, partials_:partials, }
+}
+
+pub static TABLE : [ Label ; 10 ] = [
+   {r("FOO", Labels::Foo, Partials::Spam, )},
+   {r("BAR", Labels::Bar, Partials::None, )},
+   {r("UpperCamelCase", Labels::UpperCamelCase, Partials::None, )},
+   {r("lowerCamelCase", Labels::LowerCamelCase, Partials::None, )},
+   {r("snake_case", Labels::SnakeCase, Partials::None, )},
+   {r("kebab-case", Labels::KebabCase, Partials::None, )},
+   {r("SHOUTY_SNAKE_CASE", Labels::ShoutySnakeCase, Partials::None, )},
+   {r("Title Case", Labels::TitleCase, Partials::None, )},
+   {r("SHOUTY-KEBAB-CASE", Labels::ShoutyKebabCase, Partials::None, )},
+   {r("Train-Case", Labels::TrainCase, Partials::None, )},
+];
+
+} // mod label
+

@@ -27,19 +27,19 @@ impl Leave {
     pub fn as_index(&self) -> usize { leave::index_of(self) }
 }
 
-mod leave {
+mod leave {use super::*;
 
-pub fn index_of(fic:&super::Leave) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Leave>()
+pub fn index_of(fic:&Leave) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Leave>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Leave;
+    type Item = & 'static Leave;
 
-    fn next(&mut self) -> Option<&'static super::Leave> {
+    fn next(&mut self) -> Option<&'static Leave> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -49,11 +49,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(title:&'static str, chapter_code:&'static str, chapter:u8, ) -> super::Leave {
-    super::Leave{title_:title, chapter_code_:chapter_code, chapter_:chapter, }
+const fn r(title:&'static str, chapter_code:&'static str, chapter:u8, ) -> Leave {
+    Leave{title_:title, chapter_code_:chapter_code, chapter_:chapter, }
 }
 
-pub static TABLE : [ super::Leave ; 9 ] = [
+pub static TABLE : [ Leave ; 9 ] = [
    {r("Terrier", "A1", 2, )},
    {r("Bulldog", "A1", 2, )},
    {r("Husky", "A1", 2, )},
@@ -155,19 +155,19 @@ impl Chapter {
     pub fn as_index(&self) -> usize { chapter::index_of(self) }
 }
 
-mod chapter {
+mod chapter {use super::*;
 
-pub fn index_of(fic:&super::Chapter) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Chapter>()
+pub fn index_of(fic:&Chapter) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Chapter>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Chapter;
+    type Item = & 'static Chapter;
 
-    fn next(&mut self) -> Option<&'static super::Chapter> {
+    fn next(&mut self) -> Option<&'static Chapter> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -177,11 +177,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(title:&'static str, code:&'static str, parent:u8, ) -> super::Chapter {
-    super::Chapter{title_:title, code_:code, parent_:parent, }
+const fn r(title:&'static str, code:&'static str, parent:u8, ) -> Chapter {
+    Chapter{title_:title, code_:code, parent_:parent, }
 }
 
-pub static TABLE : [ super::Chapter ; 7 ] = [
+pub static TABLE : [ Chapter ; 7 ] = [
    {r("root", "0", 0, )},
    {r("animals", "A", 0, )},
    {r("dogs", "A1", 1, )},

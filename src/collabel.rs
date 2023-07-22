@@ -5,10 +5,13 @@
 // define row labels
 //
 
+use crate::language::Language;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 use heck::ToShoutySnakeCase;
 use std::collections::HashSet;
+
+pub const NONE: &str = "NONE";
 
 pub struct ColLabel {
     info: table::ColumnInfo,
@@ -20,11 +23,33 @@ impl table::Column for ColLabel {
         &self.info
     }
 
-    fn emit_table_cell(&self, _row: usize) -> String {
-        "EMIT_TABLE_CELL_UNSUPORTED".to_string()
+    fn emit_table_cell(&self, row: usize, lang: &dyn Language) -> String {
+        let label = {
+            let v = self.labels[row].as_str();
+            if v.is_empty() {
+                NONE
+            } else {
+                v
+            }
+        };
+
+        lang.emit_enum(&self.info.table_type, label)
     }
+
     fn emit_label(&self, row: usize) -> String {
         self.labels[row].to_string()
+    }
+
+    // add a label for undefined rows
+    fn none_label(&self) -> Option<String> {
+        if !self.info.name.is_empty() {
+            for s in &self.labels {
+                if s.is_empty() {
+                    return Some(NONE.to_string());
+                }
+            }
+        }
+        None
     }
 
     fn indexes(&self) -> Vec<usize> {
@@ -41,6 +66,7 @@ impl table::Column for ColLabel {
                         !labels.contains(&upper),
                         &format!("duplicate label {} ({})", v, upper),
                     );
+                    lt.err(upper != NONE, &format!("label {} is reserved", NONE));
                 });
                 labels.insert(upper);
             }
@@ -49,10 +75,14 @@ impl table::Column for ColLabel {
 }
 
 impl ColLabel {
-    pub fn parse(namespace: &str, labels: &[String]) -> aperror::Result<Box<dyn table::Column>> {
+    pub fn parse(
+        namespace: &str,
+        labels: &[String],
+        tolabel: bool,
+    ) -> aperror::Result<Box<dyn table::Column>> {
         Ok(Box::new(ColLabel {
             info: table::ColumnInfo {
-                name: "".to_string(),
+                name: (if tolabel { namespace } else { "" }).to_string(),
                 len: labels.len(),
                 interface_type: basetype::BaseType::Label {
                     name: namespace.to_string(),
@@ -73,7 +103,7 @@ mod tests {
 
     #[test]
     fn label_ok() {
-        let c = ColLabel::parse("", &vec!["hello".to_string()]).expect("");
+        let c = ColLabel::parse("", &vec!["hello".to_string()], false).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 0);
@@ -81,7 +111,7 @@ mod tests {
 
     #[test]
     fn label_invalid() {
-        let c = ColLabel::parse("", &vec!["0hello".to_string()]).expect("");
+        let c = ColLabel::parse("", &vec!["0hello".to_string()], false).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);
@@ -89,7 +119,8 @@ mod tests {
 
     #[test]
     fn label_duplicate() {
-        let c = ColLabel::parse("", &vec!["hello".to_string(), "HELLO".to_string()]).expect("");
+        let c =
+            ColLabel::parse("", &vec!["hello".to_string(), "HELLO".to_string()], false).expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);

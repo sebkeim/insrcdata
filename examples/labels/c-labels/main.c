@@ -48,7 +48,6 @@ static void demo(void) {
             printf("sorry didn't found Foo\n");
       }
       
-      
       Outdata* fic = &OUT_TABLE[1];
       
       // Checking for label in external data
@@ -62,7 +61,23 @@ static void demo(void) {
       switch( fic->key )  {
             case LABELS_FOO :printf("this is Foo\n"); break;
             case LABELS_BAR : printf("this is Bar\n"); break;
-            default : printf("!unknown!\n"); break;
+            case LABELS_UPPER_CAMEL_CASE: printf("this is LABELS_UPPER_CAMEL_CASE\n");
+            case LABELS_LOWER_CAMEL_CASE : printf("this is LABELS_LOWER_CAMEL_CASE\n");
+            case LABELS_SNAKE_CASE : printf("this is LABELS_SNAKE_CASE\n");
+            case LABELS_KEBAB_CASE : printf("this is LABELS_KEBAB_CASE\n");
+            case LABELS_SHOUTY_SNAKE_CASE : printf("this is LABELS_SHOUTY_SNAKE_CASE\n");
+            case LABELS_TITLE_CASE : printf("this is LABELS_TITLE_CASE\n");
+            case LABELS_SHOUTY_KEBAB_CASE : printf("this is LABELS_SHOUTY_KEBAB_CASE\n");
+            case LABELS_TRAIN_CASE: printf("this is LABELS_TRAIN_CASE\n");
+      }
+      
+      if( fic->key < LABEL_TABLE_COUNT ){
+            //  in this sample external data  key is row index
+            const label_t *label = &LABEL_TABLE[fic->key];
+            switch ( label_partials(label)) {
+                  case PARTIALS_SPAM: printf("this is Spam\n"); break;
+                  default:  printf("!! other !!\n"); break;
+            }
       }
 }
 

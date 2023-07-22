@@ -90,8 +90,10 @@ struct Col {
     range: Option<bool>,
     /// deduplicate similar rows
     single: Option<bool>,
-    /// target
+    /// target (for object format)
     target: Option<Vec<Target>>,
+    /// convert from row to label
+    tolabel: Option<bool>,
 }
 static EMPTY_TARGET: Vec<Target> = vec![];
 impl Col {
@@ -157,7 +159,11 @@ impl Col {
             "u32" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U32),
             "u64" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U64),
             "str" => colstr::ColStr::parse(name, strvals, iterable),
-            "label" => collabel::ColLabel::parse(name, strvals),
+            "label" => collabel::ColLabel::parse(
+                name,
+                strvals,
+                self.tolabel.unwrap_or_default() && ctx.table_context.lang.to_label(),
+            ),
             "object" => self.create_object(strvals, ctx),
             _ => Err(aperror::Error::new(&format!(
                 "unknown column type '{}'",

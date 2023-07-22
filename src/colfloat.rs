@@ -5,6 +5,7 @@
 // floating point number data type column
 //
 
+use crate::language::Language;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 
@@ -21,7 +22,7 @@ impl table::Column for ColF64 {
         &self.info
     }
 
-    fn emit_table_cell(&self, row: usize) -> String {
+    fn emit_table_cell(&self, row: usize, _lang: &dyn Language) -> String {
         let v = &self.values[row];
         format!("{:?}", v)
     }
@@ -69,7 +70,7 @@ impl table::Column for ColF32 {
         &self.info
     }
 
-    fn emit_table_cell(&self, row: usize) -> String {
+    fn emit_table_cell(&self, row: usize, _lang: &dyn Language) -> String {
         let v = &self.values[row];
         format!("{:?}", v)
     }

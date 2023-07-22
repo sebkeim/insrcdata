@@ -5,6 +5,7 @@
 // object data type column
 //
 
+use crate::language::Language;
 use crate::table;
 use crate::{basetype, lint};
 use std::collections::HashSet;
@@ -21,7 +22,7 @@ impl table::Column for ColObject {
         &self.info
     }
 
-    fn emit_table_cell(&self, row: usize) -> String {
+    fn emit_table_cell(&self, row: usize, _lang: &dyn Language) -> String {
         // TODO : stability of String.Debug trait implementation is not guaranteed
         let v = &self.values[row];
         self.template.replace("{}", v)

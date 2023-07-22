@@ -137,19 +137,19 @@ impl Bench {
     pub fn as_index(&self) -> usize { bench::index_of(self) }
 }
 
-mod bench {
+mod bench {use super::*;
 
-pub fn index_of(fic:&super::Bench) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Bench>()
+pub fn index_of(fic:&Bench) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Bench>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u16>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Bench;
+    type Item = & 'static Bench;
 
-    fn next(&mut self) -> Option<&'static super::Bench> {
+    fn next(&mut self) -> Option<&'static Bench> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -159,11 +159,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(byte:u8, short:u16, int:u32, str:&'static str, ) -> super::Bench {
-    super::Bench{byte_:byte, short_:short, int_:int, str_:str, }
+const fn r(byte:u8, short:u16, int:u32, str:&'static str, ) -> Bench {
+    Bench{byte_:byte, short_:short, int_:int, str_:str, }
 }
 
-pub static TABLE : [ super::Bench ; 500 ] = [
+pub static TABLE : [ Bench ; 500 ] = [
    {r(34, 37303, 3639700191, "A3BEE4JNPLWYM99SJOABRDLVVNV8MXJS", )},
    {r(205, 50054, 271041745, "B0967SKQ2LMPJR0NUSLNM11K3YQSKDCS", )},
    {r(65, 7727, 2127877499, "109SMRW3OAU5DHTC8W4WZ8HTKVZOH5I3", )},

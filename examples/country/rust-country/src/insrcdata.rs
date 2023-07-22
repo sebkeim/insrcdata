@@ -56,19 +56,19 @@ impl Region {
     }
 }
 
-mod region {
+mod region {use super::*;
 
-pub fn index_of(fic:&super::Region) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Region>()
+pub fn index_of(fic:&Region) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Region>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Region;
+    type Item = & 'static Region;
 
-    fn next(&mut self) -> Option<&'static super::Region> {
+    fn next(&mut self) -> Option<&'static Region> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -78,11 +78,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(name:&'static str, code:u8, ) -> super::Region {
-    super::Region{name_:name, code_:code, }
+const fn r(name:&'static str, code:u8, ) -> Region {
+    Region{name_:name, code_:code, }
 }
 
-pub static TABLE : [ super::Region ; 5 ] = [
+pub static TABLE : [ Region ; 5 ] = [
    {r("Asia", 142, )},
    {r("Europe", 150, )},
    {r("Africa", 2, )},
@@ -148,19 +148,19 @@ impl Subregion {
     }
 }
 
-mod subregion {
+mod subregion {use super::*;
 
-pub fn index_of(fic:&super::Subregion) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Subregion>()
+pub fn index_of(fic:&Subregion) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Subregion>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Subregion;
+    type Item = & 'static Subregion;
 
-    fn next(&mut self) -> Option<&'static super::Subregion> {
+    fn next(&mut self) -> Option<&'static Subregion> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -170,11 +170,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(name:&'static str, code:u16, region:u8, ) -> super::Subregion {
-    super::Subregion{name_:name, code_:code, region_:region, }
+const fn r(name:&'static str, code:u16, region:u8, ) -> Subregion {
+    Subregion{name_:name, code_:code, region_:region, }
 }
 
-pub static TABLE : [ super::Subregion ; 17 ] = [
+pub static TABLE : [ Subregion ; 17 ] = [
    {r("Southern Asia", 34, 0, )},
    {r("Northern Europe", 154, 1, )},
    {r("Southern Europe", 39, 1, )},
@@ -303,19 +303,19 @@ impl Country {
     pub fn as_index(&self) -> usize { country::index_of(self) }
 }
 
-mod country {
+mod country {use super::*;
 
-pub fn index_of(fic:&super::Country) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Country>()
+pub fn index_of(fic:&Country) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Country>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Country;
+    type Item = & 'static Country;
 
-    fn next(&mut self) -> Option<&'static super::Country> {
+    fn next(&mut self) -> Option<&'static Country> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -325,11 +325,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(name:&'static str, alpha2:&'static str, alpha3:&'static str, code:u16, subregion:u8, ) -> super::Country {
-    super::Country{name_:name, alpha2_:alpha2, alpha3_:alpha3, code_:code, subregion_:subregion, }
+const fn r(name:&'static str, alpha2:&'static str, alpha3:&'static str, code:u16, subregion:u8, ) -> Country {
+    Country{name_:name, alpha2_:alpha2, alpha3_:alpha3, code_:code, subregion_:subregion, }
 }
 
-pub static TABLE : [ super::Country ; 249 ] = [
+pub static TABLE : [ Country ; 249 ] = [
    {r("Afghanistan", "AF", "AFG", 4, 1, )},
    {r("Åland Islands", "AX", "ALA", 248, 2, )},
    {r("Albania", "AL", "ALB", 8, 3, )},

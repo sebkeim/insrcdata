@@ -23,16 +23,16 @@ impl HelloWorld {
     pub fn as_index(&self) -> usize { hello_world::index_of(self) }
 }
 
-mod hello_world {
+mod hello_world {use super::*;
 
-pub fn index_of(fic:&super::HelloWorld) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::HelloWorld>()
+pub fn index_of(fic:&HelloWorld) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<HelloWorld>()
 }
-const fn r(sentence:&'static str, ) -> super::HelloWorld {
-    super::HelloWorld{sentence_:sentence, }
+const fn r(sentence:&'static str, ) -> HelloWorld {
+    HelloWorld{sentence_:sentence, }
 }
 
-pub static TABLE : [ super::HelloWorld ; 2 ] = [
+pub static TABLE : [ HelloWorld ; 2 ] = [
    {r("Hello", )},
    {r("World !", )},
 ];

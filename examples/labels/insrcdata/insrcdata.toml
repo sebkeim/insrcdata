@@ -8,9 +8,20 @@ dest ="../rust-labels/src/insrcdata.rs"
 [[table]]
 src = "label.csv"
 name = 'Label'
- 
+array=true
+
+[[table.col]]
+name = 'title'
+src = 'label'
+
 [[table.col]]
 name = 'Labels'
 src = 'label'
 format = 'label'
+tolabel = true
 
+[[table.col]]
+name = 'Partials'
+src = 'partial'
+format = 'label'
+tolabel = true

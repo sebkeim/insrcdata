@@ -527,7 +527,7 @@ static "
     for row in 0..table.len {
         write!(output, "   {{")?;
         for col in &datacols {
-            write!(output, "{}, ", col.emit_table_cell(row))?;
+            write!(output, "{}, ", col.emit_table_cell(row, project.lang))?;
         }
         writeln!(output, "}},")?;
     }

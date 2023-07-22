@@ -72,19 +72,19 @@ impl Client {
     }
 }
 
-mod client {
+mod client {use super::*;
 
-pub fn index_of(fic:&super::Client) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Client>()
+pub fn index_of(fic:&Client) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Client>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Client;
+    type Item = & 'static Client;
 
-    fn next(&mut self) -> Option<&'static super::Client> {
+    fn next(&mut self) -> Option<&'static Client> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -94,11 +94,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(name:&'static str, ) -> super::Client {
-    super::Client{name_:name, }
+const fn r(name:&'static str, ) -> Client {
+    Client{name_:name, }
 }
 
-pub static TABLE : [ super::Client ; 3 ] = [
+pub static TABLE : [ Client ; 3 ] = [
    {r("John", )},
    {r("Alix", )},
    {r("David", )},
@@ -177,19 +177,19 @@ impl Product {
     }
 }
 
-mod product {
+mod product {use super::*;
 
-pub fn index_of(fic:&super::Product) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Product>()
+pub fn index_of(fic:&Product) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Product>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Product;
+    type Item = & 'static Product;
 
-    fn next(&mut self) -> Option<&'static super::Product> {
+    fn next(&mut self) -> Option<&'static Product> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -199,11 +199,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(name:&'static str, ) -> super::Product {
-    super::Product{name_:name, }
+const fn r(name:&'static str, ) -> Product {
+    Product{name_:name, }
 }
 
-pub static TABLE : [ super::Product ; 4 ] = [
+pub static TABLE : [ Product ; 4 ] = [
    {r("Apple", )},
    {r("Banana", )},
    {r("Peach", )},
@@ -234,19 +234,19 @@ impl Transaction {
     pub fn product(&self) -> &'static Product { &product::TABLE[self.product_ as usize]}
 }
 
-mod transaction {
+mod transaction {use super::*;
 
-pub fn index_of(fic:&super::Transaction) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Transaction>()
+pub fn index_of(fic:&Transaction) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Transaction>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Transaction;
+    type Item = & 'static Transaction;
 
-    fn next(&mut self) -> Option<&'static super::Transaction> {
+    fn next(&mut self) -> Option<&'static Transaction> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -256,11 +256,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(client:u8, product:u8, ) -> super::Transaction {
-    super::Transaction{client_:client, product_:product, }
+const fn r(client:u8, product:u8, ) -> Transaction {
+    Transaction{client_:client, product_:product, }
 }
 
-pub static TABLE : [ super::Transaction ; 7 ] = [
+pub static TABLE : [ Transaction ; 7 ] = [
    {r(0, 0, )},
    {r(0, 1, )},
    {r(1, 0, )},

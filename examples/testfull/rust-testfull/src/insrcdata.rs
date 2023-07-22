@@ -84,19 +84,19 @@ impl Person {
     }
 }
 
-mod person {
+mod person {use super::*;
 
-pub fn index_of(fic:&super::Person) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Person>()
+pub fn index_of(fic:&Person) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Person>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Person;
+    type Item = & 'static Person;
 
-    fn next(&mut self) -> Option<&'static super::Person> {
+    fn next(&mut self) -> Option<&'static Person> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -106,11 +106,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(name:&'static str, woman:bool, score:f64, spouse:u8, father:u8, mother:u8, ) -> super::Person {
-    super::Person{name_:name, woman_:woman, score_:score, spouse_:spouse, father_:father, mother_:mother, }
+const fn r(name:&'static str, woman:bool, score:f64, spouse:u8, father:u8, mother:u8, ) -> Person {
+    Person{name_:name, woman_:woman, score_:score, spouse_:spouse, father_:father, mother_:mother, }
 }
 
-pub static TABLE : [ super::Person ; 4 ] = [
+pub static TABLE : [ Person ; 4 ] = [
    {r("Marie Curie", true, 1.0, 1, 0, 0, )},
    {r("Pierre Curie", false, 2.1, 0, 0, 0, )},
    {r("Irène Joliot-Curie", true, 3.2, 3, 2, 1, )},
@@ -171,19 +171,19 @@ impl Strencoding {
     pub fn as_index(&self) -> usize { strencoding::index_of(self) }
 }
 
-mod strencoding {
+mod strencoding {use super::*;
 
-pub fn index_of(fic:&super::Strencoding) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Strencoding>()
+pub fn index_of(fic:&Strencoding) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Strencoding>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Strencoding;
+    type Item = & 'static Strencoding;
 
-    fn next(&mut self) -> Option<&'static super::Strencoding> {
+    fn next(&mut self) -> Option<&'static Strencoding> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -193,11 +193,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(text:&'static str, ) -> super::Strencoding {
-    super::Strencoding{text_:text, }
+const fn r(text:&'static str, ) -> Strencoding {
+    Strencoding{text_:text, }
 }
 
-pub static TABLE : [ super::Strencoding ; 6 ] = [
+pub static TABLE : [ Strencoding ; 6 ] = [
    {r("𝒾ň𝗌яčḓẚᵵᶏ : 𝔢ᶆḃ℮𝚍 ᶌ𝖔ừᵳ ⅆằƫⱥ", )},
    {r("hello", )},
    {r("κόσμε", )},
@@ -253,17 +253,17 @@ impl Lettercase {
     pub fn point(&self) -> &'static crate::colobject::Point { self.point_ }
 }
 
-mod lettercase {
+mod lettercase {use super::*;
 use crate::colobject as co;
 
-pub fn index_of(fic:&super::Lettercase) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Lettercase>()
+pub fn index_of(fic:&Lettercase) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Lettercase>()
 }
-const fn r(name:&'static str, transformer:fn(&str)->String, point:&'static crate::colobject::Point, ) -> super::Lettercase {
-    super::Lettercase{name_:name, transformer_:transformer, point_:point, }
+const fn r(name:&'static str, transformer:fn(&str)->String, point:&'static crate::colobject::Point, ) -> Lettercase {
+    Lettercase{name_:name, transformer_:transformer, point_:point, }
 }
 
-pub static TABLE : [ super::Lettercase ; 3 ] = [
+pub static TABLE : [ Lettercase ; 3 ] = [
    {r("Capitalised case", co::make_capitalize, &co::ZERO, )},
    {r("Upper case", co::make_upper, &co::ONE, )},
    {r("Lower case", co::make_lower, &co::ONE, )},

@@ -71,19 +71,19 @@ impl Minister {
     pub fn country(&self) -> &'static Country { &country::TABLE[self.country_ as usize]}
 }
 
-mod minister {
+mod minister {use super::*;
 
-pub fn index_of(fic:&super::Minister) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Minister>()
+pub fn index_of(fic:&Minister) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Minister>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Minister;
+    type Item = & 'static Minister;
 
-    fn next(&mut self) -> Option<&'static super::Minister> {
+    fn next(&mut self) -> Option<&'static Minister> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -93,11 +93,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(name:&'static str, birth:u16, country:u8, ) -> super::Minister {
-    super::Minister{name_:name, birth_:birth, country_:country, }
+const fn r(name:&'static str, birth:u16, country:u8, ) -> Minister {
+    Minister{name_:name, birth_:birth, country_:country, }
 }
 
-pub static TABLE : [ super::Minister ; 3 ] = [
+pub static TABLE : [ Minister ; 3 ] = [
    {r("David Cameron", 1966, 0, )},
    {r("Gordon Brown", 1951, 0, )},
    {r("Romano Prodi", 1939, 1, )},
@@ -182,19 +182,19 @@ impl Country {
     }
 }
 
-mod country {
+mod country {use super::*;
 
-pub fn index_of(fic:&super::Country) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Country>()
+pub fn index_of(fic:&Country) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Country>()
 }
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
 
 impl Iterator for IndexIter {
-    type Item = & 'static super::Country;
+    type Item = & 'static Country;
 
-    fn next(&mut self) -> Option<&'static super::Country> {
+    fn next(&mut self) -> Option<&'static Country> {
         let idx = self.indexes.next();
         match idx {
             Some(v) => Some(&TABLE[*v as usize]),
@@ -204,11 +204,11 @@ impl Iterator for IndexIter {
 }
 
 
-const fn r(code:&'static str, name:&'static str, ) -> super::Country {
-    super::Country{code_:code, name_:name, }
+const fn r(code:&'static str, name:&'static str, ) -> Country {
+    Country{code_:code, name_:name, }
 }
 
-pub static TABLE : [ super::Country ; 2 ] = [
+pub static TABLE : [ Country ; 2 ] = [
    {r("GB", "United Kingdom", )},
    {r("IT", "Italy", )},
 ];

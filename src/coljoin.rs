@@ -4,6 +4,7 @@
 //
 // jointure column
 //
+use crate::language::Language;
 use crate::table;
 use crate::{basetype, lint};
 use std::collections::HashMap;
@@ -19,7 +20,7 @@ impl table::Column for ColJoin {
         &self.info
     }
 
-    fn emit_table_cell(&self, row: usize) -> String {
+    fn emit_table_cell(&self, row: usize, _lang: &dyn Language) -> String {
         let v = &self.values[row];
         if self.info.mincard0() {
             v.to_string()

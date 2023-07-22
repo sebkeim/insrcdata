@@ -5,6 +5,7 @@ use std::collections::HashSet;
 //
 // Abstract type for project
 //
+use crate::language::Language;
 use crate::{aperror, basetype, language, lint};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -51,9 +52,14 @@ pub trait Column {
     fn info(&self) -> &ColumnInfo;
 
     // cell value
-    fn emit_table_cell(&self, row: usize) -> String;
+    fn emit_table_cell(&self, row: usize, lang: &dyn Language) -> String;
     fn emit_label(&self, _row: usize) -> String {
         "EMIT_LABEL_UNSUPORTED".to_string()
+    }
+
+    // add a label for undefined rows
+    fn none_label(&self) -> Option<String> {
+        None
     }
 
     // for indexed lookup
@@ -67,7 +73,7 @@ pub trait Column {
         "".to_string()
     }
 
-    // import dependacies for object data type column
+    // import dependancies for object data type column
     fn fill_import(&self, _out: &mut HashSet<String>) {}
 }
 
