@@ -31,6 +31,13 @@ impl PartialEq<Self> for Minister {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Minister {}
+impl std::hash::Hash for Minister {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        minister::index_of(self).hash(state);
+    }
+}
+
 impl Minister {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn birth(&self) -> u16 { self.birth_ }
@@ -61,16 +68,14 @@ impl Minister {
             indexes: Box::new(minister::BIRTH_INDEX[begin..lo].iter()),
         }
     }
-    pub fn country(&self) -> &'static Country {
-        &country::TABLE[self.country_ as usize]
-    }
+    pub fn country(&self) -> &'static Country { &country::TABLE[self.country_ as usize]}
 }
 
 mod minister {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Minister) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Minister>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -87,9 +92,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Minister) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Minister>()
-}
 
 const fn r(name:&'static str, birth:u16, country:u8, ) -> super::Minister {
     super::Minister{name_:name, birth_:birth, country_:country, }
@@ -136,6 +138,13 @@ impl PartialEq<Self> for Country {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Country {}
+impl std::hash::Hash for Country {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        country::index_of(self).hash(state);
+    }
+}
+
 impl Country {
     pub fn code(&self) -> &'static str { self.code_ }
     pub fn name(&self) -> &'static str { self.name_ }
@@ -175,9 +184,9 @@ impl Country {
 
 mod country {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Country) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Country>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -194,9 +203,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Country) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Country>()
-}
 
 const fn r(code:&'static str, name:&'static str, ) -> super::Country {
     super::Country{code_:code, name_:name, }

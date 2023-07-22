@@ -29,6 +29,13 @@ impl PartialEq<Self> for Client {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Client {}
+impl std::hash::Hash for Client {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        client::index_of(self).hash(state);
+    }
+}
+
 impl Client {
     pub fn name(&self) -> &'static str { self.name_ }
 
@@ -67,9 +74,9 @@ impl Client {
 
 mod client {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Client) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Client>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -86,9 +93,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Client) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Client>()
-}
 
 const fn r(name:&'static str, ) -> super::Client {
     super::Client{name_:name, }
@@ -130,6 +134,13 @@ impl PartialEq<Self> for Product {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Product {}
+impl std::hash::Hash for Product {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        product::index_of(self).hash(state);
+    }
+}
+
 impl Product {
     pub fn name(&self) -> &'static str { self.name_ }
 
@@ -168,9 +179,9 @@ impl Product {
 
 mod product {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Product) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Product>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -187,9 +198,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Product) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Product>()
-}
 
 const fn r(name:&'static str, ) -> super::Product {
     super::Product{name_:name, }
@@ -214,20 +222,23 @@ impl PartialEq<Self> for Transaction {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Transaction {}
+impl std::hash::Hash for Transaction {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        transaction::index_of(self).hash(state);
+    }
+}
+
 impl Transaction {
-    pub fn client(&self) -> &'static Client {
-        &client::TABLE[self.client_ as usize]
-    }
-    pub fn product(&self) -> &'static Product {
-        &product::TABLE[self.product_ as usize]
-    }
+    pub fn client(&self) -> &'static Client { &client::TABLE[self.client_ as usize]}
+    pub fn product(&self) -> &'static Product { &product::TABLE[self.product_ as usize]}
 }
 
 mod transaction {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Transaction) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Transaction>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -244,9 +255,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Transaction) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Transaction>()
-}
 
 const fn r(client:u8, product:u8, ) -> super::Transaction {
     super::Transaction{client_:client, product_:product, }

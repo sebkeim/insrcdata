@@ -60,6 +60,7 @@ format = 'str'
 
 # create a struct method to iterate the rows with a column value matching  the range
 # optional : default to false
+# this field is useless for label and object formats
 range = false
 
 # if several rows have the same value for this column, only the first row is kept

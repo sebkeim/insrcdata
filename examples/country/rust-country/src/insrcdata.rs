@@ -12,6 +12,13 @@ impl PartialEq<Self> for Region {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Region {}
+impl std::hash::Hash for Region {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        region::index_of(self).hash(state);
+    }
+}
+
 impl Region {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn code(&self) -> u8 { self.code_ }
@@ -51,9 +58,9 @@ impl Region {
 
 mod region {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Region) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Region>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -70,9 +77,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Region) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Region>()
-}
 
 const fn r(name:&'static str, code:u8, ) -> super::Region {
     super::Region{name_:name, code_:code, }
@@ -99,12 +103,17 @@ impl PartialEq<Self> for Subregion {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Subregion {}
+impl std::hash::Hash for Subregion {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        subregion::index_of(self).hash(state);
+    }
+}
+
 impl Subregion {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn code(&self) -> u16 { self.code_ }
-    pub fn region(&self) -> &'static Region {
-        &region::TABLE[self.region_ as usize]
-    }
+    pub fn region(&self) -> &'static Region { &region::TABLE[self.region_ as usize]}
 
     pub fn countries(&self) -> CountryIter {
         let cons = subregion::index_of(self) as u8 + 1;
@@ -141,9 +150,9 @@ impl Subregion {
 
 mod subregion {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Subregion) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Subregion>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -160,9 +169,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Subregion) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Subregion>()
-}
 
 const fn r(name:&'static str, code:u16, region:u8, ) -> super::Subregion {
     super::Subregion{name_:name, code_:code, region_:region, }
@@ -223,6 +229,13 @@ impl PartialEq<Self> for Country {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Country {}
+impl std::hash::Hash for Country {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        country::index_of(self).hash(state);
+    }
+}
+
 impl Country {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn alpha2(&self) -> &'static str { self.alpha2_ }
@@ -286,14 +299,15 @@ impl Country {
         let index = self.subregion_;
         if index==0 { None } else { Some(&subregion::TABLE[index as usize -1]) }
     }
-    pub fn array() -> &'static [Country; 249]  { &country::TABLE }
+    pub fn array() -> &'static [Country; 249] { &country::TABLE }
+    pub fn as_index(&self) -> usize { country::index_of(self) }
 }
 
 mod country {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Country) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Country>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -310,9 +324,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Country) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Country>()
-}
 
 const fn r(name:&'static str, alpha2:&'static str, alpha3:&'static str, code:u16, subregion:u8, ) -> super::Country {
     super::Country{name_:name, alpha2_:alpha2, alpha3_:alpha3, code_:code, subregion_:subregion, }

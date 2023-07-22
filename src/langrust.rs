@@ -78,10 +78,9 @@ fn write_iter_index_struct(
 ) -> io::Result<()> {
     let indextype = strtype(&table.index_type());
 
-    writeln!(output, "
-use std::mem;
-
-pub struct IndexIter {{
+    writeln!(
+        output,
+        "pub struct IndexIter {{
     pub indexes : Box<dyn Iterator<Item=&'static {indextype}>>,
 }}
 
@@ -97,10 +96,8 @@ impl Iterator for IndexIter {{
     }}
 }}
 
-pub fn index_of(fic:&super::{strname}) -> usize {{
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::{strname}>()
-}}
-")
+"
+    )
 }
 
 // ================================================================================================
@@ -137,9 +134,7 @@ fn getter_col(col: &dyn table::Column, output: &mut dyn io::Write) -> io::Result
             let jointable = table_name(&outtype);
             writeln!(
                 output,
-                "    pub fn {field}(&self) -> &'static {outtype} {{
-        &{jointable}[self.{field}_ as usize]
-    }}"
+                "    pub fn {field}(&self) -> &'static {outtype} {{ &{jointable}[self.{field}_ as usize]}}"
             )?;
         }
 
@@ -370,6 +365,7 @@ fn table_data(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let strname = struct_name(&table.name);
+    let modname = mod_name(&strname);
 
     // define structure
     let datacols: Vec<&dyn table::Column> = table.data_columns();
@@ -387,7 +383,14 @@ impl PartialEq<Self> for {strname} {{
     fn eq(&self, other: &Self) -> bool {{
         std::ptr::eq(self, other)
     }}
-}}"
+}}
+impl Eq for {strname} {{}}
+impl std::hash::Hash for {strname} {{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {{
+        {modname}::index_of(self).hash(state);
+    }}
+}}
+"
     )?;
 
     // stucture implementation
@@ -412,19 +415,21 @@ impl PartialEq<Self> for {strname} {{
         let srcmod = mod_name(&table.name);
         writeln!(
             output,
-            "    pub fn array() -> &'static [{srcstruct}; {tablelen}]  {{ &{srcmod}::TABLE }}",
+            "    pub fn array() -> &'static [{srcstruct}; {tablelen}] {{ &{srcmod}::TABLE }}
+    pub fn as_index(&self) -> usize {{ {modname}::index_of(self) }}",
         )?;
     }
     write!(output, "}}\n\n")?;
 
     // begin module private
-    let modname = mod_name(&strname);
-    writeln!(output, "mod {} {{", modname)?;
-
+    writeln!(output, "mod {modname} {{")?;
     for import in table.imports() {
         writeln!(output, "use {import};")?;
     }
-    writeln!(output)?;
+    writeln!(output,"
+pub fn index_of(fic:&super::{strname}) -> usize {{
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::{strname}>()
+}}", )?;
 
     if project.table_need_iter(table) {
         write_iter_index_struct(table, &strname, output)?;

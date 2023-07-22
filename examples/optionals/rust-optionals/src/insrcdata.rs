@@ -29,6 +29,13 @@ impl PartialEq<Self> for Adhoc {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Adhoc {}
+impl std::hash::Hash for Adhoc {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        adhoc::index_of(self).hash(state);
+    }
+}
+
 impl Adhoc {
     pub fn score_data(&self) -> f32 { self.score_data_ }
     pub fn count_data(&self) -> u16 { self.count_data_ as u16 }
@@ -36,6 +43,9 @@ impl Adhoc {
 
 mod adhoc {
 
+pub fn index_of(fic:&super::Adhoc) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Adhoc>()
+}
 const fn r(score_data:f32, count_data:u8, ) -> super::Adhoc {
     super::Adhoc{score_data_:score_data, count_data_:count_data, }
 }
@@ -55,12 +65,22 @@ impl PartialEq<Self> for Score {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Score {}
+impl std::hash::Hash for Score {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        score::index_of(self).hash(state);
+    }
+}
+
 impl Score {
     pub fn value(&self) -> f32 { self.value_ }
 }
 
 mod score {
 
+pub fn index_of(fic:&super::Score) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Score>()
+}
 const fn r(value:f32, ) -> super::Score {
     super::Score{value_:value, }
 }
@@ -79,12 +99,22 @@ impl PartialEq<Self> for Count {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Count {}
+impl std::hash::Hash for Count {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        count::index_of(self).hash(state);
+    }
+}
+
 impl Count {
     pub fn value(&self) -> u16 { self.value_ as u16 }
 }
 
 mod count {
 
+pub fn index_of(fic:&super::Count) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Count>()
+}
 const fn r(value:u8, ) -> super::Count {
     super::Count{value_:value, }
 }
@@ -121,6 +151,13 @@ impl PartialEq<Self> for Optjoin {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Optjoin {}
+impl std::hash::Hash for Optjoin {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        optjoin::index_of(self).hash(state);
+    }
+}
+
 impl Optjoin {
     pub fn score_join(&self) -> Option<&'static Score> {
         let index = self.score_join_;
@@ -134,6 +171,9 @@ impl Optjoin {
 
 mod optjoin {
 
+pub fn index_of(fic:&super::Optjoin) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Optjoin>()
+}
 const fn r(score_join:u8, count_join:u8, ) -> super::Optjoin {
     super::Optjoin{score_join_:score_join, count_join_:count_join, }
 }

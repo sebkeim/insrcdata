@@ -35,6 +35,13 @@ impl PartialEq<Self> for Person {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Person {}
+impl std::hash::Hash for Person {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        person::index_of(self).hash(state);
+    }
+}
+
 impl Person {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn woman(&self) -> bool { self.woman_ }
@@ -66,9 +73,7 @@ impl Person {
             indexes: Box::new(person::SCORE_INDEX[begin..lo].iter()),
         }
     }
-    pub fn spouse(&self) -> &'static Person {
-        &person::TABLE[self.spouse_ as usize]
-    }
+    pub fn spouse(&self) -> &'static Person { &person::TABLE[self.spouse_ as usize]}
     pub fn father(&self) -> Option<&'static Person> {
         let index = self.father_;
         if index==0 { None } else { Some(&person::TABLE[index as usize -1]) }
@@ -81,9 +86,9 @@ impl Person {
 
 mod person {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Person) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Person>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -100,9 +105,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Person) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Person>()
-}
 
 const fn r(name:&'static str, woman:bool, score:f64, spouse:u8, father:u8, mother:u8, ) -> super::Person {
     super::Person{name_:name, woman_:woman, score_:score, spouse_:spouse, father_:father, mother_:mother, }
@@ -129,6 +131,13 @@ impl PartialEq<Self> for Strencoding {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Strencoding {}
+impl std::hash::Hash for Strencoding {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        strencoding::index_of(self).hash(state);
+    }
+}
+
 impl Strencoding {
     pub fn text(&self) -> &'static str { self.text_ }
 
@@ -158,14 +167,15 @@ impl Strencoding {
             indexes: Box::new(strencoding::TEXT_INDEX[begin..lo].iter()),
         }
     }
-    pub fn array() -> &'static [Strencoding; 6]  { &strencoding::TABLE }
+    pub fn array() -> &'static [Strencoding; 6] { &strencoding::TABLE }
+    pub fn as_index(&self) -> usize { strencoding::index_of(self) }
 }
 
 mod strencoding {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Strencoding) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Strencoding>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u8>>,
 }
@@ -182,9 +192,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Strencoding) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Strencoding>()
-}
 
 const fn r(text:&'static str, ) -> super::Strencoding {
     super::Strencoding{text_:text, }
@@ -233,6 +240,13 @@ impl PartialEq<Self> for Lettercase {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Lettercase {}
+impl std::hash::Hash for Lettercase {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        lettercase::index_of(self).hash(state);
+    }
+}
+
 impl Lettercase {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn transformer(&self) -> fn(&str)->String { self.transformer_ }
@@ -242,6 +256,9 @@ impl Lettercase {
 mod lettercase {
 use crate::colobject as co;
 
+pub fn index_of(fic:&super::Lettercase) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Lettercase>()
+}
 const fn r(name:&'static str, transformer:fn(&str)->String, point:&'static crate::colobject::Point, ) -> super::Lettercase {
     super::Lettercase{name_:name, transformer_:transformer, point_:point, }
 }

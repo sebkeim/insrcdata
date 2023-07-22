@@ -1,0 +1,49 @@
+#
+# insrcdata : hierarchy
+#
+
+dest ="../rust-hierarchy/src/insrcdata.rs"
+
+#  ----   leaves
+
+[[table]]
+src = "leaves.csv"
+name = 'Leave'
+sorted = true
+array  = true
+
+[[table.col]]
+name = 'title'
+
+[[table.join]]
+name = 'chapter'
+src = 'parent'
+to = 'ref'
+external = 'Chapter'
+reverse = 'leaves'
+
+[[table.col]]
+name = 'chapter_code'
+src = 'parent'
+
+#  ----   hierarchy
+
+[[table]]
+src = "chapters.csv"
+name = 'Chapter'
+sorted = true
+array  = true
+
+[[table.col]]
+name = 'title'
+
+[[table.join]]
+name = 'parent'
+src = 'parent'
+to = 'ref'
+reverse = 'children'
+
+[[table.col]]
+name = 'code'
+src='ref'
+range = true

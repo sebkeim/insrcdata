@@ -12,7 +12,7 @@ typedef struct  {
     uint32_t int_;
     const char* str_;
 } bench_t;
-static unsigned const BENCH_TABLE_COUNT = 10000;
+static unsigned const BENCH_TABLE_COUNT = 500;
 extern const bench_t BENCH_TABLE[BENCH_TABLE_COUNT];
 typedef struct { uint16_t* ptr; uint16_t* end; } bench_iter_t;
 extern const bench_t* bench_next(bench_iter_t* idx);

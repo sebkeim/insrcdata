@@ -10,13 +10,24 @@ impl PartialEq<Self> for HelloWorld {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for HelloWorld {}
+impl std::hash::Hash for HelloWorld {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        hello_world::index_of(self).hash(state);
+    }
+}
+
 impl HelloWorld {
     pub fn sentence(&self) -> &'static str { self.sentence_ }
-    pub fn array() -> &'static [HelloWorld; 2]  { &hello_world::TABLE }
+    pub fn array() -> &'static [HelloWorld; 2] { &hello_world::TABLE }
+    pub fn as_index(&self) -> usize { hello_world::index_of(self) }
 }
 
 mod hello_world {
 
+pub fn index_of(fic:&super::HelloWorld) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::HelloWorld>()
+}
 const fn r(sentence:&'static str, ) -> super::HelloWorld {
     super::HelloWorld{sentence_:sentence, }
 }

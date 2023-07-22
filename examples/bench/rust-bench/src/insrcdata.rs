@@ -13,6 +13,13 @@ impl PartialEq<Self> for Bench {
         std::ptr::eq(self, other)
     }
 }
+impl Eq for Bench {}
+impl std::hash::Hash for Bench {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        bench::index_of(self).hash(state);
+    }
+}
+
 impl Bench {
     pub fn byte(&self) -> u32 { self.byte_ as u32 }
 
@@ -126,14 +133,15 @@ impl Bench {
             indexes: Box::new(bench::STR_INDEX[begin..lo].iter()),
         }
     }
-    pub fn array() -> &'static [Bench; 500]  { &bench::TABLE }
+    pub fn array() -> &'static [Bench; 500] { &bench::TABLE }
+    pub fn as_index(&self) -> usize { bench::index_of(self) }
 }
 
 mod bench {
 
-
-use std::mem;
-
+pub fn index_of(fic:&super::Bench) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<super::Bench>()
+}
 pub struct IndexIter {
     pub indexes : Box<dyn Iterator<Item=&'static u16>>,
 }
@@ -150,9 +158,6 @@ impl Iterator for IndexIter {
     }
 }
 
-pub fn index_of(fic:&super::Bench) -> usize {
-    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / mem::size_of::<super::Bench>()
-}
 
 const fn r(byte:u8, short:u16, int:u32, str:&'static str, ) -> super::Bench {
     super::Bench{byte_:byte, short_:short, int_:int, str_:str, }
