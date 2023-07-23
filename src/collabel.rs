@@ -11,8 +11,6 @@ use crate::{basetype, lint};
 use heck::ToShoutySnakeCase;
 use std::collections::HashSet;
 
-pub const NONE: &str = "NONE";
-
 pub struct ColLabel {
     info: table::ColumnInfo,
     labels: Vec<String>,
@@ -24,15 +22,7 @@ impl table::Column for ColLabel {
     }
 
     fn emit_table_cell(&self, row: usize, lang: &dyn Language) -> String {
-        let label = {
-            let v = self.labels[row].as_str();
-            if v.is_empty() {
-                NONE
-            } else {
-                v
-            }
-        };
-
+        let label = &self.labels[row];
         lang.emit_enum(&self.info.table_type, label)
     }
 
@@ -40,25 +30,18 @@ impl table::Column for ColLabel {
         self.labels[row].to_string()
     }
 
-    // add a label for undefined rows
-    fn none_label(&self) -> Option<String> {
-        if !self.info.name.is_empty() {
-            for s in &self.labels {
-                if s.is_empty() {
-                    return Some(NONE.to_string());
-                }
-            }
-        }
-        None
-    }
-
     fn indexes(&self) -> Vec<usize> {
         vec![]
     }
     fn lint(&self, linter: &lint::Linter) {
+        let allow_empty = self.info.name.is_empty();
         let mut labels: HashSet<String> = HashSet::new();
         for (i, v) in self.labels.iter().enumerate() {
-            if !v.is_empty() {
+            if v.is_empty() {
+                linter.row(i, |lt| {
+                    lt.err(allow_empty, "empty values disalowed by as_label optionn");
+                });
+            } else {
                 let upper = v.to_shouty_snake_case();
                 linter.row(i, |lt| {
                     lt.err(lint::label(&upper), &format!("invalid label  {}", v));
@@ -66,7 +49,6 @@ impl table::Column for ColLabel {
                         !labels.contains(&upper),
                         &format!("duplicate label {} ({})", v, upper),
                     );
-                    lt.err(upper != NONE, &format!("label {} is reserved", NONE));
                 });
                 labels.insert(upper);
             }
@@ -78,11 +60,11 @@ impl ColLabel {
     pub fn parse(
         namespace: &str,
         labels: &[String],
-        tolabel: bool,
+        tolabel: &str,
     ) -> aperror::Result<Box<dyn table::Column>> {
         Ok(Box::new(ColLabel {
             info: table::ColumnInfo {
-                name: (if tolabel { namespace } else { "" }).to_string(),
+                name: tolabel.to_string(),
                 len: labels.len(),
                 interface_type: basetype::BaseType::Label {
                     name: namespace.to_string(),
@@ -103,7 +85,7 @@ mod tests {
 
     #[test]
     fn label_ok() {
-        let c = ColLabel::parse("", &vec!["hello".to_string()], false).expect("");
+        let c = ColLabel::parse("", &vec!["hello".to_string()], "").expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 0);
@@ -111,7 +93,7 @@ mod tests {
 
     #[test]
     fn label_invalid() {
-        let c = ColLabel::parse("", &vec!["0hello".to_string()], false).expect("");
+        let c = ColLabel::parse("", &vec!["0hello".to_string()], "").expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);
@@ -119,8 +101,24 @@ mod tests {
 
     #[test]
     fn label_duplicate() {
+        let c = ColLabel::parse("", &vec!["hello".to_string(), "HELLO".to_string()], "").expect("");
+        let linter = lint::test_linter();
+        c.lint(&linter);
+        assert!(linter.errors() == 1);
+    }
+
+    #[test]
+    fn label_empty() {
+        let c = ColLabel::parse("", &vec!["hello".to_string(), "".to_string()], "").expect("");
+        let linter = lint::test_linter();
+        c.lint(&linter);
+        assert!(linter.errors() == 0);
+    }
+
+    #[test]
+    fn label_empty_as_label() {
         let c =
-            ColLabel::parse("", &vec!["hello".to_string(), "HELLO".to_string()], false).expect("");
+            ColLabel::parse("", &vec!["hello".to_string(), "".to_string()], "as_label").expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);

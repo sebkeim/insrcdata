@@ -23,10 +23,3 @@ labels_t label_labels(const label_t *s) {
     return (labels_t)(s-LABEL_TABLE);
 }
 
-const label_t* label_from_partials(partials_t label) {
-    return &LABEL_TABLE[label];
-}
-partials_t label_partials(const label_t *s) {
-    return (partials_t)(s-LABEL_TABLE);
-}
-

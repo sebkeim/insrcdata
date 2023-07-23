@@ -75,8 +75,8 @@ target = [ { lang= 'rs', type = '...', template="...{}...", import='...'  }, ]
 
 # for label format column
 # in rust allow to retrieve label from frow
-# optional : default to false
-tolabel = false
+# optional : default to empty value, disabling generation
+as_label = "as_label"
 
 #
 # Level 3 : join

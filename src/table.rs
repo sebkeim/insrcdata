@@ -57,11 +57,6 @@ pub trait Column {
         "EMIT_LABEL_UNSUPORTED".to_string()
     }
 
-    // add a label for undefined rows
-    fn none_label(&self) -> Option<String> {
-        None
-    }
-
     // for indexed lookup
     fn indexes(&self) -> Vec<usize>;
 
@@ -108,6 +103,7 @@ impl Table {
             match info.table_type {
                 basetype::BaseType::Label { .. } => {
                     if !info.name.is_empty() {
+                        // tolabel option is set
                         outcol_indexes.push(index)
                     }
                     labcol_indexes.push(index)

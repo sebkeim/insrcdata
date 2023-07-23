@@ -2,7 +2,6 @@
 # insrcdata : label sample
 #
 
-
 dest ="../rust-labels/src/insrcdata.rs"
 
 [[table]]
@@ -18,10 +17,4 @@ src = 'label'
 name = 'Labels'
 src = 'label'
 format = 'label'
-tolabel = true
-
-[[table.col]]
-name = 'Partials'
-src = 'partial'
-format = 'label'
-tolabel = true
+as_label = 'as_label'

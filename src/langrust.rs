@@ -283,9 +283,6 @@ fn col_labels(
             writeln!(output, "    {} = {},", label.to_upper_camel_case(), row)?;
         }
     }
-    if let Some(none) = col.none_label() {
-        writeln!(output, "    {} = {},", none.to_upper_camel_case(), -1)?;
-    }
     writeln!(output, "}}")?;
 
     let strname = struct_name(&table.name);

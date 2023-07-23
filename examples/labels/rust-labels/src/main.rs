@@ -66,8 +66,7 @@ fn demo() {
 
     // match label from table row field
     if let Some(label) = res {
-        //  complete label
-        match label.labels() {
+        match label.as_label() {
             insrcdata::Labels::Foo => println!("this is Foo"),
             insrcdata::Labels::Bar => println!("this is Bar"),
             insrcdata::Labels::UpperCamelCase => println!("This is UpperCamelCase"),
@@ -78,14 +77,6 @@ fn demo() {
             insrcdata::Labels::TitleCase => println!("This is TitleCase"),
             insrcdata::Labels::ShoutyKebabCase => println!("This is ShoutyKebabCas"),
             insrcdata::Labels::TrainCase => println!("This is TrainCase"),
-        };
-
-        // partial labels
-        match label.partials() {
-            insrcdata::Partials::Spam => println!("this is Spam"),
-            _ => {
-                println!("!other optional!");
-            }
         };
     } else {
         println!("!unknown!");

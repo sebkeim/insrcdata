@@ -93,7 +93,7 @@ struct Col {
     /// target (for object format)
     target: Option<Vec<Target>>,
     /// convert from row to label
-    tolabel: Option<bool>,
+    as_label: Option<String>,
 }
 static EMPTY_TARGET: Vec<Target> = vec![];
 impl Col {
@@ -159,11 +159,7 @@ impl Col {
             "u32" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U32),
             "u64" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U64),
             "str" => colstr::ColStr::parse(name, strvals, iterable),
-            "label" => collabel::ColLabel::parse(
-                name,
-                strvals,
-                self.tolabel.unwrap_or_default() && ctx.table_context.lang.to_label(),
-            ),
+            "label" => collabel::ColLabel::parse(name, strvals, self.tolabel(ctx)),
             "object" => self.create_object(strvals, ctx),
             _ => Err(aperror::Error::new(&format!(
                 "unknown column type '{}'",
@@ -174,6 +170,15 @@ impl Col {
 
     fn src_name(&self) -> &String {
         self.src.as_ref().unwrap_or(&self.name)
+    }
+
+    // we use empty value to prevent label column generation
+    fn tolabel(&self, ctx: &ColContext) -> &str {
+        if ctx.table_context.lang.to_label() {
+            self.as_label.as_deref().unwrap_or("")
+        } else {
+            ""
+        }
     }
 }
 

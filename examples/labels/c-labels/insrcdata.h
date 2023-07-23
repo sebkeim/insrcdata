@@ -30,12 +30,6 @@ typedef enum {
 const label_t* label_from_labels(labels_t label);
 labels_t label_labels(const label_t *s);
             
-typedef enum {
-    PARTIALS_SPAM = 0,
-} partials_t;
-const label_t* label_from_partials(partials_t label);
-partials_t label_partials(const label_t *s);
-            
 static inline const char* label_title(const label_t* s) { return s->title_; }
 
 #endif //  INSRCDATA_H 

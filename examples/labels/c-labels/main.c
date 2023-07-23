@@ -70,15 +70,6 @@ static void demo(void) {
             case LABELS_SHOUTY_KEBAB_CASE : printf("this is LABELS_SHOUTY_KEBAB_CASE\n");
             case LABELS_TRAIN_CASE: printf("this is LABELS_TRAIN_CASE\n");
       }
-      
-      if( fic->key < LABEL_TABLE_COUNT ){
-            //  in this sample external data  key is row index
-            const label_t *label = &LABEL_TABLE[fic->key];
-            switch ( label_partials(label)) {
-                  case PARTIALS_SPAM: printf("this is Spam\n"); break;
-                  default:  printf("!! other !!\n"); break;
-            }
-      }
 }
 
 // start of non regression tests
