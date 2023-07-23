@@ -89,7 +89,7 @@ impl ColJoin {
                     mincard,
                     maxcard: 1,
                 },
-                table_type: basetype::int_type_for_range(0, max as i64),
+                table_type: basetype::int_type_for_range(0..=max as i64),
                 iterable: !reverse.is_empty(),
             },
             values: indexes,

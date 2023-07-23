@@ -8,13 +8,10 @@
 use crate::language::Language;
 use crate::{aperror, table};
 use crate::{basetype, lint};
-use std::cmp;
 
 pub struct ColInt {
     info: table::ColumnInfo,
     values: Vec<i64>,
-
-    // stats
     min: i64, // minimal value
     max: i64, // maximal value
 }
@@ -36,6 +33,7 @@ impl table::Column for ColInt {
         indexes.sort_by(|a, b| values[*a].cmp(&values[*b]));
         indexes
     }
+
     fn lint(&self, linter: &lint::Linter) {
         linter.err(
             self.max <= self.info.interface_type.max() as i64,
@@ -63,24 +61,18 @@ impl ColInt {
     ) -> aperror::Result<Box<dyn table::Column>> {
         let values = table::parse_vec::<i64>(strvals)?;
 
-        let mut min = values[0]; // minimal value
-        let mut max = values[0]; // maximal value
-
-        for v in &values {
-            min = cmp::min(min, *v);
-            max = cmp::max(max, *v);
-        }
+        let min = *values.iter().min().unwrap_or(&0); // minimal value
+        let max = *values.iter().max().unwrap_or(&0); // maximal value
 
         Ok(Box::new(ColInt {
             info: table::ColumnInfo {
                 name: name.to_string(),
                 len: values.len(),
                 interface_type,
-                table_type: basetype::int_type_for_range(min, max),
+                table_type: basetype::int_type_for_range(min..=max),
                 iterable,
             },
             values,
-
             min, // minimal value
             max, // maximal value
         }))

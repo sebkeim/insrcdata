@@ -5,6 +5,7 @@
 // column data type
 //
 
+use std::ops::RangeInclusive;
 use std::{cmp, fmt};
 
 #[derive(PartialEq, Eq)]
@@ -35,21 +36,20 @@ pub enum BaseType {
     },
 }
 
-// Integer type
-fn signed_type(v: i64) -> BaseType {
-    match v {
-        0..=0x7F => BaseType::I8,
-        0x80..=0x7FFF => BaseType::I16,
-        0x8000..=0x7FFF_FFFF => BaseType::I32,
-        _ => BaseType::I64,
-    }
-}
-
-pub fn int_type_for_range(min: i64, max: i64) -> BaseType {
+// Integer type needed to handle valuesin range
+pub fn int_type_for_range(range: RangeInclusive<i64>) -> BaseType {
+    let min = *range.start();
+    let max = *range.end();
     if min < 0 {
-        let limit = cmp::max(-min, max);
-        signed_type(limit)
+        // signed integer
+        match cmp::max(-min, max) {
+            0..=0x7F => BaseType::I8,
+            0x80..=0x7FFF => BaseType::I16,
+            0x8000..=0x7FFF_FFFF => BaseType::I32,
+            _ => BaseType::I64,
+        }
     } else {
+        // unsigned integer
         match max {
             0..=0xFF => BaseType::U8,
             0x100..=0xFFFF => BaseType::U16,

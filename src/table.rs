@@ -169,7 +169,7 @@ impl Table {
     }
 
     pub fn index_type(&self) -> basetype::BaseType {
-        basetype::int_type_for_range(0, self.len as i64)
+        basetype::int_type_for_range(0..=self.len as i64)
     }
 
     pub fn imports(&self) -> HashSet<String> {
