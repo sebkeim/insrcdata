@@ -74,7 +74,8 @@ single = false
 target = [ { lang= 'rs', type = '...', template="...{}...", import='...'  }, ]
 
 # for label format column
-# in rust allow to retrieve label from frow
+# in rust allow to retrieve the enum variant from a row
+# contains the name of the column that will store the enum
 # optional : default to empty value, disabling generation
 as_label = "as_label"
 
@@ -84,11 +85,11 @@ as_label = "as_label"
 [[table.join]]
 
 # name of the struct field that will implement a join in the table
-name = 'sentence'
+name = 'author'
 
 # content of the header row in the csv that contain the name of the column
 # default to name option value
-src= 'sentence'
+src= 'author'
 
 #  declare the target column of a join
 to = 'ref'
@@ -103,7 +104,11 @@ optional = false
 
 # create accessor method in to table for reverse join
 # optional : no creation by default
-reverse = 'sentences'
+reverse = 'books'
+
+# name oh the column
+# optional : default to empty value, disabling generation
+as_index = "author_index"
 
 
 
