@@ -6,6 +6,7 @@
 //
 
 use crate::basetype::BaseType;
+use crate::table::JoinTo;
 use crate::{aperror, basetype, language, log, table};
 use heck::{ToShoutySnakeCase, ToSnakeCase};
 use std::path::PathBuf;
@@ -13,7 +14,7 @@ use std::{fs, io};
 
 struct LangC {}
 
-fn enum_name(col: &dyn table::Column) -> String {
+fn enum_type_name(col: &dyn table::Column) -> String {
     match &col.info().interface_type {
         basetype::BaseType::Label { name } => name.to_snake_case(),
         _ => "NOT A LABEL".to_string(),
@@ -32,24 +33,22 @@ fn strtype(typ: &basetype::BaseType) -> String {
         BaseType::U32 => "uint32_t",
         BaseType::U64 => "uint64_t",
         BaseType::Str => "const char*", //todo check encoding
-        BaseType::Join {
-            strname: _,
-            mincard: _,
-            maxcard: _,
-        } => "TODO",
+        BaseType::Join { .. } => "TODO",
         BaseType::Object { objtype } => objtype,
 
         BaseType::Bool => "bool",
         BaseType::F32 => "float",
         BaseType::F64 => "double",
+        BaseType::Variant => "TODO",
     })
 }
 
 fn gt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        BaseType::Label { .. } | BaseType::Join { .. } | BaseType::Object { .. } => {
-            "todo".to_string()
-        }
+        BaseType::Label { .. }
+        | BaseType::Join { .. }
+        | BaseType::Object { .. }
+        | BaseType::Variant => "todo".to_string(),
         BaseType::Bool
         | BaseType::F32
         | BaseType::F64
@@ -67,9 +66,10 @@ fn gt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
 
 fn lt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     match typ {
-        BaseType::Label { .. } | BaseType::Join { .. } | BaseType::Object { .. } => {
-            "todo".to_string()
-        }
+        BaseType::Label { .. }
+        | BaseType::Join { .. }
+        | BaseType::Object { .. }
+        | BaseType::Variant => "todo".to_string(),
         BaseType::Bool
         | BaseType::F32
         | BaseType::F64
@@ -107,34 +107,77 @@ fn header_getter_col(
     let strname = struct_name(&table.name);
     let field = &info.name;
 
-    match &info.interface_type.type_impl() {
-        basetype::TypeImpl::Label => {
+    match &info.type_impl() {
+        table::TypeImpl::Label => {
             log::verbose("unexpected getter_col for Label type");
         }
-        basetype::TypeImpl::Join01 => {
-            let outtype = struct_name(&info.join_table());
-            writeln!(
-                output,
-                "extern bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr);",
-            )?;
-        }
-        basetype::TypeImpl::Join11 => {
-            let outtype = struct_name(&info.join_table());
-            writeln!(
-                output,
-                "extern const {outtype}_t* {strname}_{field}(const {strname}_t* s);",
-            )?;
-        }
-
-        basetype::TypeImpl::Scalar => {
+        table::TypeImpl::Scalar => {
             let outtype = strtype(&info.interface_type);
             writeln!(
                 output,
                 "static inline {outtype} {strname}_{field}(const {strname}_t* s) {{ return s->{field}_; }}",
             )?;
         }
+        table::TypeImpl::Join => {
+            let outtype = struct_name(&info.join_table());
+            writeln!(
+                output,
+                "extern const {outtype}_t* {strname}_{field}(const {strname}_t* s);",
+            )?;
+        }
+        table::TypeImpl::JoinOptional => {
+            let outtype = struct_name(&info.join_table());
+            writeln!(
+                output,
+                "extern bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr);",
+            )?;
+        }
+
+        table::TypeImpl::Variant => {
+            //let outtype = strtype(&info.interface_type);
+            writeln!(
+                output,
+                "extern {strname}_{field}_t {strname}_{field}(const {strname}_t* s);",
+            )?;
+        }
     }
     Ok(())
+}
+
+fn impl_getter_join(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let strname = struct_name(&table.name);
+    let field = &col.info().name;
+    let outtype = struct_name(&col.info().join_table());
+    let jointable = table_name(&outtype);
+    writeln!(
+        output,
+        "const {outtype}_t* {strname}_{field}(const {strname}_t* s) {{ return &{jointable}_TABLE[s->{field}_];}}",
+    )
+}
+
+fn impl_getter_join_optional(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let strname = struct_name(&table.name);
+    let field = &col.info().name;
+    let outtype = struct_name(&col.info().join_table());
+    let jointable = table_name(&outtype);
+    writeln!(
+        output,
+        "bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr) {{
+    if( s->{field}_) {{
+        *ptr = &{jointable}_TABLE[s->{field}_-1];
+        return true;
+    }}
+    return false;
+}}",
+    )
 }
 
 fn impl_getter_col(
@@ -142,40 +185,96 @@ fn impl_getter_col(
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
-    let info = col.info();
-    let strname = struct_name(&table.name);
-    let field = &info.name;
-
-    match &info.interface_type.type_impl() {
-        basetype::TypeImpl::Label => {}
-
-        basetype::TypeImpl::Join01 => {
-            let outtype = struct_name(&info.join_table());
-            let jointable = table_name(&outtype);
-            writeln!(
-                output,
-                "bool {strname}_{field}(const {strname}_t* s, const {outtype}_t** ptr) {{
-    if( s->{field}_) {{
-        *ptr = &{jointable}_TABLE[s->{field}_-1];
-        return true;
-    }}
-    return false;
-}}",
-            )?;
+    match &col.info().type_impl() {
+        table::TypeImpl::Label => {}
+        table::TypeImpl::Scalar => {}
+        table::TypeImpl::Join => {
+            impl_getter_join(table, col, output)?;
         }
-
-        basetype::TypeImpl::Join11 => {
-            let outtype = struct_name(&info.join_table());
-            let jointable = table_name(&outtype);
-            writeln!(
-output,
-"const {outtype}_t* {strname}_{field}(const {strname}_t* s) {{ return &{jointable}_TABLE[s->{field}_];}}",
-)?;
+        table::TypeImpl::JoinOptional => {
+            impl_getter_join_optional(table, col, output)?;
         }
-
-        basetype::TypeImpl::Scalar => {}
+        table::TypeImpl::Variant => {
+            impl_getter_variant(table, col, output)?;
+        }
     }
     Ok(())
+}
+
+// ================================================================================================
+//  variant
+// ================================================================================================
+
+fn header_variant(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let Some(variants) = col.variants() else { return Ok(());};
+    let field = &col.info().name;
+    let strname = struct_name(&table.name);
+    // let varname = struct_name(&col.info().name);
+
+    writeln!(output, "typedef enum {{")?;
+    for vrn in variants {
+        let enuname = format!("{}_{}", enum_name(&strname), enum_name(&vrn.name));
+        writeln!(output, "     {enuname},")?;
+    }
+    writeln!(
+        output,
+        "}} {strname}_variant_t;
+typedef struct {{
+    const {strname}_variant_t type;
+    union {{"
+    )?;
+
+    for vrn in variants {
+        if !vrn.is_none {
+            let strname = struct_name(&vrn.name);
+            writeln!(output, "     const {strname}_t *{strname};")?;
+        }
+    }
+    let outyp = format!("{strname}_{field}_t");
+    writeln!(output, "    }};\n}} {outyp};")
+}
+
+fn impl_getter_variant(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let variants = col.variants().expect("variant must have variant");
+
+    let field = &col.info().name;
+    let strname = struct_name(&table.name);
+    let outyp = format!("{strname}_{field}_t");
+
+    writeln!(
+        output,
+        "{outyp} {strname}_{field}(const {strname}_t* s){{
+    int v = s->{field}_ ;"
+    )?;
+
+    for vrn in variants {
+        if vrn.count == 0 {
+            continue;
+        }
+        let start = vrn.index;
+        let end = start + vrn.count - 1;
+        let enuname = format!("{}_{}", enum_name(&strname), enum_name(&vrn.name));
+        let jointable = table_name(&vrn.name);
+        let joinstruct = struct_name(&vrn.name);
+        if vrn.is_none {
+            writeln!(
+                output,
+                "    if(v<={end}) {{return ({outyp}){{.type={enuname}}}; }}"
+            )?;
+        } else {
+            writeln!(output, "    if(v<={end}) {{return ({outyp}){{.type={enuname}, .{joinstruct}={jointable}_TABLE+v-{start}}}; }}")?;
+        }
+    }
+
+    writeln!(output, "    return ({outyp}){{0}};\n}}")
 }
 
 // ================================================================================================
@@ -249,42 +348,49 @@ fn impl_iter_range(
 // ================================================================================================
 fn header_reverse_join(
     table: &table::Table,
-    srccol: &dyn table::Column,
-    srcname: &str,
+    rj: &JoinTo,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let strname = struct_name(&table.name);
-    let reverse = srccol.reverse_name();
-    let strsrc = struct_name(srcname);
+    let reverse = &rj.reverse_name;
+    let strsrc = struct_name(&rj.table.name);
     writeln!(
         output,
         "extern {strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s);"
     )
 }
+//rj.col, &rj.table.name, rj.offset,
 
 fn impl_reverse_join(
     table: &table::Table,
-    srccol: &dyn table::Column,
+    rj: &JoinTo,
+    /* srccol: &dyn table::Column,
     srcname: &str,
+    offset: usize,*/
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     if !table.has_data() {
-        log::warning(&format!("{} will crash if used", srccol.reverse_name()));
+        log::warning(&format!("{} will crash if used", rj.reverse_name));
     }
 
     let strname = struct_name(&table.name);
     let indextyp = strtype(&table.index_type());
 
-    let info = srccol.info();
-    let reverse = srccol.reverse_name();
-    let strsrc = struct_name(srcname);
-    let tablesrc = table_name(srcname);
+    let info = rj.col.info();
+    let reverse = &rj.reverse_name;
+    let strsrc = struct_name(&rj.table.name);
+    let tablesrc = table_name(&rj.table.name);
     let strtable = table_name(&table.name);
 
     let field = table_name(&info.name);
     let colname = &info.name;
 
-    let offset = if info.mincard0() { " + 1" } else { "" };
+    let offset = rj.offset;
+    let offset = if offset > 0 {
+        format!(" + {offset}")
+    } else {
+        "".to_string()
+    };
     writeln!(
         output,
         "{strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s) {{
@@ -321,6 +427,9 @@ fn impl_reverse_join(
     )
 }
 
+fn enum_name(s: &str) -> String {
+    s.to_shouty_snake_case()
+}
 // ================================================================================================
 // Labels
 // ================================================================================================
@@ -332,12 +441,12 @@ fn header_col_labels(
     let info = col.info();
     writeln!(output, "typedef enum {{")?;
 
-    let enumname = enum_name(col);
+    let enumname = enum_type_name(col);
     let prefix = enumname.to_shouty_snake_case();
     for row in 0..info.len {
         let label = col.emit_label(row);
         if !label.is_empty() {
-            let camel = label.to_shouty_snake_case();
+            let camel = enum_name(&label);
             writeln!(
                 output,
                 "    {prefix}_{label} = {row},",
@@ -368,7 +477,7 @@ fn impl_col_labels(
 ) -> io::Result<()> {
     let strname = struct_name(&table.name);
     let tablename = table_name(&table.name);
-    let enumname = enum_name(col);
+    let enumname = enum_type_name(col);
 
     if table.has_data() {
         writeln!(
@@ -402,9 +511,7 @@ extern const {strname}_t* {strname}_next({strname}_iter_t* idx);"
 fn impl_index(table: &table::Table, output: &mut dyn io::Write) -> io::Result<()> {
     let strname = struct_name(&table.name);
     let tablename = table_name(&table.name);
-
-    writeln!(output, "const {strname}_t* {strname}_next({strname}_iter_t* idx) {{ return idx->ptr<idx->end ? &{tablename}_TABLE[*idx->ptr++] : NULL; }}
-    \n")
+    writeln!(output, "const {strname}_t* {strname}_next({strname}_iter_t* idx) {{ return idx->ptr<idx->end ? &{tablename}_TABLE[*idx->ptr++] : NULL; }}\n")
 }
 
 fn impl_col_index(
@@ -467,6 +574,11 @@ extern const {strname}_t {tablename}_TABLE[{tablename}_TABLE_COUNT];"
             header_index(table, output)?;
         }
         writeln!(output)?;
+
+        //
+        for col in datacols {
+            header_variant(table, col, output)?;
+        }
     }
     Ok(())
 }
@@ -494,8 +606,8 @@ fn header_table_methods(
     }
 
     let reverse_join = project.join_to_columns(table);
-    for (join, col) in reverse_join {
-        header_reverse_join(table, col, &join.name, output)?;
+    for rj in reverse_join {
+        header_reverse_join(table, &rj, output)?;
     }
     Ok(())
 }
@@ -568,8 +680,8 @@ fn impl_table_methods(
     }
 
     let reverse_join = project.join_to_columns(table);
-    for (join, col) in reverse_join {
-        impl_reverse_join(table, col, &join.name, output)?;
+    for rj in reverse_join {
+        impl_reverse_join(table, &rj, output)?;
     }
 
     Ok(())

@@ -11,7 +11,6 @@ static const minister_t MINISTER_TABLE[MINISTER_TABLE_COUNT] = {
 };
 
 const minister_t* minister_next(minister_iter_t* idx) { return idx->ptr<idx->end ? &MINISTER_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const MINISTER_BIRTH_INDEX_COUNT  =  3;
 static uint8_t MINISTER_BIRTH_INDEX   [MINISTER_BIRTH_INDEX_COUNT] = {
@@ -37,7 +36,6 @@ static const country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
 };
 
 const country_t* country_next(country_iter_t* idx) { return idx->ptr<idx->end ? &COUNTRY_TABLE[*idx->ptr++] : NULL; }
-    
 
 const country_t* country_from_countries(countries_t label) {
     return &COUNTRY_TABLE[label];

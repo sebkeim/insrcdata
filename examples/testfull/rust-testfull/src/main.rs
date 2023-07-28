@@ -1,3 +1,5 @@
+extern crate core;
+
 mod colobject;
 mod fictolabel;
 mod innerjoin;
@@ -24,6 +26,12 @@ fn main() {
 
     // object type column : reference to native objects
     colobject::test_colobject();
+
+    // variant column
+    innerjoin::test_variant_non_optional();
+
+    // variant with unmatched rows
+    innerjoin::test_variant_optional()
 }
 
 // TODO : show how to use a second insrcdata database in the same project

@@ -51,6 +51,7 @@ impl ColF64 {
                 interface_type: basetype::BaseType::F64,
                 table_type: basetype::BaseType::F64,
                 iterable,
+                optional: false,
             },
             values,
         }))
@@ -99,6 +100,7 @@ impl ColF32 {
                 interface_type: basetype::BaseType::F32,
                 table_type: basetype::BaseType::F32,
                 iterable,
+                optional: false,
             },
             values,
         }))

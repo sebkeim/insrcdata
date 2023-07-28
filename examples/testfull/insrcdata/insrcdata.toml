@@ -85,3 +85,38 @@ format = 'object'
 target = [ { lang= 'rs', type = "&'static crate::colobject::Point", template="&co::{}", import='crate::colobject as co'  },
     { lang= 'c', type = 'const point_t*', template="&POINT_{}", import='colobject.h'  },
 ]
+
+#    ---- table wikidata
+[[table]]
+name = "wikidata"
+src = "wikidata.csv"
+array = true
+
+[[table.col]]
+name = 'qid'
+format = 'u32'
+
+[[table.variant]]
+name = 'object'
+src = 'ref'
+either = [ { to= 'ref', external='Person', reverse="wdata"  },
+    { to= 'label', external='lettercase', reverse="wdata2"  },
+]
+
+#    ---- table library of congress
+[[table]]
+name = "congress"
+src = "congress.csv"
+array = true
+
+
+[[table.col]]
+name = 'lccn'
+
+[[table.variant]]
+name = 'object'
+src = 'ref'
+optional=true
+either = [ { to= 'ref', external='Person', reverse="congress"  },
+    { to= 'label', external='lettercase', reverse="congress"  },
+]

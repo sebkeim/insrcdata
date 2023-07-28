@@ -5,6 +5,7 @@ use std::collections::HashSet;
 //
 // Abstract type for project
 //
+use crate::basetype::BaseType;
 use crate::language::Language;
 use crate::{aperror, basetype, language, lint};
 use std::path::PathBuf;
@@ -13,23 +14,48 @@ use std::str::FromStr;
 // ================================================================================================
 // Column
 // ================================================================================================
+pub enum TypeImpl {
+    Label,
+    Join,
+    JoinOptional,
+    Scalar,
+    Variant,
+}
+
 pub struct ColumnInfo {
     pub name: String,
     pub len: usize,
     pub interface_type: basetype::BaseType, // for public API
     pub table_type: basetype::BaseType,     // for data table
     pub iterable: bool,
+    pub optional: bool,
 }
 
 impl ColumnInfo {
-    pub fn mincard0(&self) -> bool {
-        match &self.interface_type {
-            basetype::BaseType::Join {
-                strname: _,
-                mincard,
-                ..
-            } => *mincard == 0,
-            _ => false,
+    pub fn type_impl(&self) -> TypeImpl {
+        match self.interface_type {
+            BaseType::Label { .. } => TypeImpl::Label,
+            BaseType::Bool
+            | BaseType::F32
+            | BaseType::F64
+            | BaseType::I8
+            | BaseType::I16
+            | BaseType::I32
+            | BaseType::I64
+            | BaseType::U8
+            | BaseType::U16
+            | BaseType::U32
+            | BaseType::U64
+            | BaseType::Str
+            | BaseType::Object { .. } => TypeImpl::Scalar,
+            BaseType::Join { .. } => {
+                if self.optional {
+                    TypeImpl::JoinOptional
+                } else {
+                    TypeImpl::Join
+                }
+            }
+            BaseType::Variant => TypeImpl::Variant,
         }
     }
 
@@ -42,10 +68,18 @@ impl ColumnInfo {
 
     pub fn has_iter_range(&self) -> bool {
         match self.interface_type {
-            basetype::BaseType::Join { .. } => false, // implemented target Table by col_reverse_join
+            basetype::BaseType::Join { .. } | basetype::BaseType::Variant => false, // implemented target Table by col_reverse_join
             _ => self.iterable,
         }
     }
+}
+
+pub struct Variant {
+    pub name: String, // dest table name
+    pub index: usize,
+    pub count: usize,
+    pub reverse: String, // getter name for reverse join
+    pub is_none: bool,   // null value placeholder for optional vatiants
 }
 
 pub trait Column {
@@ -70,6 +104,10 @@ pub trait Column {
 
     // import dependancies for object data type column
     fn fill_import(&self, _out: &mut HashSet<String>) {}
+
+    fn variants(&self) -> Option<&Vec<Variant>> {
+        None
+    }
 }
 
 // ================================================================================================
@@ -184,6 +222,33 @@ impl Table {
 // ================================================================================================
 // Project
 // ================================================================================================
+
+pub struct JoinTo<'a> {
+    pub table: &'a Table,
+    pub col: &'a dyn Column,
+    pub offset: usize,
+    pub reverse_name: String,
+}
+
+impl<'a> JoinTo<'a> {
+    fn from_join(join: &'a Table, col: &'a dyn Column) -> JoinTo<'a> {
+        JoinTo {
+            table: join,
+            col,
+            offset: col.info().optional as usize,
+            reverse_name: col.reverse_name().to_string(),
+        }
+    }
+    fn from_variant(join: &'a Table, col: &'a dyn Column, vrt: &Variant) -> JoinTo<'a> {
+        JoinTo {
+            table: join,
+            col,
+            offset: vrt.index,
+            reverse_name: vrt.reverse.to_string(),
+        }
+    }
+}
+
 pub struct Project {
     pub dst_path: PathBuf,
     pub lang: &'static dyn language::Language,
@@ -254,20 +319,31 @@ impl Project {
     }
 
     // reverse join to table
-    pub fn join_to_columns(&self, table: &Table) -> Vec<(&Table, &dyn Column)> {
-        let mut columns: Vec<(&Table, &dyn Column)> = vec![];
+    pub fn join_to_columns(&self, table: &Table) -> Vec<JoinTo> {
+        let mut columns = Vec::<JoinTo>::new();
 
         for join in &self.tables {
             if join.name != table.name {
                 for col in &join.columns {
                     let info = col.info();
-                    let is_join_to = match &info.interface_type {
-                        basetype::BaseType::Join { strname, .. } => strname == &table.name,
-                        _ => false,
+
+                    match &info.interface_type {
+                        basetype::BaseType::Join { strname, .. } => {
+                            if strname == &table.name && info.iterable {
+                                columns.push(JoinTo::from_join(join, col.as_ref()));
+                                //  JoinTo::from_variant(join, col.as_ref(), info.mincard0() as usize));
+                            }
+                        }
+                        basetype::BaseType::Variant => {
+                            for vrt in col.variants().expect("variant expected") {
+                                if vrt.name == table.name && !vrt.reverse.is_empty() {
+                                    columns.push(JoinTo::from_variant(join, col.as_ref(), vrt));
+                                    // columns.push((join, col.as_ref(), vrt.index));
+                                }
+                            }
+                        }
+                        _ => {}
                     };
-                    if is_join_to && info.iterable {
-                        columns.push((join, col.as_ref()));
-                    }
                 }
             }
         }

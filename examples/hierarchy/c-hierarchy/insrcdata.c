@@ -16,7 +16,6 @@ const leave_t LEAVE_TABLE[LEAVE_TABLE_COUNT] = {
 };
 
 const leave_t* leave_next(leave_iter_t* idx) { return idx->ptr<idx->end ? &LEAVE_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const LEAVE_CHAPTER_INDEX_COUNT  =  9;
 static uint8_t LEAVE_CHAPTER_INDEX   [LEAVE_CHAPTER_INDEX_COUNT] = {
@@ -34,7 +33,6 @@ const chapter_t CHAPTER_TABLE[CHAPTER_TABLE_COUNT] = {
 };
 
 const chapter_t* chapter_next(chapter_iter_t* idx) { return idx->ptr<idx->end ? &CHAPTER_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const CHAPTER_CODE_INDEX_COUNT  =  7;
 static uint8_t CHAPTER_CODE_INDEX   [CHAPTER_CODE_INDEX_COUNT] = {

@@ -11,7 +11,6 @@ static const client_t CLIENT_TABLE[CLIENT_TABLE_COUNT] = {
 };
 
 const client_t* client_next(client_iter_t* idx) { return idx->ptr<idx->end ? &CLIENT_TABLE[*idx->ptr++] : NULL; }
-    
 
 const client_t* client_from_clients(clients_t label) {
     return &CLIENT_TABLE[label];
@@ -29,7 +28,6 @@ static const product_t PRODUCT_TABLE[PRODUCT_TABLE_COUNT] = {
 };
 
 const product_t* product_next(product_iter_t* idx) { return idx->ptr<idx->end ? &PRODUCT_TABLE[*idx->ptr++] : NULL; }
-    
 
 const product_t* product_from_products(products_t label) {
     return &PRODUCT_TABLE[label];
@@ -50,7 +48,6 @@ static const transaction_t TRANSACTION_TABLE[TRANSACTION_TABLE_COUNT] = {
 };
 
 const transaction_t* transaction_next(transaction_iter_t* idx) { return idx->ptr<idx->end ? &TRANSACTION_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const TRANSACTION_CLIENT_INDEX_COUNT  =  7;
 static uint8_t TRANSACTION_CLIENT_INDEX   [TRANSACTION_CLIENT_INDEX_COUNT] = {

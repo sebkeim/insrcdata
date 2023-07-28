@@ -13,7 +13,6 @@ static const region_t REGION_TABLE[REGION_TABLE_COUNT] = {
 };
 
 const region_t* region_next(region_iter_t* idx) { return idx->ptr<idx->end ? &REGION_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const SUBREGION_TABLE_COUNT = 17;
 static const subregion_t SUBREGION_TABLE[SUBREGION_TABLE_COUNT] = {
@@ -37,7 +36,6 @@ static const subregion_t SUBREGION_TABLE[SUBREGION_TABLE_COUNT] = {
 };
 
 const subregion_t* subregion_next(subregion_iter_t* idx) { return idx->ptr<idx->end ? &SUBREGION_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const SUBREGION_REGION_INDEX_COUNT  =  17;
 static uint8_t SUBREGION_REGION_INDEX   [SUBREGION_REGION_INDEX_COUNT] = {
@@ -297,7 +295,6 @@ const country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
 };
 
 const country_t* country_next(country_iter_t* idx) { return idx->ptr<idx->end ? &COUNTRY_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const COUNTRY_ALPHA3_INDEX_COUNT  =  249;
 static uint8_t COUNTRY_ALPHA3_INDEX   [COUNTRY_ALPHA3_INDEX_COUNT] = {

@@ -26,14 +26,14 @@ pub enum BaseType {
     F32,
     F64,
     Str,
-    Join {
-        strname: String,
-        mincard: usize,
-        maxcard: usize,
-    },
     Object {
         objtype: String,
     },
+    Join {
+        strname: String,
+    },
+
+    Variant,
 }
 
 // Integer type needed to handle valuesin range
@@ -59,13 +59,6 @@ pub fn int_type_for_range(range: RangeInclusive<i64>) -> BaseType {
     }
 }
 
-pub enum TypeImpl {
-    Label,
-    Join01,
-    Join11,
-    Scalar,
-}
-
 impl BaseType {
     pub fn max(&self) -> usize {
         match self {
@@ -83,7 +76,8 @@ impl BaseType {
             | BaseType::Str
             | BaseType::Label { .. }
             | BaseType::Join { .. }
-            | BaseType::Object { .. } => 0,
+            | BaseType::Object { .. }
+            | BaseType::Variant => 0,
         }
     }
 
@@ -103,42 +97,8 @@ impl BaseType {
             | BaseType::Str
             | BaseType::Label { .. }
             | BaseType::Join { .. }
-            | BaseType::Object { .. } => 0,
-        }
-    }
-
-    pub fn type_impl(&self) -> TypeImpl {
-        match self {
-            BaseType::Label { .. } => TypeImpl::Label,
-            BaseType::Bool
-            | BaseType::F32
-            | BaseType::F64
-            | BaseType::I8
-            | BaseType::I16
-            | BaseType::I32
-            | BaseType::I64
-            | BaseType::U8
-            | BaseType::U16
-            | BaseType::U32
-            | BaseType::U64
-            | BaseType::Str
-            | BaseType::Object { .. } => TypeImpl::Scalar,
-            BaseType::Join {
-                strname: _,
-                mincard,
-                maxcard,
-            } => {
-                if *maxcard == 1 {
-                    if *mincard == 0 {
-                        return TypeImpl::Join01;
-                    }
-
-                    if *mincard == 1 {
-                        return TypeImpl::Join11;
-                    }
-                }
-                panic!("join n m cardinality  still to do");
-            }
+            | BaseType::Object { .. }
+            | BaseType::Variant => 0,
         }
     }
 }
@@ -159,12 +119,9 @@ impl fmt::Display for BaseType {
             BaseType::Str => write!(f, "&'static str"),
             BaseType::F32 => write!(f, "f32"),
             BaseType::F64 => write!(f, "f64"),
-            BaseType::Join {
-                strname,
-                mincard,
-                maxcard,
-            } => write!(f, "join({},{},{})", strname, mincard, maxcard),
+            BaseType::Join { strname } => write!(f, "join({})", strname),
             BaseType::Object { objtype } => write!(f, "object({})", objtype),
+            BaseType::Variant => write!(f, "variant"),
         }
     }
 }

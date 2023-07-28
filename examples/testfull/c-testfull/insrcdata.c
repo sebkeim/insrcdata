@@ -12,7 +12,6 @@ static const person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
 };
 
 const person_t* person_next(person_iter_t* idx) { return idx->ptr<idx->end ? &PERSON_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const PERSON_SCORE_INDEX_COUNT  =  4;
 static uint8_t PERSON_SCORE_INDEX   [PERSON_SCORE_INDEX_COUNT] = {
@@ -36,7 +35,6 @@ const strencoding_t STRENCODING_TABLE[STRENCODING_TABLE_COUNT] = {
 };
 
 const strencoding_t* strencoding_next(strencoding_iter_t* idx) { return idx->ptr<idx->end ? &STRENCODING_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const STRENCODING_TEXT_INDEX_COUNT  =  6;
 static uint8_t STRENCODING_TEXT_INDEX   [STRENCODING_TEXT_INDEX_COUNT] = {
@@ -50,12 +48,41 @@ static const lettercase_t LETTERCASE_TABLE[LETTERCASE_TABLE_COUNT] = {
    {"Lower case", make_lower, &POINT_ONE, },
 };
 
+const lettercase_t* lettercase_next(lettercase_iter_t* idx) { return idx->ptr<idx->end ? &LETTERCASE_TABLE[*idx->ptr++] : NULL; }
+
 const lettercase_t* lettercase_from_lettercases(lettercases_t label) {
     return &LETTERCASE_TABLE[label];
 }
 lettercases_t lettercase_lettercases(const lettercase_t *s) {
     return (lettercases_t)(s-LETTERCASE_TABLE);
 }
+
+const wikidata_t WIKIDATA_TABLE[WIKIDATA_TABLE_COUNT] = {
+   {7186, 0, },
+   {8185162, 6, },
+   {150989, 3, },
+};
+
+const wikidata_t* wikidata_next(wikidata_iter_t* idx) { return idx->ptr<idx->end ? &WIKIDATA_TABLE[*idx->ptr++] : NULL; }
+
+static unsigned const WIKIDATA_OBJECT_INDEX_COUNT  =  3;
+static uint8_t WIKIDATA_OBJECT_INDEX   [WIKIDATA_OBJECT_INDEX_COUNT] = {
+    0, 2, 1, 
+};
+
+const congress_t CONGRESS_TABLE[CONGRESS_TABLE_COUNT] = {
+   {"n2009011553", 1, },
+   {"sh85148650", 7, },
+   {"n80159913", 4, },
+   {"n79006404", 0, },
+};
+
+const congress_t* congress_next(congress_iter_t* idx) { return idx->ptr<idx->end ? &CONGRESS_TABLE[*idx->ptr++] : NULL; }
+
+static unsigned const CONGRESS_OBJECT_INDEX_COUNT  =  3;
+static uint8_t CONGRESS_OBJECT_INDEX   [CONGRESS_OBJECT_INDEX_COUNT] = {
+    0, 2, 1, 
+};
 
 person_iter_t  person_score_range( double start, double stop) {
     uint8_t* lo = PERSON_SCORE_INDEX;
@@ -98,6 +125,70 @@ bool person_mother(const person_t* s, const person_t** ptr) {
     }
     return false;
 }
+wikidata_iter_t person_wdata(const person_t* s) {
+    long cons = s - PERSON_TABLE;
+
+    // bissect left
+    uint8_t* lo = WIKIDATA_OBJECT_INDEX;
+    uint8_t* hi = WIKIDATA_OBJECT_INDEX + WIKIDATA_OBJECT_INDEX_COUNT;
+   
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if ( cons > WIKIDATA_TABLE[*mid].object_ ) {
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+    uint8_t* begin = lo;
+
+    // bissect-right
+    hi = WIKIDATA_OBJECT_INDEX +  WIKIDATA_OBJECT_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if( cons < WIKIDATA_TABLE[*mid].object_ )  {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+     }
+
+    wikidata_iter_t res = {  begin,  lo };
+    return res;
+}
+
+congress_iter_t person_congress(const person_t* s) {
+    long cons = s - PERSON_TABLE + 1;
+
+    // bissect left
+    uint8_t* lo = CONGRESS_OBJECT_INDEX;
+    uint8_t* hi = CONGRESS_OBJECT_INDEX + CONGRESS_OBJECT_INDEX_COUNT;
+   
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if ( cons > CONGRESS_TABLE[*mid].object_ ) {
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+    uint8_t* begin = lo;
+
+    // bissect-right
+    hi = CONGRESS_OBJECT_INDEX +  CONGRESS_OBJECT_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if( cons < CONGRESS_TABLE[*mid].object_ )  {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+     }
+
+    congress_iter_t res = {  begin,  lo };
+    return res;
+}
+
 strencoding_iter_t  strencoding_text_range( const char* start, const char* stop) {
     uint8_t* lo = STRENCODING_TEXT_INDEX;
     uint8_t*  hi = STRENCODING_TEXT_INDEX + STRENCODING_TEXT_INDEX_COUNT;
@@ -123,4 +214,81 @@ strencoding_iter_t  strencoding_text_range( const char* start, const char* stop)
 
     strencoding_iter_t res = {  begin,  lo };
     return res;
+}
+wikidata_iter_t lettercase_wdata2(const lettercase_t* s) {
+    long cons = s - LETTERCASE_TABLE + 4;
+
+    // bissect left
+    uint8_t* lo = WIKIDATA_OBJECT_INDEX;
+    uint8_t* hi = WIKIDATA_OBJECT_INDEX + WIKIDATA_OBJECT_INDEX_COUNT;
+   
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if ( cons > WIKIDATA_TABLE[*mid].object_ ) {
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+    uint8_t* begin = lo;
+
+    // bissect-right
+    hi = WIKIDATA_OBJECT_INDEX +  WIKIDATA_OBJECT_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if( cons < WIKIDATA_TABLE[*mid].object_ )  {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+     }
+
+    wikidata_iter_t res = {  begin,  lo };
+    return res;
+}
+
+congress_iter_t lettercase_congress(const lettercase_t* s) {
+    long cons = s - LETTERCASE_TABLE + 5;
+
+    // bissect left
+    uint8_t* lo = CONGRESS_OBJECT_INDEX;
+    uint8_t* hi = CONGRESS_OBJECT_INDEX + CONGRESS_OBJECT_INDEX_COUNT;
+   
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if ( cons > CONGRESS_TABLE[*mid].object_ ) {
+             lo = mid + 1;
+        } else {
+             hi = mid;
+        }
+    }
+    uint8_t* begin = lo;
+
+    // bissect-right
+    hi = CONGRESS_OBJECT_INDEX +  CONGRESS_OBJECT_INDEX_COUNT;
+    while( lo < hi ){
+        uint8_t*  mid =  lo + ( hi-lo)/2;
+        if( cons < CONGRESS_TABLE[*mid].object_ )  {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+     }
+
+    congress_iter_t res = {  begin,  lo };
+    return res;
+}
+
+wikidata_object_t wikidata_object(const wikidata_t* s){
+    int v = s->object_ ;
+    if(v<=3) {return (wikidata_object_t){.type=WIKIDATA_PERSON, .person=PERSON_TABLE+v-0}; }
+    if(v<=6) {return (wikidata_object_t){.type=WIKIDATA_LETTERCASE, .lettercase=LETTERCASE_TABLE+v-4}; }
+    return (wikidata_object_t){0};
+}
+congress_object_t congress_object(const congress_t* s){
+    int v = s->object_ ;
+    if(v<=0) {return (congress_object_t){.type=CONGRESS_NONE}; }
+    if(v<=4) {return (congress_object_t){.type=CONGRESS_PERSON, .person=PERSON_TABLE+v-1}; }
+    if(v<=7) {return (congress_object_t){.type=CONGRESS_LETTERCASE, .lettercase=LETTERCASE_TABLE+v-5}; }
+    return (congress_object_t){0};
 }

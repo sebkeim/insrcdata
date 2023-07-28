@@ -73,6 +73,7 @@ impl ColLabel {
                     name: namespace.to_string(),
                 },
                 iterable: false,
+                optional: false,
             },
             labels: labels.to_owned(),
         }))

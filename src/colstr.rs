@@ -49,6 +49,7 @@ impl ColStr {
                 interface_type: basetype::BaseType::Str,
                 table_type: basetype::BaseType::Str,
                 iterable,
+                optional: false,
             },
             values: values.to_owned(),
         }))

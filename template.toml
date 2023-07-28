@@ -31,6 +31,7 @@ name = 'HelloWorld'
 src = "helloworld.csv"
 
 # if true : create a static method array() that will return  a reference to the table
+# will also create an as_index() method
 # optional : default to false
 array  = true
 
@@ -110,6 +111,27 @@ reverse = 'books'
 # optional : default to empty value, disabling generation
 as_index = "author_index"
 
+
+#
+# Level 3 : variant
+#
+
+# name of the struct field that will implement a join in the table
+name = 'object'
+
+# content of the header row in the csv that contain the name of the column
+# default to name option value
+src = 'ref'
+
+# accessor method will create a None variant for empty values
+# optional : false by default
+optional=true
+
+# define target of each variant
+#  - to = target column
+#  - external = target table for external join, optional : inner join if undefined
+#  - reverse = create accessor method in to table for reverse join, optional : no creation by default
+either = [ {  to= 'ref', external='Author',   reverse="books" }, ]
 
 
 

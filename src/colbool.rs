@@ -70,6 +70,7 @@ impl ColBool {
                 interface_type: basetype::BaseType::Bool,
                 table_type: basetype::BaseType::Bool,
                 iterable,
+                optional: false,
             },
             values,
         }))

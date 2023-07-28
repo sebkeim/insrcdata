@@ -31,7 +31,50 @@ typedef struct  {
     transformer_t* transformer_;
     const point_t* point_;
 } lettercase_t;
+typedef struct { uint8_t* ptr; uint8_t* end; } lettercase_iter_t;
+extern const lettercase_t* lettercase_next(lettercase_iter_t* idx);
 
+typedef struct  {
+    uint32_t qid_;
+    uint8_t object_;
+} wikidata_t;
+static unsigned const WIKIDATA_TABLE_COUNT = 3;
+extern const wikidata_t WIKIDATA_TABLE[WIKIDATA_TABLE_COUNT];
+typedef struct { uint8_t* ptr; uint8_t* end; } wikidata_iter_t;
+extern const wikidata_t* wikidata_next(wikidata_iter_t* idx);
+
+typedef enum {
+     WIKIDATA_PERSON,
+     WIKIDATA_LETTERCASE,
+} wikidata_variant_t;
+typedef struct {
+    const wikidata_variant_t type;
+    union {
+     const person_t *person;
+     const lettercase_t *lettercase;
+    };
+} wikidata_object_t;
+typedef struct  {
+    const char* lccn_;
+    uint8_t object_;
+} congress_t;
+static unsigned const CONGRESS_TABLE_COUNT = 4;
+extern const congress_t CONGRESS_TABLE[CONGRESS_TABLE_COUNT];
+typedef struct { uint8_t* ptr; uint8_t* end; } congress_iter_t;
+extern const congress_t* congress_next(congress_iter_t* idx);
+
+typedef enum {
+     CONGRESS_NONE,
+     CONGRESS_PERSON,
+     CONGRESS_LETTERCASE,
+} congress_variant_t;
+typedef struct {
+    const congress_variant_t type;
+    union {
+     const person_t *person;
+     const lettercase_t *lettercase;
+    };
+} congress_object_t;
 
 
 // ------    
@@ -51,6 +94,8 @@ extern person_iter_t  person_score_range( double start, double stop);
 extern const person_t* person_spouse(const person_t* s);
 extern bool person_father(const person_t* s, const person_t** ptr);
 extern bool person_mother(const person_t* s, const person_t** ptr);
+extern wikidata_iter_t person_wdata(const person_t* s);
+extern congress_iter_t person_congress(const person_t* s);
 
 
 // ------    
@@ -70,5 +115,17 @@ lettercases_t lettercase_lettercases(const lettercase_t *s);
 static inline const char* lettercase_name(const lettercase_t* s) { return s->name_; }
 static inline transformer_t* lettercase_transformer(const lettercase_t* s) { return s->transformer_; }
 static inline const point_t* lettercase_point(const lettercase_t* s) { return s->point_; }
+extern wikidata_iter_t lettercase_wdata2(const lettercase_t* s);
+extern congress_iter_t lettercase_congress(const lettercase_t* s);
+
+
+// ------    
+static inline uint32_t wikidata_qid(const wikidata_t* s) { return s->qid_; }
+extern wikidata_object_t wikidata_object(const wikidata_t* s);
+
+
+// ------    
+static inline const char* congress_lccn(const congress_t* s) { return s->lccn_; }
+extern congress_object_t congress_object(const congress_t* s);
 
 #endif //  INSRCDATA_H 

@@ -6,6 +6,7 @@
 //
 
 use crate::basetype::BaseType;
+use crate::table::JoinTo;
 use crate::{aperror, basetype, language, log, table};
 use heck::{ToShoutySnakeCase, ToSnakeCase, ToUpperCamelCase};
 use std::{fs, io};
@@ -16,6 +17,7 @@ struct Rust {}
 fn strtype(typ: &basetype::BaseType) -> String {
     String::from(match typ {
         BaseType::Label { name } => return struct_name(name),
+        BaseType::Bool => "bool",
         BaseType::I8 => "i8",
         BaseType::I16 => "i16",
         BaseType::I32 => "i32",
@@ -25,15 +27,11 @@ fn strtype(typ: &basetype::BaseType) -> String {
         BaseType::U32 => "u32",
         BaseType::U64 => "u64",
         BaseType::Str => "&'static str",
-        BaseType::Join {
-            strname: _,
-            mincard: _,
-            maxcard: _,
-        } => "TODO",
-        BaseType::Object { objtype } => objtype,
-        BaseType::Bool => "bool",
         BaseType::F32 => "f32",
         BaseType::F64 => "f64",
+        BaseType::Object { objtype } => objtype,
+        BaseType::Join { .. } => "TODO",
+        BaseType::Variant => "TODO",
     })
 }
 fn argtype(typ: &basetype::BaseType) -> String {
@@ -111,18 +109,38 @@ fn cast_to_interface_type(info: &table::ColumnInfo) -> String {
     }
 }
 
-fn getter_col(col: &dyn table::Column, output: &mut dyn io::Write) -> io::Result<()> {
+fn getter_col(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
     let info = col.info();
     let field = field_name(&info.name);
-    match &info.interface_type.type_impl() {
-        basetype::TypeImpl::Label => {
+    match &info.type_impl() {
+        table::TypeImpl::Label => {
             let outtype = strtype(&info.interface_type);
             writeln!(
                 output,
                 "    pub fn {field}(&self) -> &{outtype} {{ &self.{field}_}}",
             )?;
         }
-        basetype::TypeImpl::Join01 => {
+        table::TypeImpl::Scalar => {
+            let outtype = strtype(&info.interface_type);
+            let cast = cast_to_interface_type(info);
+            writeln!(
+                output,
+                "    pub fn {field}(&self) -> {outtype} {{ self.{field}_{cast} }}",
+            )?;
+        }
+        table::TypeImpl::Join => {
+            let outtype = struct_name(&info.join_table());
+            let jointable = table_name(&outtype);
+            writeln!(
+                output,
+                "    pub fn {field}(&self) -> &'static {outtype} {{ &{jointable}[self.{field}_ as usize]}}"
+            )?;
+        }
+        table::TypeImpl::JoinOptional => {
             let outtype = struct_name(&info.join_table());
             let jointable = table_name(&outtype);
             writeln!(
@@ -133,22 +151,8 @@ fn getter_col(col: &dyn table::Column, output: &mut dyn io::Write) -> io::Result
     }}"
             )?;
         }
-        basetype::TypeImpl::Join11 => {
-            let outtype = struct_name(&info.join_table());
-            let jointable = table_name(&outtype);
-            writeln!(
-                output,
-                "    pub fn {field}(&self) -> &'static {outtype} {{ &{jointable}[self.{field}_ as usize]}}"
-            )?;
-        }
-
-        basetype::TypeImpl::Scalar => {
-            let outtype = strtype(&info.interface_type);
-            let cast = cast_to_interface_type(info);
-            writeln!(
-                output,
-                "    pub fn {field}(&self) -> {outtype} {{ self.{field}_{cast} }}",
-            )?;
+        table::TypeImpl::Variant => {
+            getter_variant(table, col, output)?;
         }
     }
     Ok(())
@@ -208,23 +212,25 @@ fn iter_col(
 // ================================================================================================
 fn reverse_join(
     table: &table::Table,
-    srccol: &dyn table::Column,
+    rj: &JoinTo,
+    /*   srccol: &dyn table::Column,
     srcname: &str,
+    offset: usize,*/
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     if !table.has_data() {
-        log::warning(&format!("{} will crash if used", srccol.reverse_name()));
+        log::warning(&format!("{} will crash if used", &rj.reverse_name));
     }
 
-    let info = srccol.info();
+    let info = rj.col.info();
     let field = field_name(&info.name);
-    let reverse = srccol.reverse_name();
-    let srcmod = mod_name(srcname);
-    let srcstruct = struct_name(srcname);
+    let reverse = &rj.reverse_name;
+    let srcmod = mod_name(&rj.table.name);
+    let srcstruct = struct_name(&rj.table.name);
     let joinmod = mod_name(&table.name);
     let tabletype = strtype(&info.table_type);
-    let offset = if info.mincard0() { " + 1" } else { "" };
-    let indexname = index_name(srcname, &info.name);
+    let offset = stroffset(rj.offset as isize);
+    let indexname = index_name(&rj.table.name, &info.name);
 
     writeln!(
         output,
@@ -336,6 +342,84 @@ fn write_index(
 }
 
 // ================================================================================================
+// variants
+// ================================================================================================
+fn write_variant(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let Some(variants) = col.variants() else { return Ok(());};
+
+    let strname = struct_name(&table.name);
+    let varname = struct_name(&col.info().name);
+
+    writeln!(
+        output,
+        "#[derive(Clone, Copy, PartialEq, Eq, Hash)]\npub enum  {strname}{varname} {{"
+    )?;
+    for vrn in variants {
+        let joinstruct = struct_name(&vrn.name);
+        if vrn.is_none {
+            writeln!(output, "     {joinstruct},")?;
+        } else {
+            writeln!(output, "     {joinstruct}(&'static {joinstruct}),")?;
+        }
+    }
+
+    writeln!(output, "}}\n")
+}
+fn stroffset(v: isize) -> String {
+    match { v } {
+        0 => "".to_string(),
+        v if v < 0 => format!(" - {}", -v),
+        _ => format!(" + {}", v),
+    }
+}
+
+fn getter_variant(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let variants = col.variants().expect("variant must have variant");
+
+    let field = field_name(&col.info().name);
+    let strname = struct_name(&table.name);
+    let varname = struct_name(&col.info().name);
+    writeln!(
+        output,
+        "    pub fn {field}(&self) -> {strname}{varname} {{ 
+        let v = self.{field}_ ;
+        match v {{"
+    )?;
+
+    for vrn in variants {
+        if vrn.count == 0 {
+            continue;
+        }
+        let start = vrn.index;
+        let end = start + vrn.count - 1;
+        let jointable = table_name(&vrn.name);
+        let joinstruct = struct_name(&vrn.name);
+        if vrn.is_none {
+            writeln!(
+                output,
+                "             {start}..={end} => {strname}{varname}::{joinstruct},"
+            )?;
+        } else {
+            let offset = stroffset(-(start as isize));
+            writeln!(output, "             {start}..={end} => {strname}{varname}::{joinstruct}(&{jointable}[v as usize {offset}]),")?;
+        }
+    }
+
+    writeln!(
+        output,
+        "             _ => panic!(\"variant index overflow\"),\n        }}\n    }}"
+    )
+}
+
+// ================================================================================================
 // Table
 // ================================================================================================
 // define ctor fuction  : const fn r(hello:u8, ) -> Table1 { return Table1{hello_:hello, }; }
@@ -406,15 +490,15 @@ impl std::hash::Hash for {strname} {{
 
     // data column
     for col in &datacols {
-        getter_col(*col, output)?;
+        getter_col(table, *col, output)?;
         if col.info().has_iter_range() {
             iter_col(table, *col, output)?;
         }
     }
 
     let joins_to = project.join_to_columns(table);
-    for (join, col) in joins_to {
-        reverse_join(table, col, &join.name, output)?;
+    for rj in joins_to {
+        reverse_join(table, &rj, output)?;
     }
 
     if table.get_array {
@@ -464,9 +548,9 @@ pub fn index_of(fic:&{strname}) -> usize {{
     writeln!(output, "];")?;
 
     // indexes
-    for col in datacols {
+    for col in &datacols {
         if col.info().iterable {
-            write_index(table, col, output)?;
+            write_index(table, *col, output)?;
         }
     }
     writeln!(output, "\n}} // mod {}\n", modname)?;
@@ -474,6 +558,11 @@ pub fn index_of(fic:&{strname}) -> usize {{
     //export
     if project.table_need_iter(table) {
         writeln!(output, "pub use {modname}::IndexIter as {strname}Iter;",)?;
+    }
+
+    //
+    for col in datacols {
+        write_variant(table, col, output)?;
     }
 
     Ok(())
@@ -514,7 +603,7 @@ impl language::Language for Rust {
         // TODO : remove allow(dead_code)
 
         if project.has_deref_labels() {
-            writeln!(output, "use std::ops::Deref;")?;
+            writeln!(output, "use std::ops::Deref;")?; //TODO remove
         }
 
         for table in &project.tables {

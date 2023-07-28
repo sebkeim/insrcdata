@@ -9,8 +9,8 @@
 use crate::language::Language;
 use crate::table::Project;
 use crate::{
-    aperror, basetype, colbool, colfloat, colint, coljoin, collabel, colobject, colstr, language,
-    lint, log, table,
+    aperror, basetype, colbool, colfloat, colint, coljoin, collabel, colobject, colstr, colvariant,
+    language, lint, log, table,
 };
 use csv::StringRecord;
 use std::collections::{HashMap, HashSet};
@@ -18,6 +18,7 @@ use std::fs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
+use crate::colvariant::ColVariant;
 use std::string::ToString;
 use std::time::SystemTime;
 
@@ -242,6 +243,90 @@ impl Join {
 }
 
 // ================================================================================================
+//  [[table.variont.either]]
+// ================================================================================================
+#[derive(Deserialize)]
+struct Either {
+    /// name of column header for join target
+    to: String,
+    /// name of of table for join target
+    external: Option<String>,
+    /// generate accessor for reverse join
+    reverse: Option<String>,
+}
+
+impl Either {
+    fn to_dest<'a>(&self, values: &'a [String], dest_table: String) -> colvariant::Dest<'a> {
+        colvariant::Dest::new(
+            values,
+            dest_table,
+            self.reverse.as_deref().unwrap_or_default().to_string(),
+        )
+    }
+}
+
+// ================================================================================================
+// [[table.variant]]
+// ================================================================================================
+
+/// variant join column definition
+#[derive(Deserialize)]
+struct Variant {
+    /// name of the field in structure
+    name: String,
+
+    /// name of column header in source .csv for join source
+    src: Option<String>,
+
+    /// dest
+    either: Vec<Either>,
+
+    /// allow getter to return an Option
+    optional: Option<bool>,
+}
+
+impl Variant {
+    /// generate column object from configuration
+    fn create(
+        &self,
+        table: &Table,
+        tablecols: &HashMap<String, Vec<String>>,
+    ) -> aperror::Result<Box<dyn table::Column>> {
+        log::log(&format!("create variant {}", self.name));
+
+        // retrieve src values
+        let src = self.src_name();
+        let key = table.key(src);
+        let Some(values) = tablecols.get(&key) else {
+           return Err(aperror::Error::new(&format!("column not found {}", key)));
+        };
+
+        // variants
+        let mut dests = Vec::<colvariant::Dest>::new();
+        for n in &self.either {
+            let dest_table = n.external.as_ref().unwrap_or(&table.name);
+            let dest_col = colkey(dest_table, &n.to);
+            let Some(dest_keys) = tablecols.get(&dest_col) else {
+                return Err(aperror::Error::new(&format!("variant column  {} not found for table {}", n.to, dest_table)));
+            };
+
+            dests.push(n.to_dest(dest_keys, dest_table.to_string()));
+        }
+
+        ColVariant::parse(
+            &self.name,
+            values,
+            self.optional.unwrap_or_default(),
+            &mut dests,
+        )
+    }
+
+    fn src_name(&self) -> &String {
+        self.src.as_ref().unwrap_or(&self.name)
+    }
+}
+
+// ================================================================================================
 // [[table]]
 // ================================================================================================
 struct TableContext<'a> {
@@ -257,8 +342,9 @@ struct Table {
     sorted: Option<bool>,
     col: Option<Vec<Col>>,
     join: Option<Vec<Join>>,
+    variant: Option<Vec<Variant>>,
 }
-static EMPTY_COLS: Vec<Col> = vec![];
+
 static UNIC_SEPARATOR: &str = "\n";
 
 impl Table {
@@ -280,14 +366,15 @@ impl Table {
     //
     fn unic_indexes(&self, headers: &csv::StringRecord) -> Vec<usize> {
         let mut indexes: Vec<usize> = vec![];
-        let cols = self.col.as_ref().unwrap_or(&EMPTY_COLS);
-        for col in cols {
-            if col.single.unwrap_or_default() {
-                let src_name = col.src_name();
-                match headers.iter().position(|r| r == src_name) {
-                    None => {}
-                    Some(value) => {
-                        indexes.push(value);
+        if let Some(cols) = &self.col {
+            for col in cols {
+                if col.single.unwrap_or_default() {
+                    let src_name = col.src_name();
+                    match headers.iter().position(|r| r == src_name) {
+                        None => {}
+                        Some(value) => {
+                            indexes.push(value);
+                        }
                     }
                 }
             }
@@ -382,25 +469,33 @@ impl Table {
         let runtime = ctx.config_context.runtime;
 
         let col_context = ColContext { table_context: ctx };
-        let cols = self.col.as_ref().unwrap_or(&EMPTY_COLS);
-        for col in cols {
-            let res = col.create(self, tablecols, &col_context);
-            match res {
-                Ok(c) => columns.push(c),
-                Err(_) => runtime.linter.check_result(&self.name, res),
+        if let Some(cols) = &self.col {
+            for col in cols {
+                let res = col.create(self, tablecols, &col_context);
+                match res {
+                    Ok(c) => columns.push(c),
+                    Err(_) => runtime.linter.check_result(&self.name, res),
+                }
             }
         }
 
-        let emptyjoins: Vec<Join> = vec![];
-        let joins = match &self.join {
-            Some(v) => v,
-            None => &emptyjoins,
-        };
-        for join in joins {
-            let res = join.create(self, tablecols);
-            match res {
-                Ok(c) => columns.push(c),
-                Err(_) => runtime.linter.check_result(&self.name, res),
+        if let Some(joins) = &self.join {
+            for join in joins {
+                let res = join.create(self, tablecols);
+                match res {
+                    Ok(c) => columns.push(c),
+                    Err(_) => runtime.linter.check_result(&self.name, res),
+                }
+            }
+        }
+
+        if let Some(variants) = &self.variant {
+            for variant in variants {
+                let res = variant.create(self, tablecols);
+                match res {
+                    Ok(c) => columns.push(c),
+                    Err(_) => runtime.linter.check_result(&self.name, res),
+                }
             }
         }
 

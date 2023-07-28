@@ -82,6 +82,70 @@ impl Person {
         let index = self.mother_;
         if index==0 { None } else { Some(&person::TABLE[index as usize -1]) }
     }
+
+    pub fn wdata(&self) -> WikidataIter {
+        let cons = person::index_of(self) as u8;
+
+        // bissect left
+        let mut lo = 0;
+        let mut hi = wikidata::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons > wikidata::TABLE[wikidata::OBJECT_INDEX[mid] as usize].object_ {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        let start = lo;
+
+        // bissect-right
+        hi = wikidata::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons < wikidata::TABLE[wikidata::OBJECT_INDEX[mid] as usize].object_  {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+
+        wikidata::IndexIter {
+            indexes: Box::new(wikidata::OBJECT_INDEX[start..lo].iter()),
+        }
+    }
+
+    pub fn congress(&self) -> CongressIter {
+        let cons = person::index_of(self) as u8 + 1;
+
+        // bissect left
+        let mut lo = 0;
+        let mut hi = congress::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons > congress::TABLE[congress::OBJECT_INDEX[mid] as usize].object_ {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        let start = lo;
+
+        // bissect-right
+        hi = congress::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons < congress::TABLE[congress::OBJECT_INDEX[mid] as usize].object_  {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+
+        congress::IndexIter {
+            indexes: Box::new(congress::OBJECT_INDEX[start..lo].iter()),
+        }
+    }
 }
 
 mod person {use super::*;
@@ -251,6 +315,70 @@ impl Lettercase {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn transformer(&self) -> fn(&str)->String { self.transformer_ }
     pub fn point(&self) -> &'static crate::colobject::Point { self.point_ }
+
+    pub fn wdata2(&self) -> WikidataIter {
+        let cons = lettercase::index_of(self) as u8 + 4;
+
+        // bissect left
+        let mut lo = 0;
+        let mut hi = wikidata::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons > wikidata::TABLE[wikidata::OBJECT_INDEX[mid] as usize].object_ {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        let start = lo;
+
+        // bissect-right
+        hi = wikidata::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons < wikidata::TABLE[wikidata::OBJECT_INDEX[mid] as usize].object_  {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+
+        wikidata::IndexIter {
+            indexes: Box::new(wikidata::OBJECT_INDEX[start..lo].iter()),
+        }
+    }
+
+    pub fn congress(&self) -> CongressIter {
+        let cons = lettercase::index_of(self) as u8 + 5;
+
+        // bissect left
+        let mut lo = 0;
+        let mut hi = congress::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons > congress::TABLE[congress::OBJECT_INDEX[mid] as usize].object_ {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        let start = lo;
+
+        // bissect-right
+        hi = congress::OBJECT_INDEX.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if cons < congress::TABLE[congress::OBJECT_INDEX[mid] as usize].object_  {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+
+        congress::IndexIter {
+            indexes: Box::new(congress::OBJECT_INDEX[start..lo].iter()),
+        }
+    }
 }
 
 mod lettercase {use super::*;
@@ -259,6 +387,23 @@ use crate::colobject as co;
 pub fn index_of(fic:&Lettercase) -> usize {
     ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Lettercase>()
 }
+pub struct IndexIter {
+    pub indexes : Box<dyn Iterator<Item=&'static u8>>,
+}
+
+impl Iterator for IndexIter {
+    type Item = & 'static Lettercase;
+
+    fn next(&mut self) -> Option<&'static Lettercase> {
+        let idx = self.indexes.next();
+        match idx {
+            Some(v) => Some(&TABLE[*v as usize]),
+            None => None,
+        }
+    }
+}
+
+
 const fn r(name:&'static str, transformer:fn(&str)->String, point:&'static crate::colobject::Point, ) -> Lettercase {
     Lettercase{name_:name, transformer_:transformer, point_:point, }
 }
@@ -270,4 +415,156 @@ pub static TABLE : [ Lettercase ; 3 ] = [
 ];
 
 } // mod lettercase
+
+pub use lettercase::IndexIter as LettercaseIter;
+pub struct Wikidata {
+    qid_ : u32,
+    object_ : u8,
+}
+impl PartialEq<Self> for Wikidata {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
+impl Eq for Wikidata {}
+impl std::hash::Hash for Wikidata {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        wikidata::index_of(self).hash(state);
+    }
+}
+
+impl Wikidata {
+    pub fn qid(&self) -> u32 { self.qid_ }
+    pub fn object(&self) -> WikidataObject { 
+        let v = self.object_ ;
+        match v {
+             0..=3 => WikidataObject::Person(&person::TABLE[v as usize ]),
+             4..=6 => WikidataObject::Lettercase(&lettercase::TABLE[v as usize  - 4]),
+             _ => panic!("variant index overflow"),
+        }
+    }
+    pub fn array() -> &'static [Wikidata; 3] { &wikidata::TABLE }
+    pub fn as_index(&self) -> usize { wikidata::index_of(self) }
+}
+
+mod wikidata {use super::*;
+
+pub fn index_of(fic:&Wikidata) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Wikidata>()
+}
+pub struct IndexIter {
+    pub indexes : Box<dyn Iterator<Item=&'static u8>>,
+}
+
+impl Iterator for IndexIter {
+    type Item = & 'static Wikidata;
+
+    fn next(&mut self) -> Option<&'static Wikidata> {
+        let idx = self.indexes.next();
+        match idx {
+            Some(v) => Some(&TABLE[*v as usize]),
+            None => None,
+        }
+    }
+}
+
+
+const fn r(qid:u32, object:u8, ) -> Wikidata {
+    Wikidata{qid_:qid, object_:object, }
+}
+
+pub static TABLE : [ Wikidata ; 3 ] = [
+   {r(7186, 0, )},
+   {r(8185162, 6, )},
+   {r(150989, 3, )},
+];
+pub static OBJECT_INDEX : [ u8 ; 3 ] = [
+    0, 2, 1, 
+];
+
+} // mod wikidata
+
+pub use wikidata::IndexIter as WikidataIter;
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub enum  WikidataObject {
+     Person(&'static Person),
+     Lettercase(&'static Lettercase),
+}
+
+pub struct Congress {
+    lccn_ : &'static str,
+    object_ : u8,
+}
+impl PartialEq<Self> for Congress {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
+impl Eq for Congress {}
+impl std::hash::Hash for Congress {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        congress::index_of(self).hash(state);
+    }
+}
+
+impl Congress {
+    pub fn lccn(&self) -> &'static str { self.lccn_ }
+    pub fn object(&self) -> CongressObject { 
+        let v = self.object_ ;
+        match v {
+             0..=0 => CongressObject::None,
+             1..=4 => CongressObject::Person(&person::TABLE[v as usize  - 1]),
+             5..=7 => CongressObject::Lettercase(&lettercase::TABLE[v as usize  - 5]),
+             _ => panic!("variant index overflow"),
+        }
+    }
+    pub fn array() -> &'static [Congress; 4] { &congress::TABLE }
+    pub fn as_index(&self) -> usize { congress::index_of(self) }
+}
+
+mod congress {use super::*;
+
+pub fn index_of(fic:&Congress) -> usize {
+    ((fic  as *const _ as usize) - (&TABLE[0]  as *const _ as usize)) / std::mem::size_of::<Congress>()
+}
+pub struct IndexIter {
+    pub indexes : Box<dyn Iterator<Item=&'static u8>>,
+}
+
+impl Iterator for IndexIter {
+    type Item = & 'static Congress;
+
+    fn next(&mut self) -> Option<&'static Congress> {
+        let idx = self.indexes.next();
+        match idx {
+            Some(v) => Some(&TABLE[*v as usize]),
+            None => None,
+        }
+    }
+}
+
+
+const fn r(lccn:&'static str, object:u8, ) -> Congress {
+    Congress{lccn_:lccn, object_:object, }
+}
+
+pub static TABLE : [ Congress ; 4 ] = [
+   {r("n2009011553", 1, )},
+   {r("sh85148650", 7, )},
+   {r("n80159913", 4, )},
+   {r("n79006404", 0, )},
+];
+pub static OBJECT_INDEX : [ u8 ; 3 ] = [
+    0, 2, 1, 
+];
+
+} // mod congress
+
+pub use congress::IndexIter as CongressIter;
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub enum  CongressObject {
+     None,
+     Person(&'static Person),
+     Lettercase(&'static Lettercase),
+}
 

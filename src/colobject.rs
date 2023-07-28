@@ -65,6 +65,7 @@ impl ColObject {
                     objtype: objtype.to_string(),
                 },
                 iterable: false,
+                optional: false,
             },
             values,
             template: template.to_string(),

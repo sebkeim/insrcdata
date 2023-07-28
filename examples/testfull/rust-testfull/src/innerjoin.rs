@@ -1,4 +1,4 @@
-use crate::insrcdata as db;
+use crate::{insrcdata as db, insrcdata};
 
 // Inner join is when your join column reference a record in the same table
 pub fn test_innerjoin() {
@@ -85,4 +85,36 @@ pub fn test_float() {
     // over
     assert!(db::Person::score_range(10.0, 9000.0).count() == 0);
     assert!(db::Person::score_range(3.2, 9000.0).count() == 1);
+}
+
+// variant column
+pub fn test_variant_non_optional() {
+    let q_marie = &insrcdata::Wikidata::array()[0];
+    assert!(insrcdata::WikidataObject::Person(&insrcdata::Persons::Marie) == q_marie.object());
+
+    let q_lower = &insrcdata::Wikidata::array()[1];
+    assert!(
+        insrcdata::WikidataObject::Lettercase(&insrcdata::Lettercases::Lower) == q_lower.object()
+    );
+
+    assert!(insrcdata::Lettercases::Lower.wdata2().next().unwrap() == q_lower);
+
+    assert!(insrcdata::Persons::Pierre.wdata().next().is_none());
+}
+
+pub fn test_variant_optional() {
+    let q_marie = &insrcdata::Congress::array()[0];
+    assert!(insrcdata::CongressObject::Person(&insrcdata::Persons::Marie) == q_marie.object());
+
+    let q_lower = &insrcdata::Congress::array()[1];
+    assert!(
+        insrcdata::CongressObject::Lettercase(&insrcdata::Lettercases::Lower) == q_lower.object()
+    );
+
+    assert!(insrcdata::Lettercases::Lower.congress().next().unwrap() == q_lower);
+
+    assert!(insrcdata::Persons::Pierre.congress().next().is_none());
+
+    let q_france = &insrcdata::Congress::array()[3];
+    assert!(insrcdata::CongressObject::None == q_france.object());
 }

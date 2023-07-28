@@ -71,6 +71,7 @@ impl ColInt {
                 interface_type,
                 table_type: basetype::int_type_for_range(min..=max),
                 iterable,
+                optional: false,
             },
             values,
             min, // minimal value

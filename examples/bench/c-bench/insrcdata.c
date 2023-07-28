@@ -507,7 +507,6 @@ const bench_t BENCH_TABLE[BENCH_TABLE_COUNT] = {
 };
 
 const bench_t* bench_next(bench_iter_t* idx) { return idx->ptr<idx->end ? &BENCH_TABLE[*idx->ptr++] : NULL; }
-    
 
 static unsigned const BENCH_BYTE_INDEX_COUNT  =  500;
 static uint16_t BENCH_BYTE_INDEX   [BENCH_BYTE_INDEX_COUNT] = {
