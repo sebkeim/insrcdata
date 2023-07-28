@@ -124,8 +124,10 @@ impl ColVariant {
 
 // compute offsets
 fn col_offsets(dests: &Vec<Dest>, optional: bool) -> (Vec<Variant>, usize) {
-    // cmpute offsets
     let mut tables = Vec::<Variant>::new();
+    let mut index = 0;
+
+    // None variant for optional values
     if optional {
         tables.push(Variant {
             name: "NONE".to_string(),
@@ -134,9 +136,9 @@ fn col_offsets(dests: &Vec<Dest>, optional: bool) -> (Vec<Variant>, usize) {
             reverse: "".to_string(),
             is_none: true,
         });
+        index = 1;
     }
 
-    let mut index = optional as usize;
     for dest in dests {
         tables.push(Variant {
             name: dest.table.to_string(),

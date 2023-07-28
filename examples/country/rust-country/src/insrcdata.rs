@@ -2,7 +2,6 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-use std::ops::Deref;
 pub struct Region {
     name_ : &'static str,
     code_ : u8,
@@ -205,7 +204,7 @@ pub enum Countries {
     Antarctica = 8,
     Belgium = 21,
 }
-impl Deref for Countries {
+impl std::ops::Deref for Countries {
     type Target =  Country;
     fn deref(&self) -> &'static Country {
         &country::TABLE[*self as usize]

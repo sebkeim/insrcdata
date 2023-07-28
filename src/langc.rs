@@ -359,14 +359,10 @@ fn header_reverse_join(
         "extern {strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s);"
     )
 }
-//rj.col, &rj.table.name, rj.offset,
 
 fn impl_reverse_join(
     table: &table::Table,
     rj: &JoinTo,
-    /* srccol: &dyn table::Column,
-    srcname: &str,
-    offset: usize,*/
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     if !table.has_data() {

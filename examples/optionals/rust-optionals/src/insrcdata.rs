@@ -2,13 +2,12 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-use std::ops::Deref;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Adhocs {
     Filled = 0,
     Empty = 1,
 }
-impl Deref for Adhocs {
+impl std::ops::Deref for Adhocs {
     type Target =  Adhoc;
     fn deref(&self) -> &'static Adhoc {
         &adhoc::TABLE[*self as usize]
@@ -130,7 +129,7 @@ pub enum Optjoins {
     Filled = 0,
     Empty = 1,
 }
-impl Deref for Optjoins {
+impl std::ops::Deref for Optjoins {
     type Target =  Optjoin;
     fn deref(&self) -> &'static Optjoin {
         &optjoin::TABLE[*self as usize]

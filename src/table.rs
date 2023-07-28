@@ -292,15 +292,6 @@ impl Project {
         self.lang.emit(self)
     }
 
-    pub fn has_deref_labels(&self) -> bool {
-        for table in &self.tables {
-            if !table.labcol_indexes.is_empty() && table.has_data() {
-                return true;
-            }
-        }
-        false
-    }
-
     pub fn name(&self) -> String {
         match self.dst_path.file_stem() {
             Some(name) => name.to_os_string().into_string().unwrap(),
@@ -323,28 +314,26 @@ impl Project {
         let mut columns = Vec::<JoinTo>::new();
 
         for join in &self.tables {
-            if join.name != table.name {
-                for col in &join.columns {
-                    let info = col.info();
-
-                    match &info.interface_type {
-                        basetype::BaseType::Join { strname, .. } => {
-                            if strname == &table.name && info.iterable {
-                                columns.push(JoinTo::from_join(join, col.as_ref()));
-                                //  JoinTo::from_variant(join, col.as_ref(), info.mincard0() as usize));
+            if join.name == table.name {
+                continue;
+            }
+            for col in &join.columns {
+                let info = col.info();
+                match &info.interface_type {
+                    basetype::BaseType::Join { strname, .. } => {
+                        if strname == &table.name && info.iterable {
+                            columns.push(JoinTo::from_join(join, col.as_ref()));
+                        }
+                    }
+                    basetype::BaseType::Variant => {
+                        for vrt in col.variants().expect("variant expected") {
+                            if vrt.name == table.name && !vrt.reverse.is_empty() {
+                                columns.push(JoinTo::from_variant(join, col.as_ref(), vrt));
                             }
                         }
-                        basetype::BaseType::Variant => {
-                            for vrt in col.variants().expect("variant expected") {
-                                if vrt.name == table.name && !vrt.reverse.is_empty() {
-                                    columns.push(JoinTo::from_variant(join, col.as_ref(), vrt));
-                                    // columns.push((join, col.as_ref(), vrt.index));
-                                }
-                            }
-                        }
-                        _ => {}
-                    };
-                }
+                    }
+                    _ => {}
+                };
             }
         }
         columns

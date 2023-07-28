@@ -2,14 +2,13 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-use std::ops::Deref;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Clients {
     John = 0,
     Alix = 1,
     David = 2,
 }
-impl Deref for Clients {
+impl std::ops::Deref for Clients {
     type Target =  Client;
     fn deref(&self) -> &'static Client {
         &client::TABLE[*self as usize]
@@ -114,7 +113,7 @@ pub enum Products {
     Peach = 2,
     Cherry = 3,
 }
-impl Deref for Products {
+impl std::ops::Deref for Products {
     type Target =  Product;
     fn deref(&self) -> &'static Product {
         &product::TABLE[*self as usize]

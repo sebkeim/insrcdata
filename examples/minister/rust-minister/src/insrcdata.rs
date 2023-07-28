@@ -2,14 +2,13 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-use std::ops::Deref;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Ministers {
     DavidCameron = 0,
     GordonBrown = 1,
     RomanoProdi = 2,
 }
-impl Deref for Ministers {
+impl std::ops::Deref for Ministers {
     type Target =  Minister;
     fn deref(&self) -> &'static Minister {
         &minister::TABLE[*self as usize]
@@ -117,7 +116,7 @@ pub enum Countries {
     Gb = 0,
     It = 1,
 }
-impl Deref for Countries {
+impl std::ops::Deref for Countries {
     type Target =  Country;
     fn deref(&self) -> &'static Country {
         &country::TABLE[*self as usize]

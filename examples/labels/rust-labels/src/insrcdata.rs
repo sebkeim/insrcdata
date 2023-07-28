@@ -2,7 +2,6 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-use std::ops::Deref;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Labels {
     Foo = 0,
@@ -16,7 +15,7 @@ pub enum Labels {
     ShoutyKebabCase = 8,
     TrainCase = 9,
 }
-impl Deref for Labels {
+impl std::ops::Deref for Labels {
     type Target =  Label;
     fn deref(&self) -> &'static Label {
         &label::TABLE[*self as usize]

@@ -43,6 +43,7 @@ fn argtype(typ: &basetype::BaseType) -> String {
 fn modtype(typ: &basetype::BaseType) -> String {
     strtype(typ)
 }
+
 // ================================================================================================
 // format name to rust conventions
 // ================================================================================================
@@ -210,14 +211,7 @@ fn iter_col(
 // ================================================================================================
 // Reverse join
 // ================================================================================================
-fn reverse_join(
-    table: &table::Table,
-    rj: &JoinTo,
-    /*   srccol: &dyn table::Column,
-    srcname: &str,
-    offset: usize,*/
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
+fn reverse_join(table: &table::Table, rj: &JoinTo, output: &mut dyn io::Write) -> io::Result<()> {
     if !table.has_data() {
         log::warning(&format!("{} will crash if used", &rj.reverse_name));
     }
@@ -296,7 +290,7 @@ fn col_labels(
     if table.has_data() {
         writeln!(
             output,
-            "impl Deref for {enumname} {{
+            "impl std::ops::Deref for {enumname} {{
     type Target =  {strname};
     fn deref(&self) -> &'static {strname} {{
         &{modname}::TABLE[*self as usize]
@@ -369,6 +363,7 @@ fn write_variant(
 
     writeln!(output, "}}\n")
 }
+
 fn stroffset(v: isize) -> String {
     match { v } {
         0 => "".to_string(),
@@ -601,10 +596,6 @@ impl language::Language for Rust {
 #![allow(unused_variables)]"
         )?;
         // TODO : remove allow(dead_code)
-
-        if project.has_deref_labels() {
-            writeln!(output, "use std::ops::Deref;")?; //TODO remove
-        }
 
         for table in &project.tables {
             emit_table(project, table, output)?;
