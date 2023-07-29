@@ -56,47 +56,14 @@ fn const_name(table_name: &str) -> String {
 fn mod_name(table_name: &str) -> String {
     table_name.to_snake_case()
 }
-fn field_name(table_name: &str) -> String {
-    table_name.to_snake_case()
+fn field_name(col_name: &str) -> String {
+    col_name.to_snake_case()
 }
 fn table_name(strname: &str) -> String {
     format!("{}::TABLE", mod_name(strname))
 }
 fn index_name(strname: &str, field: &str) -> String {
     format!("{}::{}_INDEX", mod_name(strname), const_name(field))
-}
-
-// ================================================================================================
-// Struct definition
-// ================================================================================================
-
-fn write_iter_index_struct(
-    table: &table::Table,
-    strname: &String,
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
-    let indextype = strtype(&table.index_type());
-
-    writeln!(
-        output,
-        "pub struct IndexIter {{
-    pub indexes : Box<dyn Iterator<Item=&'static {indextype}>>,
-}}
-
-impl Iterator for IndexIter {{
-    type Item = & 'static {strname};
-
-    fn next(&mut self) -> Option<&'static {strname}> {{
-        let idx = self.indexes.next();
-        match idx {{
-            Some(v) => Some(&TABLE[*v as usize]),
-            None => None,
-        }}
-    }}
-}}
-
-"
-    )
 }
 
 // ================================================================================================
@@ -157,6 +124,38 @@ fn getter_col(
         }
     }
     Ok(())
+}
+
+// ================================================================================================
+// Iterator definition
+// ================================================================================================
+fn write_iter_index_struct(
+    table: &table::Table,
+    strname: &String,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let indextype = strtype(&table.index_type());
+
+    writeln!(
+        output,
+        "pub struct IndexIter {{
+    pub indexes : Box<dyn Iterator<Item=&'static {indextype}>>,
+}}
+
+impl Iterator for IndexIter {{
+    type Item = & 'static {strname};
+
+    fn next(&mut self) -> Option<&'static {strname}> {{
+        let idx = self.indexes.next();
+        match idx {{
+            Some(v) => Some(&TABLE[*v as usize]),
+            None => None,
+        }}
+    }}
+}}
+
+"
+    )
 }
 
 // ================================================================================================
@@ -262,6 +261,7 @@ fn reverse_join(table: &table::Table, rj: &JoinTo, output: &mut dyn io::Write) -
     }}"
     )
 }
+
 // ================================================================================================
 // Labels
 // ================================================================================================
@@ -336,21 +336,24 @@ fn write_index(
 }
 
 // ================================================================================================
-// variants
+// Variants
 // ================================================================================================
+fn variant_type_name(table: &table::Table, col: &dyn table::Column) -> String {
+    let strname = struct_name(&table.name);
+    let varname = struct_name(&col.info().name);
+    format!("{strname}{varname}")
+}
 fn write_variant(
     table: &table::Table,
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let Some(variants) = col.variants() else { return Ok(());};
-
-    let strname = struct_name(&table.name);
-    let varname = struct_name(&col.info().name);
+    let vartypname = variant_type_name(table, col);
 
     writeln!(
         output,
-        "#[derive(Clone, Copy, PartialEq, Eq, Hash)]\npub enum  {strname}{varname} {{"
+        "#[derive(Clone, Copy, PartialEq, Eq, Hash)]\npub enum  {vartypname} {{"
     )?;
     for vrn in variants {
         let joinstruct = struct_name(&vrn.name);
@@ -378,13 +381,12 @@ fn getter_variant(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let variants = col.variants().expect("variant must have variant");
-
+    let vartypname = variant_type_name(table, col);
     let field = field_name(&col.info().name);
-    let strname = struct_name(&table.name);
-    let varname = struct_name(&col.info().name);
+
     writeln!(
         output,
-        "    pub fn {field}(&self) -> {strname}{varname} {{ 
+        "    pub fn {field}(&self) -> {vartypname} {{ 
         let v = self.{field}_ ;
         match v {{"
     )?;
@@ -400,17 +402,17 @@ fn getter_variant(
         if vrn.is_none {
             writeln!(
                 output,
-                "             {start}..={end} => {strname}{varname}::{joinstruct},"
+                "             {start}..={end} => {vartypname}::{joinstruct},"
             )?;
         } else {
             let offset = stroffset(-(start as isize));
-            writeln!(output, "             {start}..={end} => {strname}{varname}::{joinstruct}(&{jointable}[v as usize {offset}]),")?;
+            writeln!(output, "             {start}..={end} => {vartypname}::{joinstruct}(&{jointable}[v as usize {offset}]),")?;
         }
     }
 
     writeln!(
         output,
-        "             _ => panic!(\"variant index overflow\"),\n        }}\n    }}"
+        "             _ => panic!(\"insrcdata variant index overflow\"),\n        }}\n    }}"
     )
 }
 

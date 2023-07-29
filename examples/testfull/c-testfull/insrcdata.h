@@ -46,14 +46,16 @@ extern const wikidata_t* wikidata_next(wikidata_iter_t* idx);
 typedef enum {
      WIKIDATA_PERSON,
      WIKIDATA_LETTERCASE,
-} wikidata_variant_t;
+} wikidata_object_type_t;
+
 typedef struct {
-    const wikidata_variant_t type;
+    const wikidata_object_type_t type;
     union {
      const person_t *person;
      const lettercase_t *lettercase;
     };
 } wikidata_object_t;
+
 typedef struct  {
     const char* lccn_;
     uint8_t object_;
@@ -67,14 +69,16 @@ typedef enum {
      CONGRESS_NONE,
      CONGRESS_PERSON,
      CONGRESS_LETTERCASE,
-} congress_variant_t;
+} congress_object_type_t;
+
 typedef struct {
-    const congress_variant_t type;
+    const congress_object_type_t type;
     union {
      const person_t *person;
      const lettercase_t *lettercase;
     };
 } congress_object_t;
+
 
 
 // ------    

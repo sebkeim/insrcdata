@@ -202,82 +202,6 @@ fn impl_getter_col(
 }
 
 // ================================================================================================
-//  variant
-// ================================================================================================
-
-fn header_variant(
-    table: &table::Table,
-    col: &dyn table::Column,
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
-    let Some(variants) = col.variants() else { return Ok(());};
-    let field = &col.info().name;
-    let strname = struct_name(&table.name);
-    // let varname = struct_name(&col.info().name);
-
-    writeln!(output, "typedef enum {{")?;
-    for vrn in variants {
-        let enuname = format!("{}_{}", enum_name(&strname), enum_name(&vrn.name));
-        writeln!(output, "     {enuname},")?;
-    }
-    writeln!(
-        output,
-        "}} {strname}_variant_t;
-typedef struct {{
-    const {strname}_variant_t type;
-    union {{"
-    )?;
-
-    for vrn in variants {
-        if !vrn.is_none {
-            let strname = struct_name(&vrn.name);
-            writeln!(output, "     const {strname}_t *{strname};")?;
-        }
-    }
-    let outyp = format!("{strname}_{field}_t");
-    writeln!(output, "    }};\n}} {outyp};")
-}
-
-fn impl_getter_variant(
-    table: &table::Table,
-    col: &dyn table::Column,
-    output: &mut dyn io::Write,
-) -> io::Result<()> {
-    let variants = col.variants().expect("variant must have variant");
-
-    let field = &col.info().name;
-    let strname = struct_name(&table.name);
-    let outyp = format!("{strname}_{field}_t");
-
-    writeln!(
-        output,
-        "{outyp} {strname}_{field}(const {strname}_t* s){{
-    int v = s->{field}_ ;"
-    )?;
-
-    for vrn in variants {
-        if vrn.count == 0 {
-            continue;
-        }
-        let start = vrn.index;
-        let end = start + vrn.count - 1;
-        let enuname = format!("{}_{}", enum_name(&strname), enum_name(&vrn.name));
-        let jointable = table_name(&vrn.name);
-        let joinstruct = struct_name(&vrn.name);
-        if vrn.is_none {
-            writeln!(
-                output,
-                "    if(v<={end}) {{return ({outyp}){{.type={enuname}}}; }}"
-            )?;
-        } else {
-            writeln!(output, "    if(v<={end}) {{return ({outyp}){{.type={enuname}, .{joinstruct}={jointable}_TABLE+v-{start}}}; }}")?;
-        }
-    }
-
-    writeln!(output, "    return ({outyp}){{0}};\n}}")
-}
-
-// ================================================================================================
 // Range iterator
 // ================================================================================================
 fn header_iter_range(
@@ -426,6 +350,7 @@ fn impl_reverse_join(
 fn enum_name(s: &str) -> String {
     s.to_shouty_snake_case()
 }
+
 // ================================================================================================
 // Labels
 // ================================================================================================
@@ -534,6 +459,91 @@ static {indextyp} {tablename}_{field}_INDEX   [{tablename}_{field}_INDEX_COUNT] 
         write!(output, "{:width$}, ", v)?;
     }
     writeln!(output, "\n}};\n")
+}
+
+// ================================================================================================
+// Variants
+// ================================================================================================
+fn variant_type_name(table: &table::Table, col: &dyn table::Column) -> String {
+    let strname = struct_name(&table.name);
+    let varname = struct_name(&col.info().name);
+    format!("{strname}_{varname}_type_t")
+}
+
+fn header_variant(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let Some(variants) = col.variants() else { return Ok(());};
+
+    writeln!(output, "typedef enum {{")?;
+    for vrn in variants {
+        let enuname = format!("{}_{}", enum_name(&table.name), enum_name(&vrn.name));
+        writeln!(output, "     {enuname},")?;
+    }
+
+    let vartypname = variant_type_name(table, col);
+    writeln!(
+        output,
+        "}} {vartypname};
+
+typedef struct {{
+    const {vartypname} type;
+    union {{"
+    )?;
+
+    for vrn in variants {
+        if !vrn.is_none {
+            let strname = struct_name(&vrn.name);
+            writeln!(output, "     const {strname}_t *{strname};")?;
+        }
+    }
+
+    let strname = struct_name(&table.name);
+    let field = &col.info().name;
+    writeln!(output, "    }};\n}} {strname}_{field}_t;\n")
+}
+
+fn impl_getter_variant(
+    table: &table::Table,
+    col: &dyn table::Column,
+    output: &mut dyn io::Write,
+) -> io::Result<()> {
+    let variants = col.variants().expect("variant must have variant");
+
+    let field = &col.info().name;
+    let strname = struct_name(&table.name);
+    let outyp = format!("{strname}_{field}_t");
+    writeln!(
+        output,
+        "{outyp} {strname}_{field}(const {strname}_t* s){{
+    int v = s->{field}_ ;"
+    )?;
+
+    for vrn in variants {
+        if vrn.count == 0 {
+            continue;
+        }
+        let start = vrn.index;
+        let end = start + vrn.count - 1;
+        let enuname = format!("{}_{}", enum_name(&table.name), enum_name(&vrn.name));
+        let jointable = table_name(&vrn.name);
+        let joinstruct = struct_name(&vrn.name);
+        if vrn.is_none {
+            writeln!(
+                output,
+                "    if(v<={end}) {{return ({outyp}){{.type={enuname}}}; }}"
+            )?;
+        } else {
+            writeln!(output, "    if(v<={end}) {{return ({outyp}){{.type={enuname}, .{joinstruct}={jointable}_TABLE+v-{start}}}; }}")?;
+        }
+    }
+
+    writeln!(
+        output,
+        "    perror(\"insrcdata variant index overflow\");\n    abort();\n}}"
+    )
 }
 
 // ================================================================================================
@@ -682,6 +692,7 @@ fn impl_table_methods(
 
     Ok(())
 }
+
 // ================================================================================================
 //  Project
 // ================================================================================================
