@@ -2,6 +2,8 @@
 
 #include "insrcdata.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static unsigned const REGION_TABLE_COUNT = 5;
 static const region_t REGION_TABLE[REGION_TABLE_COUNT] = {

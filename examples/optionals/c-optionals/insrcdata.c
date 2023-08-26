@@ -2,6 +2,8 @@
 
 #include "insrcdata.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static unsigned const ADHOC_TABLE_COUNT = 2;
 static const adhoc_t ADHOC_TABLE[ADHOC_TABLE_COUNT] = {

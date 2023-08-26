@@ -2,6 +2,8 @@
 
 #include "insrcdata.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static unsigned const PERSON_TABLE_COUNT = 4;
 static const person_t PERSON_TABLE[PERSON_TABLE_COUNT] = {
@@ -283,12 +285,14 @@ wikidata_object_t wikidata_object(const wikidata_t* s){
     int v = s->object_ ;
     if(v<=3) {return (wikidata_object_t){.type=WIKIDATA_PERSON, .person=PERSON_TABLE+v-0}; }
     if(v<=6) {return (wikidata_object_t){.type=WIKIDATA_LETTERCASE, .lettercase=LETTERCASE_TABLE+v-4}; }
-    return (wikidata_object_t){0};
+    perror("insrcdata variant index overflow");
+    abort();
 }
 congress_object_t congress_object(const congress_t* s){
     int v = s->object_ ;
     if(v<=0) {return (congress_object_t){.type=CONGRESS_NONE}; }
     if(v<=4) {return (congress_object_t){.type=CONGRESS_PERSON, .person=PERSON_TABLE+v-1}; }
     if(v<=7) {return (congress_object_t){.type=CONGRESS_LETTERCASE, .lettercase=LETTERCASE_TABLE+v-5}; }
-    return (congress_object_t){0};
+    perror("insrcdata variant index overflow");
+    abort();
 }

@@ -2,6 +2,8 @@
 
 #include "insrcdata.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static unsigned const MINISTER_TABLE_COUNT = 3;
 static const minister_t MINISTER_TABLE[MINISTER_TABLE_COUNT] = {

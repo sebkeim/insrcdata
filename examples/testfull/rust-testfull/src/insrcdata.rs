@@ -439,7 +439,7 @@ impl Wikidata {
         match v {
              0..=3 => WikidataObject::Person(&person::TABLE[v as usize ]),
              4..=6 => WikidataObject::Lettercase(&lettercase::TABLE[v as usize  - 4]),
-             _ => panic!("variant index overflow"),
+             _ => panic!("insrcdata variant index overflow"),
         }
     }
     pub fn array() -> &'static [Wikidata; 3] { &wikidata::TABLE }
@@ -514,7 +514,7 @@ impl Congress {
              0..=0 => CongressObject::None,
              1..=4 => CongressObject::Person(&person::TABLE[v as usize  - 1]),
              5..=7 => CongressObject::Lettercase(&lettercase::TABLE[v as usize  - 5]),
-             _ => panic!("variant index overflow"),
+             _ => panic!("insrcdata variant index overflow"),
         }
     }
     pub fn array() -> &'static [Congress; 4] { &congress::TABLE }

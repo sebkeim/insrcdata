@@ -2,6 +2,8 @@
 
 #include "insrcdata.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 const leave_t LEAVE_TABLE[LEAVE_TABLE_COUNT] = {
    {"Terrier", "A1", 2, },

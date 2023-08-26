@@ -2,6 +2,8 @@
 
 #include "insrcdata.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 const label_t LABEL_TABLE[LABEL_TABLE_COUNT] = {
    {"FOO", },

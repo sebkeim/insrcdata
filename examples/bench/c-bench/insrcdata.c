@@ -2,6 +2,8 @@
 
 #include "insrcdata.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 const bench_t BENCH_TABLE[BENCH_TABLE_COUNT] = {
    {34, 37303, 3639700191, "A3BEE4JNPLWYM99SJOABRDLVVNV8MXJS", },

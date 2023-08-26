@@ -13,10 +13,10 @@ fn nobel_year(x: &db::Person) -> u16 {
 
     // In rust there is [no builtin way to retrieve enum from it's numeric value](https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html)
     //  you have to use  [double match](https://stackoverflow.com/questions/68677383/match-integers-against-enum-cases-without-a-double-match-statement-in-rust)
-    //  making pattern matching will be quite inefficient if there is many values to check
+    //  pattern matching will be quite inefficient if there is many values to check
     //
-    //  You can also use the ``tolabel` flag to embed enum reference in table :
-    //   see labels sample for more informations
+    //  The recommended way to overcome this problem is to use the ``as_label` flag  :
+    //  to embed enum reference in table see labels sample for usage informations
 }
 
 pub fn test_fictolabel() {

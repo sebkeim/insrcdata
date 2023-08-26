@@ -747,6 +747,8 @@ fn impl_project(project: &table::Project) -> aperror::Result<()> {
 
 #include \"{filename}.h\"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 "
     )?;
 
