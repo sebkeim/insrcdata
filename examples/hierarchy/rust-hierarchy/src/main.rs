@@ -6,6 +6,8 @@ use std::collections::HashSet;
 // order of row in the tables is important :
 // we relly on a depth first table order for the `Chapter` table
 
+#[allow(dead_code)]
+#[allow(unused_variables)]
 mod insrcdata;
 
 // print the fields contained by a hierarchy node and all it's children

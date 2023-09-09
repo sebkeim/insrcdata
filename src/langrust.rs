@@ -590,14 +590,7 @@ impl language::Language for Rust {
             aperror::io_error_result(fs::File::create(&project.dst_path), &project.dst_path)?;
         let output = (&mut outfile) as &mut dyn io::Write;
         let notice = language::file_notice();
-        writeln!(
-            output,
-            "// {notice}
-
-#![allow(dead_code)]
-#![allow(unused_variables)]"
-        )?;
-        // TODO : remove allow(dead_code)
+        writeln!(output, "// {notice}\n")?;
 
         for table in &project.tables {
             emit_table(project, table, output)?;

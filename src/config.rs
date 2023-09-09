@@ -6,6 +6,7 @@
 // using the [crate toml](https://docs.rs/toml/)
 //
 
+use crate::colvariant::ColVariant;
 use crate::language::Language;
 use crate::table::Project;
 use crate::{
@@ -17,10 +18,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
-
-use crate::colvariant::ColVariant;
 use std::string::ToString;
-use std::time::SystemTime;
 
 //  index for specific table column
 fn colkey(tablename: &str, colname: &str) -> String {
@@ -35,14 +33,14 @@ impl From<toml::de::Error> for aperror::Error {
     }
 }
 
-pub struct Runtime<'a> {
-    pub projectpath: &'a Path,
+pub struct Runtime {
+    pub projectpath: PathBuf,
     pub indir: String,
     pub dest: String,
-    pub linter: &'a lint::Linter,
+    pub linter: lint::Linter,
 }
 
-impl Runtime<'_> {
+impl Runtime {
     pub fn projectdir(&self) -> &Path {
         self.projectpath.parent().unwrap_or(Path::new("."))
     }
@@ -53,6 +51,47 @@ impl Runtime<'_> {
         } else {
             Path::new(&self.indir)
         }
+    }
+
+    // builder
+    pub fn new(path: &str) -> Runtime {
+        Runtime {
+            projectpath: PathBuf::from(path),
+            indir: "".to_string(),
+            dest: "".to_string(),
+            linter: lint::Linter::new(),
+        }
+    }
+
+    pub fn indir(mut self, indir: String) -> Runtime {
+        self.indir = indir;
+        self
+    }
+    pub fn dest(mut self, dest: String) -> Runtime {
+        self.dest = dest;
+        self
+    }
+
+    //
+    fn projectname(&self) -> String {
+        match self.projectpath.file_stem() {
+            Some(name) => name.to_str().unwrap_or("invalid"),
+            None => "unnamed",
+        }
+        .to_string()
+    }
+
+    /// create project object from config file
+    pub fn into_project(self) -> aperror::Result<Project> {
+        let path = self.projectpath.as_path();
+        let contents = aperror::io_error_result(fs::read_to_string(path), path)?;
+        let config: Config = match toml::from_str(&contents) {
+            Ok(file) => Ok(file),
+            Err(error) => Err(aperror::Error::new(error.message())),
+        }?;
+
+        let context = ConfigContext { runtime: self };
+        config.project(&context)
     }
 }
 
@@ -330,7 +369,7 @@ impl Variant {
 // [[table]]
 // ================================================================================================
 struct TableContext<'a> {
-    config_context: &'a ConfigContext<'a>,
+    config_context: &'a ConfigContext,
     lang: &'static dyn Language,
 }
 
@@ -466,7 +505,7 @@ impl Table {
         let _sorted = self.sorted; // silent dead code warning until the option is actually used
 
         let mut columns = vec![];
-        let runtime = ctx.config_context.runtime;
+        let runtime = &ctx.config_context.runtime;
 
         let col_context = ColContext { table_context: ctx };
         if let Some(cols) = &self.col {
@@ -503,15 +542,6 @@ impl Table {
 
         table::Table::new(&self.name, columns, get_array)
     }
-
-    /// modification time of table source.csv
-    fn last_modified(&self, indir: &Path) -> SystemTime {
-        let path = self.src_path(indir);
-        match fs::metadata(path) {
-            Ok(v) => v.modified().unwrap_or(SystemTime::now()),
-            Err(_) => SystemTime::now(), // force rebuild if source.csv unavailable
-        }
-    }
 }
 
 // ================================================================================================
@@ -523,9 +553,8 @@ struct Config {
     dest: Option<String>,
     table: Vec<Table>,
 }
-struct ConfigContext<'a> {
-    runtime: &'a Runtime<'a>,
-    project_modified: SystemTime,
+struct ConfigContext {
+    runtime: Runtime,
 }
 impl Config {
     /// read columns values for all tables of project
@@ -541,21 +570,17 @@ impl Config {
 
     /// path of generated file
     fn dst_path(&self, runtime: &Runtime) -> PathBuf {
-        let projectname;
         let dst = if runtime.dest.is_empty() {
-            match &self.dest {
-                Some(dst) => dst,
-                None => match runtime.projectpath.file_stem() {
-                    Some(name) => {
-                        projectname = format!("{}.rs", name.to_str().unwrap_or("invalid"));
-                        &projectname
-                    }
-                    None => "unnamed.rs",
-                },
-            }
+            self.dest.as_deref().unwrap_or("./")
         } else {
             &runtime.dest
         };
+        let dst = if dst.ends_with('/') {
+            format!("{}/{}.rs", dst, runtime.projectname())
+        } else {
+            dst.to_string()
+        };
+
         let confpath = Path::new(&dst);
         if confpath.is_absolute() {
             confpath.to_path_buf()
@@ -566,61 +591,40 @@ impl Config {
 
     /// create project object
     fn project(&self, ctx: &ConfigContext) -> aperror::Result<Project> {
-        let dst_path = self.dst_path(ctx.runtime);
+        let dst_path = self.dst_path(&ctx.runtime);
 
         let lang = language::language_for_dest(dst_path.clone());
 
-        let values = self.read_values(ctx.runtime);
+        let values = self.read_values(&ctx.runtime);
         let mut tables = vec![];
         let table_context = TableContext {
             config_context: ctx,
             lang,
         };
+        let mut src_paths: Vec<PathBuf> = vec![ctx.runtime.projectpath.clone()];
         for table in &self.table {
             let t = table.create(&values, &table_context);
             tables.push(t);
+            src_paths.push(table.src_path(ctx.runtime.indir_path()))
         }
-
-        let table_modified = self
-            .table
-            .iter()
-            .map(|x| x.last_modified(ctx.runtime.indir_path()))
-            .max()
-            .unwrap_or(ctx.project_modified);
-        let src_modified = std::cmp::max(ctx.project_modified, table_modified);
 
         let project = Project {
             dst_path,
             lang,
             tables,
-            src_modified,
+            src_paths,
         };
-
         log::log("configuration file processed");
+
+        let linter = &ctx.runtime.linter;
+        project.lint(linter);
+        if linter.errors() > 0 {
+            return Err(aperror::Error::new(&format!(
+                "{} lint failures",
+                linter.errors(),
+            )));
+        }
+
         Ok(project)
     }
-}
-
-// ================================================================================================
-// entry point
-// ================================================================================================
-
-/// create project object from config file
-pub fn read(runtime: &Runtime) -> aperror::Result<Project> {
-    let metadata =
-        aperror::io_error_result(fs::metadata(runtime.projectpath), runtime.projectpath)?;
-
-    let contents =
-        aperror::io_error_result(fs::read_to_string(runtime.projectpath), runtime.projectpath)?;
-
-    let config: Config = match toml::from_str(&contents) {
-        Ok(file) => Ok(file),
-        Err(error) => Err(aperror::Error::new(error.message())),
-    }?;
-    let project_modified = metadata.modified()?;
-    let context = ConfigContext {
-        runtime,
-        project_modified,
-    };
-    config.project(&context)
 }

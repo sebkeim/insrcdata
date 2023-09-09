@@ -1,9 +1,13 @@
 extern crate core;
 
+#[allow(dead_code)]
+#[allow(unused_variables)]
+mod insrcdata;
+
 mod colobject;
 mod fictolabel;
 mod innerjoin;
-mod insrcdata;
+
 mod strencoding;
 
 // Check for various functions that not have yet a specific tutorial

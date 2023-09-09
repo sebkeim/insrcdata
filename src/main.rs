@@ -27,7 +27,6 @@ mod log;
 mod table;
 
 use clap::{Parser, ValueEnum};
-use std::path::Path;
 
 // Command line arguments
 #[derive(Parser, Debug)]
@@ -81,26 +80,11 @@ fn main() -> aperror::Result<()> {
     });
 
     // parse other arguments
+    let runtime = config::Runtime::new(&args.path)
+        .indir(args.indir)
+        .dest(args.dest);
 
-    let projectpath = Path::new(&args.path);
-
-    let linter = lint::Linter::new();
-    let runtime = config::Runtime {
-        projectpath,
-        indir: args.indir,
-        dest: args.dest,
-        linter: &linter,
-    };
-
-    let project = config::read(&runtime)?;
-
-    project.lint(&linter);
-    if linter.errors() > 0 {
-        return Err(aperror::Error::new(&format!(
-            "{} lint failures",
-            linter.errors(),
-        )));
-    }
+    let project = runtime.into_project()?;
 
     // generate
     if !args.lint && (args.rebuild || project.modified()) {

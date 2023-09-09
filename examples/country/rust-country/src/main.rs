@@ -2,6 +2,8 @@
 //   data come from https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv
 //        added label colun
 
+#[allow(dead_code)]
+#[allow(unused_variables)]
 mod insrcdata;
 use crate::insrcdata as db;
 

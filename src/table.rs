@@ -1,4 +1,6 @@
+use std::cmp::max;
 use std::collections::HashSet;
+use std::fs;
 // insrcdata : embed tabular data in source code (https://github.com/sebkeim/insrcdata)
 // Copyright (c)  2023 Sébastien Keim
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -10,6 +12,7 @@ use crate::language::Language;
 use crate::{aperror, basetype, language, lint};
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::time::SystemTime;
 
 // ================================================================================================
 // Column
@@ -253,7 +256,7 @@ pub struct Project {
     pub dst_path: PathBuf,
     pub lang: &'static dyn language::Language,
     pub tables: Vec<Table>,
-    pub src_modified: std::time::SystemTime,
+    pub src_paths: Vec<PathBuf>,
 }
 
 impl Project {
@@ -280,12 +283,24 @@ impl Project {
         })
     }
 
+    pub fn src_modified(&self) -> SystemTime {
+        let mut last_modified = std::time::UNIX_EPOCH;
+        for pathbuf in &self.src_paths {
+            let modified = match fs::metadata(pathbuf.as_path()) {
+                Ok(v) => v.modified().unwrap_or(SystemTime::now()),
+                Err(_) => SystemTime::now(), // force rebuild if source.csv unavailable
+            };
+            last_modified = max(last_modified, modified);
+        }
+        last_modified
+    }
+
     pub fn modified(&self) -> bool {
         let dst_modified = self
             .lang
             .dst_modified(self)
             .unwrap_or(std::time::UNIX_EPOCH);
-        dst_modified < self.src_modified
+        dst_modified < self.src_modified()
     }
 
     pub fn emit(&self) -> aperror::Result<()> {
@@ -369,7 +384,6 @@ mod tests {
     use crate::colstr::ColStr;
     use crate::langrust;
     use crate::lint::test_linter;
-    use std::time::SystemTime;
 
     #[test]
     fn duplicate_table_name() {
@@ -380,7 +394,7 @@ mod tests {
             dst_path: PathBuf::new(),
             lang: langrust::RUST,
             tables: vec![t1, t2],
-            src_modified: SystemTime::now(),
+            src_paths: vec![],
         };
 
         let linter = test_linter();

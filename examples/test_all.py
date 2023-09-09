@@ -35,7 +35,7 @@ def test_root():
 # ==================================================================================================================
 # Test sample directory
 # ==================================================================================================================
-
+            
 class sample:
  
       def __init__(self, name):
@@ -52,9 +52,14 @@ class sample:
       
       def product_path(self):
             raise NotImplemented
-              
+            
+      def generate_insrcdata(self):
+            r = os.system(f"{INSRCDATA}  {self.project_path()}/insrcdata/insrcdata.toml --dest {self.dest()}")
+            assert r==0, f"failed processing insrcdata {self.name}"
+
       def build(self):
             raise NotImplemented
+                   
 
       def build_and_run(self):
             """return stdout content"""
@@ -66,8 +71,7 @@ class sample:
                   pass
       
             # generate insrcdata source
-            r = os.system(f"{INSRCDATA}  {self.project_path()}/insrcdata/insrcdata.toml --dest {self.dest()}")
-            assert r==0, f"failed processing insrcdata {self.name}"
+            self.generate_insrcdata()
             
             # build
             self.build()
@@ -115,6 +119,11 @@ class sample_rust(sample):
 
       def product_path(self):
             return f"{self.lang_path()}/target/debug/{self.name}"
+            
+      def generate_insrcdata(self):
+            # call only for examples that doesn't use build.rs
+            if not os.path.exists(f"{self.lang_path()}/build.rs"):
+                  sample.generate_insrcdata(self)
 
       def build(self):
             # build
@@ -132,6 +141,9 @@ class sample_rust(sample):
             # clippy
             r = os.system(f"cargo clippy --manifest-path {self.lang_path()}/Cargo.toml")
             assert r==0, f"failed cargo clippy : root"
+
+ 
+
 
 class sample_c(sample):
       LANG = "c"

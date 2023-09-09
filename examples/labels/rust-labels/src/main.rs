@@ -1,5 +1,7 @@
 use crate::insrcdata::Labels;
 
+#[allow(dead_code)]
+#[allow(unused_variables)]
 mod insrcdata;
 
 /// This sample show how to define a minimal project, that will only generate labels wich will

@@ -1,6 +1,8 @@
-mod insrcdata;
-
 // minimalistic benchmark to verify behaviour with huge table
+
+#[allow(dead_code)]
+#[allow(unused_variables)]
+mod insrcdata;
 
 use std::cmp::max;
 use std::env;
