@@ -25,8 +25,8 @@ mod language;
 mod lint;
 mod log;
 mod table;
-
 use clap::{Parser, ValueEnum};
+use std::path::Path;
 
 // Command line arguments
 #[derive(Parser, Debug)]
@@ -80,7 +80,7 @@ fn main() -> aperror::Result<()> {
     });
 
     // parse other arguments
-    let runtime = config::Runtime::new(&args.path)
+    let runtime = config::Runtime::read(Path::new(&args.path))
         .indir(args.indir)
         .dest(args.dest);
 
@@ -92,4 +92,9 @@ fn main() -> aperror::Result<()> {
     }
 
     Ok(())
+}
+
+#[allow(dead_code)]
+fn code_used_only_by_lib() {
+    config::Runtime::from_toml("".to_string(), Path::new(""));
 }

@@ -34,29 +34,40 @@ impl From<toml::de::Error> for aperror::Error {
 }
 
 pub struct Runtime {
-    pub projectpath: PathBuf,
+    pub projectpath: Option<PathBuf>,
+    pub src_config: Option<String>,
+    pub projectdir: PathBuf,
     pub indir: String,
     pub dest: String,
     pub linter: lint::Linter,
 }
 
 impl Runtime {
-    pub fn projectdir(&self) -> &Path {
-        self.projectpath.parent().unwrap_or(Path::new("."))
-    }
-
     pub fn indir_path(&self) -> &Path {
         if self.indir.is_empty() {
-            self.projectdir()
+            self.projectdir.as_path()
         } else {
             Path::new(&self.indir)
         }
     }
 
     // builder
-    pub fn new(path: &str) -> Runtime {
+    pub fn read(path: &Path) -> Runtime {
         Runtime {
-            projectpath: PathBuf::from(path),
+            projectpath: Some(PathBuf::from(path)),
+            projectdir: PathBuf::from(path.parent().unwrap_or(Path::new("."))),
+            src_config: None,
+            indir: "".to_string(),
+            dest: "".to_string(),
+            linter: lint::Linter::new(),
+        }
+    }
+
+    pub fn from_toml(toml: String, projectdir: &Path) -> Runtime {
+        Runtime {
+            projectpath: None,
+            projectdir: PathBuf::from(projectdir),
+            src_config: Some(toml),
             indir: "".to_string(),
             dest: "".to_string(),
             linter: lint::Linter::new(),
@@ -74,17 +85,29 @@ impl Runtime {
 
     //
     fn projectname(&self) -> String {
-        match self.projectpath.file_stem() {
-            Some(name) => name.to_str().unwrap_or("invalid"),
-            None => "unnamed",
+        if let Some(pathbuf) = &self.projectpath {
+            if let Some(name) = pathbuf.file_stem() {
+                return name.to_str().unwrap_or("invalid").to_string();
+            }
         }
-        .to_string()
+        "insrcdata".to_string()
     }
 
     /// create project object from config file
     pub fn into_project(self) -> aperror::Result<Project> {
-        let path = self.projectpath.as_path();
-        let contents = aperror::io_error_result(fs::read_to_string(path), path)?;
+        let contents = match &self.src_config {
+            None => {
+                let Some(path) = &self.projectpath else {
+                    return Err(aperror::Error::new("No source defined"));
+                };
+                let content = aperror::io_error_result(fs::read_to_string(path), path.as_path())?;
+                if content.is_empty() {
+                    return Err(aperror::Error::new("Empty configutation file"));
+                }
+                content
+            }
+            Some(s) => s.to_string(),
+        };
         let config: Config = match toml::from_str(&contents) {
             Ok(file) => Ok(file),
             Err(error) => Err(aperror::Error::new(error.message())),
@@ -585,7 +608,7 @@ impl Config {
         if confpath.is_absolute() {
             confpath.to_path_buf()
         } else {
-            runtime.projectdir().join(confpath)
+            runtime.projectdir.join(confpath)
         }
     }
 
@@ -601,7 +624,11 @@ impl Config {
             config_context: ctx,
             lang,
         };
-        let mut src_paths: Vec<PathBuf> = vec![ctx.runtime.projectpath.clone()];
+        let mut src_paths: Vec<PathBuf> = vec![];
+        if let Some(pathbuf) = &ctx.runtime.projectpath {
+            src_paths.push(pathbuf.clone())
+        }
+
         for table in &self.table {
             let t = table.create(&values, &table_context);
             tables.push(t);
