@@ -25,9 +25,9 @@ extern const country_t* country_next(country_iter_t* idx);
 
 // ------    
 typedef enum {
-    MINISTERS_DAVID_CAMERON = 0,
-    MINISTERS_GORDON_BROWN = 1,
-    MINISTERS_ROMANO_PRODI = 2,
+     MINISTERS_DAVID_CAMERON = 0,
+     MINISTERS_GORDON_BROWN = 1,
+     MINISTERS_ROMANO_PRODI = 2,
 } ministers_t;
 const minister_t* minister_from_ministers(ministers_t label);
 ministers_t minister_ministers(const minister_t *s);
@@ -40,8 +40,8 @@ extern const country_t* minister_country(const minister_t* s);
 
 // ------    
 typedef enum {
-    COUNTRIES_GB = 0,
-    COUNTRIES_IT = 1,
+     COUNTRIES_GB = 0,
+     COUNTRIES_IT = 1,
 } countries_t;
 const country_t* country_from_countries(countries_t label);
 countries_t country_countries(const country_t *s);

@@ -16,16 +16,16 @@ extern const label_t LABEL_TABLE[LABEL_TABLE_COUNT];
 
 // ------    
 typedef enum {
-    LABELS_FOO = 0,
-    LABELS_BAR = 1,
-    LABELS_UPPER_CAMEL_CASE = 2,
-    LABELS_LOWER_CAMEL_CASE = 3,
-    LABELS_SNAKE_CASE = 4,
-    LABELS_KEBAB_CASE = 5,
-    LABELS_SHOUTY_SNAKE_CASE = 6,
-    LABELS_TITLE_CASE = 7,
-    LABELS_SHOUTY_KEBAB_CASE = 8,
-    LABELS_TRAIN_CASE = 9,
+     LABELS_FOO = 0,
+     LABELS_BAR = 1,
+     LABELS_UPPER_CAMEL_CASE = 2,
+     LABELS_LOWER_CAMEL_CASE = 3,
+     LABELS_SNAKE_CASE = 4,
+     LABELS_KEBAB_CASE = 5,
+     LABELS_SHOUTY_SNAKE_CASE = 6,
+     LABELS_TITLE_CASE = 7,
+     LABELS_SHOUTY_KEBAB_CASE = 8,
+     LABELS_TRAIN_CASE = 9,
 } labels_t;
 const label_t* label_from_labels(labels_t label);
 labels_t label_labels(const label_t *s);

@@ -93,6 +93,9 @@ pub trait Column {
     fn emit_label(&self, _row: usize) -> String {
         "EMIT_LABEL_UNSUPORTED".to_string()
     }
+    fn emit_label_help(&self, _row: usize) -> String {
+        "".to_string()
+    }
 
     // for indexed lookup
     fn indexes(&self) -> Vec<usize>;

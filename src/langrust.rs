@@ -280,7 +280,13 @@ fn col_labels(
     for row in 0..info.len {
         let label = col.emit_label(row);
         if !label.is_empty() {
-            writeln!(output, "    {} = {},", label.to_upper_camel_case(), row)?;
+            let upper_label = label.to_upper_camel_case();
+            let help = col.emit_label_help(row);
+            if help.is_empty() {
+                writeln!(output, "    {upper_label} = {row},")?;
+            } else {
+                writeln!(output, "    /// {help}\n    {upper_label} = {row},")?;
+            };
         }
     }
     writeln!(output, "}}")?;

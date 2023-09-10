@@ -76,9 +76,14 @@ target = [ { lang= 'rs', type = '...', template="...{}...", import='...'  }, ]
 
 # for label format column
 # in rust allow to retrieve the enum variant from a row
-# contains the name of the column that will store the enum
+# must contains the name of the column that will store the enum
 # optional : default to empty value, disabling generation
 as_label = "as_label"
+
+# for label format column
+# the name of the column to use when generating inline help comment
+# optional : no help generated if absent
+label_helps = "info-col"
 
 #
 # Level 3 : join

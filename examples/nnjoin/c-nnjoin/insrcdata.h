@@ -29,9 +29,9 @@ extern const transaction_t* transaction_next(transaction_iter_t* idx);
 
 // ------    
 typedef enum {
-    CLIENTS_JOHN = 0,
-    CLIENTS_ALIX = 1,
-    CLIENTS_DAVID = 2,
+     CLIENTS_JOHN = 0,
+     CLIENTS_ALIX = 1,
+     CLIENTS_DAVID = 2,
 } clients_t;
 const client_t* client_from_clients(clients_t label);
 clients_t client_clients(const client_t *s);
@@ -42,10 +42,10 @@ extern transaction_iter_t client_transactions(const client_t* s);
 
 // ------    
 typedef enum {
-    PRODUCTS_APPLE = 0,
-    PRODUCTS_BANANA = 1,
-    PRODUCTS_PEACH = 2,
-    PRODUCTS_CHERRY = 3,
+     PRODUCTS_APPLE = 0,
+     PRODUCTS_BANANA = 1,
+     PRODUCTS_PEACH = 2,
+     PRODUCTS_CHERRY = 3,
 } products_t;
 const product_t* product_from_products(products_t label);
 products_t product_products(const product_t *s);

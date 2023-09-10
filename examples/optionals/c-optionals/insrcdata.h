@@ -28,8 +28,8 @@ typedef struct  {
 
 // ------    
 typedef enum {
-    ADHOCS_FILLED = 0,
-    ADHOCS_EMPTY = 1,
+     ADHOCS_FILLED = 0,
+     ADHOCS_EMPTY = 1,
 } adhocs_t;
 const adhoc_t* adhoc_from_adhocs(adhocs_t label);
 adhocs_t adhoc_adhocs(const adhoc_t *s);
@@ -48,8 +48,8 @@ static inline uint16_t count_value(const count_t* s) { return s->value_; }
 
 // ------    
 typedef enum {
-    OPTJOINS_FILLED = 0,
-    OPTJOINS_EMPTY = 1,
+     OPTJOINS_FILLED = 0,
+     OPTJOINS_EMPTY = 1,
 } optjoins_t;
 const optjoin_t* optjoin_from_optjoins(optjoins_t label);
 optjoins_t optjoin_optjoins(const optjoin_t *s);

@@ -50,8 +50,8 @@ extern country_iter_t subregion_countries(const subregion_t* s);
 
 // ------    
 typedef enum {
-    COUNTRIES_ANTARCTICA = 8,
-    COUNTRIES_BELGIUM = 21,
+     COUNTRIES_ANTARCTICA = 8,
+     COUNTRIES_BELGIUM = 21,
 } countries_t;
 const country_t* country_from_countries(countries_t label);
 countries_t country_countries(const country_t *s);

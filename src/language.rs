@@ -8,7 +8,7 @@
 use crate::basetype::BaseType;
 use crate::{aperror, langc, langrust, table};
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 
 pub trait Language {
     fn emit(&self, project: &table::Project) -> aperror::Result<()>;
@@ -31,9 +31,9 @@ pub trait Language {
 }
 
 // compute target language from dest filename extension
-pub fn language_for_dest(filename: PathBuf) -> &'static dyn Language {
+pub fn language_for_dest(filename: &Path) -> &'static dyn Language {
     match filename
-        .as_path()
+        // .as_path()
         .extension()
         .unwrap_or_default()
         .to_str()

@@ -138,6 +138,7 @@ struct Target {
 // ================================================================================================
 struct ColContext<'a> {
     table_context: &'a TableContext<'a>,
+    table: &'a Table,
 }
 
 /// data column definition
@@ -157,6 +158,8 @@ struct Col {
     target: Option<Vec<Target>>,
     /// convert from row to label
     as_label: Option<String>,
+    /// column containing documentation for each label
+    label_helps: Option<String>,
 }
 static EMPTY_TARGET: Vec<Target> = vec![];
 impl Col {
@@ -189,18 +192,42 @@ impl Col {
         )))
     }
 
-    /// generate column object from configuration
-    fn create(
+    fn create_label(
         &self,
-        table: &Table,
-        tablecols: &HashMap<String, Vec<String>>,
+        strvals: &[String],
         ctx: &ColContext,
     ) -> aperror::Result<Box<dyn table::Column>> {
+        let empty_label_helps: Vec<String>;
+        let label_helps = match &self.label_helps {
+            None => {
+                empty_label_helps = vec!["".to_string(); strvals.len()];
+                &empty_label_helps
+            }
+            Some(helpcolname) => {
+                let key = ctx.table.key(helpcolname);
+                let Some(strvals) = ctx.table_context.col_values.get(&key) else {
+                return Err(aperror::Error::new(&format!("label help column not found {}", helpcolname)));
+            };
+                strvals
+            }
+        };
+
+        // we use empty value to prevent label column generation
+        let tolabel = if ctx.table_context.lang.to_label() {
+            self.as_label.as_deref().unwrap_or("")
+        } else {
+            ""
+        };
+
+        collabel::ColLabel::parse(&self.name, strvals, tolabel, label_helps)
+    }
+    /// generate column object from configuration
+    fn create(&self, ctx: &ColContext) -> aperror::Result<Box<dyn table::Column>> {
         log::log(&format!("create col {}", self.name));
         // retrieve src values
         let src = self.src_name();
-        let key = table.key(src);
-        let Some(strvals) = tablecols.get(&key) else {
+        let key = ctx.table.key(src);
+        let Some(strvals) = ctx.table_context.col_values.get(&key) else {
             return Err(aperror::Error::new(&format!("column not found {}", key)));
         };
 
@@ -222,7 +249,7 @@ impl Col {
             "u32" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U32),
             "u64" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U64),
             "str" => colstr::ColStr::parse(name, strvals, iterable),
-            "label" => collabel::ColLabel::parse(name, strvals, self.tolabel(ctx)),
+            "label" => self.create_label(strvals, ctx),
             "object" => self.create_object(strvals, ctx),
             _ => Err(aperror::Error::new(&format!(
                 "unknown column type '{}'",
@@ -233,15 +260,6 @@ impl Col {
 
     fn src_name(&self) -> &String {
         self.src.as_ref().unwrap_or(&self.name)
-    }
-
-    // we use empty value to prevent label column generation
-    fn tolabel(&self, ctx: &ColContext) -> &str {
-        if ctx.table_context.lang.to_label() {
-            self.as_label.as_deref().unwrap_or("")
-        } else {
-            ""
-        }
     }
 }
 
@@ -268,24 +286,20 @@ struct Join {
 
 impl Join {
     /// generate column object from configuration
-    fn create(
-        &self,
-        table: &Table,
-        tablecols: &HashMap<String, Vec<String>>,
-    ) -> aperror::Result<Box<dyn table::Column>> {
+    fn create(&self, ctx: &ColContext) -> aperror::Result<Box<dyn table::Column>> {
         log::log(&format!("create join {}", self.name));
 
         // retrieve src values
         let src = self.src_name();
-        let key = table.key(src);
-        let Some(values) = tablecols.get(&key) else {
+        let key = ctx.table.key(src);
+        let Some(values) = ctx.table_context.col_values.get(&key) else {
             return Err(aperror::Error::new(&format!("column not found {}", key)));
         };
 
         // target column
-        let dest_table = self.external.as_ref().unwrap_or(&table.name);
+        let dest_table = self.external.as_ref().unwrap_or(&ctx.table.name);
         let dest_col = colkey(dest_table, &self.to);
-        let Some(dest_keys) = tablecols.get(&dest_col) else {
+        let Some(dest_keys) = ctx.table_context.col_values.get(&dest_col) else {
             return Err(aperror::Error::new(&format!("column not found {}", dest_col)));
         };
 
@@ -349,26 +363,22 @@ struct Variant {
 
 impl Variant {
     /// generate column object from configuration
-    fn create(
-        &self,
-        table: &Table,
-        tablecols: &HashMap<String, Vec<String>>,
-    ) -> aperror::Result<Box<dyn table::Column>> {
+    fn create(&self, ctx: &ColContext) -> aperror::Result<Box<dyn table::Column>> {
         log::log(&format!("create variant {}", self.name));
 
         // retrieve src values
         let src = self.src_name();
-        let key = table.key(src);
-        let Some(values) = tablecols.get(&key) else {
+        let key = ctx.table.key(src);
+        let Some(values) = ctx.table_context.col_values.get(&key) else {
            return Err(aperror::Error::new(&format!("column not found {}", key)));
         };
 
         // variants
         let mut dests = Vec::<colvariant::Dest>::new();
         for n in &self.either {
-            let dest_table = n.external.as_ref().unwrap_or(&table.name);
+            let dest_table = n.external.as_ref().unwrap_or(&ctx.table.name);
             let dest_col = colkey(dest_table, &n.to);
-            let Some(dest_keys) = tablecols.get(&dest_col) else {
+            let Some(dest_keys) = ctx.table_context.col_values.get(&dest_col) else {
                 return Err(aperror::Error::new(&format!("variant column  {} not found for table {}", n.to, dest_table)));
             };
 
@@ -394,6 +404,7 @@ impl Variant {
 struct TableContext<'a> {
     config_context: &'a ConfigContext,
     lang: &'static dyn Language,
+    col_values: HashMap<String, Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -523,17 +534,20 @@ impl Table {
     }
 
     /// create table object
-    fn create(&self, tablecols: &HashMap<String, Vec<String>>, ctx: &TableContext) -> table::Table {
+    fn create(&self, ctx: &TableContext) -> table::Table {
         log::log(&format!("create table {}", self.name));
         let _sorted = self.sorted; // silent dead code warning until the option is actually used
 
         let mut columns = vec![];
         let runtime = &ctx.config_context.runtime;
 
-        let col_context = ColContext { table_context: ctx };
+        let col_context = ColContext {
+            table_context: ctx,
+            table: self,
+        };
         if let Some(cols) = &self.col {
             for col in cols {
-                let res = col.create(self, tablecols, &col_context);
+                let res = col.create(&col_context);
                 match res {
                     Ok(c) => columns.push(c),
                     Err(_) => runtime.linter.check_result(&self.name, res),
@@ -543,7 +557,7 @@ impl Table {
 
         if let Some(joins) = &self.join {
             for join in joins {
-                let res = join.create(self, tablecols);
+                let res = join.create(&col_context);
                 match res {
                     Ok(c) => columns.push(c),
                     Err(_) => runtime.linter.check_result(&self.name, res),
@@ -553,7 +567,7 @@ impl Table {
 
         if let Some(variants) = &self.variant {
             for variant in variants {
-                let res = variant.create(self, tablecols);
+                let res = variant.create(&col_context);
                 match res {
                     Ok(c) => columns.push(c),
                     Err(_) => runtime.linter.check_result(&self.name, res),
@@ -612,34 +626,39 @@ impl Config {
         }
     }
 
-    /// create project object
-    fn project(&self, ctx: &ConfigContext) -> aperror::Result<Project> {
-        let dst_path = self.dst_path(&ctx.runtime);
-
-        let lang = language::language_for_dest(dst_path.clone());
-
-        let values = self.read_values(&ctx.runtime);
-        let mut tables = vec![];
-        let table_context = TableContext {
-            config_context: ctx,
-            lang,
-        };
+    //list all sources to detect change for reuild
+    fn src_paths(&self, ctx: &ConfigContext) -> Vec<PathBuf> {
         let mut src_paths: Vec<PathBuf> = vec![];
         if let Some(pathbuf) = &ctx.runtime.projectpath {
             src_paths.push(pathbuf.clone())
         }
 
         for table in &self.table {
-            let t = table.create(&values, &table_context);
-            tables.push(t);
             src_paths.push(table.src_path(ctx.runtime.indir_path()))
+        }
+        src_paths
+    }
+
+    /// create project object
+    fn project(&self, ctx: &ConfigContext) -> aperror::Result<Project> {
+        let dst_path = self.dst_path(&ctx.runtime);
+        let table_context = TableContext {
+            config_context: ctx,
+            lang: language::language_for_dest(&dst_path),
+            col_values: self.read_values(&ctx.runtime),
+        };
+
+        let mut tables = vec![];
+        for table in &self.table {
+            let t = table.create(&table_context);
+            tables.push(t);
         }
 
         let project = Project {
             dst_path,
-            lang,
+            lang: table_context.lang,
             tables,
-            src_paths,
+            src_paths: self.src_paths(ctx),
         };
         log::log("configuration file processed");
 

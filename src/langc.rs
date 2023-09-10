@@ -368,13 +368,12 @@ fn header_col_labels(
         let label = col.emit_label(row);
         if !label.is_empty() {
             let camel = enum_name(&label);
-            writeln!(
-                output,
-                "    {prefix}_{label} = {row},",
-                prefix = prefix,
-                label = camel,
-                row = row
-            )?;
+            let help = col.emit_label_help(row);
+            if help.is_empty() {
+                writeln!(output, "     {prefix}_{camel} = {row},")?;
+            } else {
+                writeln!(output, "     {prefix}_{camel} = {row}, // {help}")?;
+            };
         }
     }
     writeln!(output, "}} {enumname}_t;")?;

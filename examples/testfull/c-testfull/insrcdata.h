@@ -83,10 +83,10 @@ typedef struct {
 
 // ------    
 typedef enum {
-    PERSONS_MARIE = 0,
-    PERSONS_PIERRE = 1,
-    PERSONS_IRENE = 2,
-    PERSONS_FREDERIC = 3,
+     PERSONS_MARIE = 0,
+     PERSONS_PIERRE = 1,
+     PERSONS_IRENE = 2,
+     PERSONS_FREDERIC = 3,
 } persons_t;
 const person_t* person_from_persons(persons_t label);
 persons_t person_persons(const person_t *s);
@@ -109,9 +109,9 @@ extern strencoding_iter_t  strencoding_text_range( const char* start, const char
 
 // ------    
 typedef enum {
-    LETTERCASES_CAPITAL = 0,
-    LETTERCASES_UPPER = 1,
-    LETTERCASES_LOWER = 2,
+     LETTERCASES_CAPITAL = 0,
+     LETTERCASES_UPPER = 1,
+     LETTERCASES_LOWER = 2,
 } lettercases_t;
 const lettercase_t* lettercase_from_lettercases(lettercases_t label);
 lettercases_t lettercase_lettercases(const lettercase_t *s);
