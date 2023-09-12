@@ -105,7 +105,7 @@ fn header_getter_col(
 ) -> io::Result<()> {
     let info = col.info();
     let strname = struct_name(&table.name);
-    let field = &info.name;
+    let field = col.name();
 
     match &info.type_impl() {
         table::TypeImpl::Label => {
@@ -150,7 +150,7 @@ fn impl_getter_join(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let strname = struct_name(&table.name);
-    let field = &col.info().name;
+    let field = col.name();
     let outtype = struct_name(&col.info().join_table());
     let jointable = table_name(&outtype);
     writeln!(
@@ -165,7 +165,7 @@ fn impl_getter_join_optional(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let strname = struct_name(&table.name);
-    let field = &col.info().name;
+    let field = col.name();
     let outtype = struct_name(&col.info().join_table());
     let jointable = table_name(&outtype);
     writeln!(
@@ -211,7 +211,7 @@ fn header_iter_range(
 ) -> io::Result<()> {
     let info = col.info();
     let strname = struct_name(&table.name);
-    let colname = struct_name(&info.name);
+    let colname = struct_name(col.name());
     let argtype = strtype(&info.interface_type);
     writeln!(
         output,
@@ -226,11 +226,11 @@ fn impl_iter_range(
 ) -> io::Result<()> {
     let info = col.info();
     let strname = struct_name(&table.name);
-    let colname = struct_name(&info.name);
+    let colname = struct_name(col.name());
     let argtype = strtype(&info.interface_type);
     let strtable = table_name(&table.name);
     let indextyp = strtype(&table.index_type());
-    let field = table_name(&info.name);
+    let field = table_name(col.name());
     let right = format!("{strtable}_TABLE[*mid].{colname}_ ");
     let gt = gt(&col.info().table_type, "start", &right);
     let lt = lt(&col.info().table_type, "stop", &right);
@@ -296,15 +296,13 @@ fn impl_reverse_join(
     let strname = struct_name(&table.name);
     let indextyp = strtype(&table.index_type());
 
-    let info = rj.col.info();
     let reverse = &rj.reverse_name;
     let strsrc = struct_name(&rj.table.name);
     let tablesrc = table_name(&rj.table.name);
     let strtable = table_name(&table.name);
 
-    let field = table_name(&info.name);
-    let colname = &info.name;
-
+    let colname = rj.col.name();
+    let field = table_name(colname);
     let offset = rj.offset;
     let offset = if offset > 0 {
         format!(" + {offset}")
@@ -442,7 +440,7 @@ fn impl_col_index(
     let indextyp = strtype(&table.index_type());
     let tablename = table_name(&table.name);
     let indexes = col.indexes();
-    let field = table_name(&col.info().name);
+    let field = table_name(col.name());
     let count = indexes.len();
     write!(
         output,
@@ -465,7 +463,7 @@ static {indextyp} {tablename}_{field}_INDEX   [{tablename}_{field}_INDEX_COUNT] 
 // ================================================================================================
 fn variant_type_name(table: &table::Table, col: &dyn table::Column) -> String {
     let strname = struct_name(&table.name);
-    let varname = struct_name(&col.info().name);
+    let varname = struct_name(col.name());
     format!("{strname}_{varname}_type_t")
 }
 
@@ -500,7 +498,7 @@ typedef struct {{
     }
 
     let strname = struct_name(&table.name);
-    let field = &col.info().name;
+    let field = col.name();
     writeln!(output, "    }};\n}} {strname}_{field}_t;\n")
 }
 
@@ -511,7 +509,7 @@ fn impl_getter_variant(
 ) -> io::Result<()> {
     let variants = col.variants().expect("variant must have variant");
 
-    let field = &col.info().name;
+    let field = col.name();
     let strname = struct_name(&table.name);
     let outyp = format!("{strname}_{field}_t");
     writeln!(
@@ -562,7 +560,7 @@ fn header_table_types(
         for col in &datacols {
             let info = col.info();
             let fieldtype = strtype(&info.table_type);
-            writeln!(output, "    {} {}_;", fieldtype, info.name)?;
+            writeln!(output, "    {} {}_;", fieldtype, col.name())?;
         }
         writeln!(output, "}} {strname}_t;")?;
 
@@ -655,7 +653,7 @@ static "
         impl_index(table, output)?;
     }
     for col in &datacols {
-        if col.info().iterable {
+        if col.iterable() {
             impl_col_index(table, *col, output)?;
         }
     }

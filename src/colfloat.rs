@@ -6,6 +6,7 @@
 //
 
 use crate::language::Language;
+use crate::table::ColumnConfig;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 
@@ -39,19 +40,16 @@ impl table::Column for ColF64 {
 
 impl ColF64 {
     pub fn parse(
-        name: &str,
+        config: ColumnConfig,
         strvals: &[String],
-        iterable: bool,
     ) -> aperror::Result<Box<dyn table::Column>> {
         let values = table::parse_vec::<f64>(strvals)?;
         Ok(Box::new(ColF64 {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type: basetype::BaseType::F64,
                 table_type: basetype::BaseType::F64,
-                iterable,
-                optional: false,
             },
             values,
         }))
@@ -88,19 +86,16 @@ impl table::Column for ColF32 {
 
 impl ColF32 {
     pub fn parse(
-        name: &str,
+        config: ColumnConfig,
         strvals: &[String],
-        iterable: bool,
     ) -> aperror::Result<Box<dyn table::Column>> {
         let values = table::parse_vec::<f32>(strvals)?;
         Ok(Box::new(ColF32 {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type: basetype::BaseType::F32,
                 table_type: basetype::BaseType::F32,
-                iterable,
-                optional: false,
             },
             values,
         }))

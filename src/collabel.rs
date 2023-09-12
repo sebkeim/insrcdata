@@ -6,6 +6,7 @@
 //
 
 use crate::language::Language;
+use crate::table::ColumnConfig;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 use heck::ToShoutySnakeCase;
@@ -38,7 +39,7 @@ impl table::Column for ColLabel {
         vec![]
     }
     fn lint(&self, linter: &lint::Linter) {
-        let allow_empty = self.info.name.is_empty();
+        let allow_empty = self.name().is_empty();
         let mut labels: HashSet<String> = HashSet::new();
         for (i, v) in self.labels.iter().enumerate() {
             if v.is_empty() {
@@ -66,14 +67,14 @@ impl table::Column for ColLabel {
 
 impl ColLabel {
     pub fn parse(
+        config: ColumnConfig,
         namespace: &str,
         labels: &[String],
-        tolabel: &str,
         label_helps: &[String],
     ) -> aperror::Result<Box<dyn table::Column>> {
         Ok(Box::new(ColLabel {
             info: table::ColumnInfo {
-                name: tolabel.to_string(),
+                config,
                 len: labels.len(),
                 interface_type: basetype::BaseType::Label {
                     name: namespace.to_string(),
@@ -81,8 +82,6 @@ impl ColLabel {
                 table_type: basetype::BaseType::Label {
                     name: namespace.to_string(),
                 },
-                iterable: false,
-                optional: false,
             },
             labels: labels.to_owned(),
             label_helps: label_helps.to_owned(),
@@ -96,8 +95,13 @@ mod tests {
 
     #[test]
     fn label_ok() {
-        let c =
-            ColLabel::parse("", &vec!["hello".to_string()], "", &vec!["".to_string()]).expect("");
+        let c = ColLabel::parse(
+            ColumnConfig::default(),
+            "",
+            &vec!["hello".to_string()],
+            &vec!["".to_string()],
+        )
+        .expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 0);
@@ -105,8 +109,13 @@ mod tests {
 
     #[test]
     fn label_invalid() {
-        let c =
-            ColLabel::parse("", &vec!["0hello".to_string()], "", &vec!["".to_string()]).expect("");
+        let c = ColLabel::parse(
+            ColumnConfig::default(),
+            "",
+            &vec!["0hello".to_string()],
+            &vec!["".to_string()],
+        )
+        .expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);
@@ -115,9 +124,9 @@ mod tests {
     #[test]
     fn label_duplicate() {
         let c = ColLabel::parse(
+            ColumnConfig::default(),
             "",
             &vec!["hello".to_string(), "HELLO".to_string()],
-            "",
             &vec!["".to_string(), "".to_string()],
         )
         .expect("");
@@ -129,9 +138,9 @@ mod tests {
     #[test]
     fn label_empty() {
         let c = ColLabel::parse(
+            ColumnConfig::default(),
             "",
             &vec!["hello".to_string(), "".to_string()],
-            "",
             &vec!["".to_string(), "".to_string()],
         )
         .expect("");
@@ -143,9 +152,12 @@ mod tests {
     #[test]
     fn label_empty_as_label() {
         let c = ColLabel::parse(
+            ColumnConfig {
+                name: "as_label".to_string(),
+                ..Default::default()
+            },
             "",
             &vec!["hello".to_string(), "".to_string()],
-            "as_label",
             &vec!["".to_string(), "".to_string()],
         )
         .expect("");
@@ -156,7 +168,13 @@ mod tests {
 
     #[test]
     fn label_missing_help() {
-        let c = ColLabel::parse("", &vec!["hello".to_string()], "", &vec![]).expect("");
+        let c = ColLabel::parse(
+            ColumnConfig::default(),
+            "",
+            &vec!["hello".to_string()],
+            &vec![],
+        )
+        .expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);

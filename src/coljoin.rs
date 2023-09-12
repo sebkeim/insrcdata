@@ -6,6 +6,7 @@
 //
 use crate::language::Language;
 use crate::table;
+use crate::table::ColumnConfig;
 use crate::{basetype, lint};
 use std::collections::HashMap;
 
@@ -22,7 +23,7 @@ impl table::Column for ColJoin {
 
     fn emit_table_cell(&self, row: usize, _lang: &dyn Language) -> String {
         let v = &self.values[row];
-        if self.info.optional {
+        if self.optional() {
             v.to_string()
         } else {
             (v - 1).to_string()
@@ -31,7 +32,7 @@ impl table::Column for ColJoin {
 
     fn indexes(&self) -> Vec<usize> {
         let values = &self.values;
-        let mut indexes = if self.info.optional {
+        let mut indexes = if self.optional() {
             Vec::from_iter((0..values.len()).filter(|a| values[*a] != 0))
         } else {
             Vec::from_iter(0..values.len())
@@ -45,7 +46,7 @@ impl table::Column for ColJoin {
             lint::label(&self.info.join_table()),
             "invalid table name for join",
         );
-        if !self.info.optional {
+        if !self.optional() {
             for (i, v) in self.values.iter().enumerate() {
                 linter.row(i, |lt| {
                     lt.err(*v != 0, "undefined link");
@@ -61,11 +62,11 @@ impl table::Column for ColJoin {
 
 impl ColJoin {
     pub fn new(
-        name: &str,
+        mut config: ColumnConfig,
         values: &Vec<String>,
         dest_table: &str,
         dest_keys: &Vec<String>,
-        optional: bool,
+
         reverse: &str,
     ) -> ColJoin {
         let mut keyindexes = HashMap::new();
@@ -77,18 +78,17 @@ impl ColJoin {
             .map(|x| *keyindexes.get(x).unwrap_or(&0))
             .collect();
 
-        let max = dest_keys.len() + (optional as usize);
+        let max = dest_keys.len() + (config.optional as usize);
 
+        config.iterable = !reverse.is_empty();
         ColJoin {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type: basetype::BaseType::Join {
                     strname: dest_table.to_string(),
                 },
                 table_type: basetype::int_type_for_range(0..=max as i64),
-                iterable: !reverse.is_empty(),
-                optional,
             },
             values: indexes,
             reverse_name: reverse.to_string(),

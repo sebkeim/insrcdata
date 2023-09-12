@@ -1,7 +1,7 @@
 use crate::language::Language;
 use crate::{aperror, basetype, index, lint, table};
 
-use crate::table::Variant;
+use crate::table::{ColumnConfig, Variant};
 use std::cmp::max;
 use std::collections::HashMap;
 
@@ -53,7 +53,7 @@ impl table::Column for ColVariant {
     }
 
     fn indexes(&self) -> Vec<usize> {
-        if self.info.optional {
+        if self.optional() {
             index::filter_index(&self.values, 0)
         } else {
             index::index(&self.values)
@@ -69,15 +69,14 @@ impl table::Column for ColVariant {
 
 impl ColVariant {
     pub fn parse(
-        name: &str,
+        mut config: ColumnConfig,
         values: &[String],
-        optional: bool,
         dests: &mut Vec<Dest>,
     ) -> aperror::Result<Box<dyn table::Column>> {
         let mut tabrow = Vec::<TabRow>::new();
 
         'row: for (row, value) in values.iter().enumerate() {
-            if optional && value.is_empty() {
+            if config.optional && value.is_empty() {
                 tabrow.push(TabRow { table: 0, row: 0 });
                 continue;
             }
@@ -87,7 +86,7 @@ impl ColVariant {
                     dest.max = max(dest.max, row + 1);
 
                     tabrow.push(TabRow {
-                        table: table + optional as usize,
+                        table: table + config.optional as usize,
                         row: *row,
                     });
                     continue 'row;
@@ -98,23 +97,22 @@ impl ColVariant {
 
             return Err(aperror::Error::new(&format!(
                 "column {} : dest not found for {}  at row {}",
-                name, value, row
+                &config.name, value, row
             )));
         }
 
         // compute table offsets
-        let (tables, max) = col_offsets(dests, optional);
+        let (tables, max) = col_offsets(dests, config.optional);
         let values = row_values(&tabrow, &tables);
 
         //
+        config.iterable = dests.iter().any(|c| !c.reverse.is_empty());
         Ok(Box::new(ColVariant {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type: basetype::BaseType::Variant,
                 table_type: basetype::int_type_for_range(0..=max as i64),
-                iterable: dests.iter().any(|c| !c.reverse.is_empty()),
-                optional,
             },
             values,
             tables,

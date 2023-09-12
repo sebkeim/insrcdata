@@ -25,13 +25,19 @@ pub enum TypeImpl {
     Variant,
 }
 
-pub struct ColumnInfo {
+#[derive(Default)]
+pub struct ColumnConfig {
     pub name: String,
+    pub iterable: bool,
+    pub optional: bool,
+    pub help: String,
+}
+
+pub struct ColumnInfo {
+    pub config: ColumnConfig,
     pub len: usize,
     pub interface_type: basetype::BaseType, // for public API
     pub table_type: basetype::BaseType,     // for data table
-    pub iterable: bool,
-    pub optional: bool,
 }
 
 impl ColumnInfo {
@@ -52,7 +58,7 @@ impl ColumnInfo {
             | BaseType::Str
             | BaseType::Object { .. } => TypeImpl::Scalar,
             BaseType::Join { .. } => {
-                if self.optional {
+                if self.config.optional {
                     TypeImpl::JoinOptional
                 } else {
                     TypeImpl::Join
@@ -72,7 +78,7 @@ impl ColumnInfo {
     pub fn has_iter_range(&self) -> bool {
         match self.interface_type {
             basetype::BaseType::Join { .. } | basetype::BaseType::Variant => false, // implemented target Table by col_reverse_join
-            _ => self.iterable,
+            _ => self.config.iterable,
         }
     }
 }
@@ -87,6 +93,19 @@ pub struct Variant {
 
 pub trait Column {
     fn info(&self) -> &ColumnInfo;
+
+    fn name(&self) -> &String {
+        &self.info().config.name
+    }
+    fn iterable(&self) -> bool {
+        self.info().config.iterable
+    }
+    fn optional(&self) -> bool {
+        self.info().config.optional
+    }
+    fn help(&self) -> &String {
+        &self.info().config.help
+    }
 
     // cell value
     fn emit_table_cell(&self, row: usize, lang: &dyn Language) -> String;
@@ -146,7 +165,7 @@ impl Table {
 
             match info.table_type {
                 basetype::BaseType::Label { .. } => {
-                    if !info.name.is_empty() {
+                    if !col.name().is_empty() {
                         // tolabel option is set
                         outcol_indexes.push(index)
                     }
@@ -180,13 +199,13 @@ impl Table {
             let mut colnames = HashSet::<&String>::new();
             for col in &self.data_columns() {
                 let info = col.info();
-                lt_table.context(&info.name, |lt_col| {
-                    lt_col.err(lint::label(&info.name), "invalid column name");
-                    lt_col.err(!colnames.contains(&info.name), "duplicated column name");
+                lt_table.context(col.name(), |lt_col| {
+                    lt_col.err(lint::label(col.name()), "invalid column name");
+                    lt_col.err(!colnames.contains(col.name()), "duplicated column name");
                     lt_col.err(self.len == info.len, "mismatched number of rows");
                     col.lint(lt_col)
                 });
-                colnames.insert(&info.name);
+                colnames.insert(col.name());
             }
         })
     }
@@ -241,7 +260,7 @@ impl<'a> JoinTo<'a> {
         JoinTo {
             table: join,
             col,
-            offset: col.info().optional as usize,
+            offset: col.optional() as usize,
             reverse_name: col.reverse_name().to_string(),
         }
     }
@@ -320,7 +339,7 @@ impl Project {
     // check if iterator datatype must be declared
     pub fn table_need_iter(&self, table: &Table) -> bool {
         for col in &table.columns {
-            if col.info().iterable {
+            if col.iterable() {
                 return true;
             }
         }
@@ -339,7 +358,7 @@ impl Project {
                 let info = col.info();
                 match &info.interface_type {
                     basetype::BaseType::Join { strname, .. } => {
-                        if strname == &table.name && info.iterable {
+                        if strname == &table.name && col.iterable() {
                             columns.push(JoinTo::from_join(join, col.as_ref()));
                         }
                     }
@@ -407,8 +426,22 @@ mod tests {
 
     #[test]
     fn duplicate_col_name() {
-        let a1 = ColStr::parse("mycol", &vec![], false).unwrap();
-        let a2 = ColStr::parse("mycol", &vec![], false).unwrap();
+        let a1 = ColStr::parse(
+            ColumnConfig {
+                name: "mycol".to_string(),
+                ..Default::default()
+            },
+            &vec![],
+        )
+        .unwrap();
+        let a2 = ColStr::parse(
+            ColumnConfig {
+                name: "mycol".to_string(),
+                ..Default::default()
+            },
+            &vec![],
+        )
+        .unwrap();
 
         let t = Table::new("table", vec![a1, a2], false);
 

@@ -8,7 +8,7 @@
 
 use crate::colvariant::ColVariant;
 use crate::language::Language;
-use crate::table::Project;
+use crate::table::{ColumnConfig, Project};
 use crate::{
     aperror, basetype, colbool, colfloat, colint, coljoin, collabel, colobject, colstr, colvariant,
     language, lint, log, table,
@@ -175,6 +175,7 @@ impl Col {
 
     fn create_object(
         &self,
+        config: ColumnConfig,
         strvals: &[String],
         ctx: &ColContext,
     ) -> aperror::Result<Box<dyn table::Column>> {
@@ -184,7 +185,7 @@ impl Col {
         };
 
         Ok(Box::new(colobject::ColObject::new(
-            &self.name,
+            config,
             strvals.to_owned(),
             &target.r#type,
             target.template.as_deref().unwrap_or("{}"),
@@ -194,6 +195,7 @@ impl Col {
 
     fn create_label(
         &self,
+        mut config: ColumnConfig,
         strvals: &[String],
         ctx: &ColContext,
     ) -> aperror::Result<Box<dyn table::Column>> {
@@ -213,13 +215,14 @@ impl Col {
         };
 
         // we use empty value to prevent label column generation
-        let tolabel = if ctx.table_context.lang.to_label() {
-            self.as_label.as_deref().unwrap_or("")
+        let namespace = config.name;
+        config.name = if ctx.table_context.lang.to_label() {
+            self.as_label.as_deref().unwrap_or("").to_string()
         } else {
-            ""
+            String::new()
         };
 
-        collabel::ColLabel::parse(&self.name, strvals, tolabel, label_helps)
+        collabel::ColLabel::parse(config, &namespace, strvals, label_helps)
     }
     /// generate column object from configuration
     fn create(&self, ctx: &ColContext) -> aperror::Result<Box<dyn table::Column>> {
@@ -231,26 +234,30 @@ impl Col {
             return Err(aperror::Error::new(&format!("column not found {}", key)));
         };
 
-        let name = &self.name;
-        let iterable = self.range.unwrap_or(false);
+        let config = ColumnConfig {
+            name: self.name.to_owned(),
+            iterable: self.range.unwrap_or(false),
+            optional: false,
+            help: "".to_string(),
+        };
 
         // generate column from field type
         let format = self.format.as_deref().unwrap_or("str");
         match format {
-            "bool" => colbool::ColBool::parse(name, strvals, iterable),
-            "f32" => colfloat::ColF32::parse(name, strvals, iterable),
-            "f64" => colfloat::ColF64::parse(name, strvals, iterable),
-            "i8" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I8),
-            "i16" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I16),
-            "i32" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I32),
-            "i64" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::I64),
-            "u8" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U8),
-            "u16" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U16),
-            "u32" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U32),
-            "u64" => colint::ColInt::parse(name, strvals, iterable, basetype::BaseType::U64),
-            "str" => colstr::ColStr::parse(name, strvals, iterable),
-            "label" => self.create_label(strvals, ctx),
-            "object" => self.create_object(strvals, ctx),
+            "bool" => colbool::ColBool::parse(config, strvals),
+            "f32" => colfloat::ColF32::parse(config, strvals),
+            "f64" => colfloat::ColF64::parse(config, strvals),
+            "i8" => colint::ColInt::parse(config, strvals, basetype::BaseType::I8),
+            "i16" => colint::ColInt::parse(config, strvals, basetype::BaseType::I16),
+            "i32" => colint::ColInt::parse(config, strvals, basetype::BaseType::I32),
+            "i64" => colint::ColInt::parse(config, strvals, basetype::BaseType::I64),
+            "u8" => colint::ColInt::parse(config, strvals, basetype::BaseType::U8),
+            "u16" => colint::ColInt::parse(config, strvals, basetype::BaseType::U16),
+            "u32" => colint::ColInt::parse(config, strvals, basetype::BaseType::U32),
+            "u64" => colint::ColInt::parse(config, strvals, basetype::BaseType::U64),
+            "str" => colstr::ColStr::parse(config, strvals),
+            "label" => self.create_label(config, strvals, ctx),
+            "object" => self.create_object(config, strvals, ctx),
             _ => Err(aperror::Error::new(&format!(
                 "unknown column type '{}'",
                 format
@@ -303,12 +310,18 @@ impl Join {
             return Err(aperror::Error::new(&format!("column not found {}", dest_col)));
         };
 
+        let config = ColumnConfig {
+            name: self.name.to_owned(),
+            iterable: false, // will be computed from reverse
+            optional: self.optional.unwrap_or_default(),
+            help: "".to_string(),
+        };
+
         Ok(Box::new(coljoin::ColJoin::new(
-            &self.name,
+            config,
             values,
             dest_table,
             dest_keys,
-            self.optional.unwrap_or_default(),
             self.reverse.as_ref().unwrap_or(&String::new()),
         )))
     }
@@ -385,12 +398,14 @@ impl Variant {
             dests.push(n.to_dest(dest_keys, dest_table.to_string()));
         }
 
-        ColVariant::parse(
-            &self.name,
-            values,
-            self.optional.unwrap_or_default(),
-            &mut dests,
-        )
+        let config = ColumnConfig {
+            name: self.name.to_owned(),
+            iterable: false, // will be computed from reverse
+            optional: self.optional.unwrap_or_default(),
+            help: "".to_string(),
+        };
+
+        ColVariant::parse(config, values, &mut dests)
     }
 
     fn src_name(&self) -> &String {

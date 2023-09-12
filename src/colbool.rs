@@ -6,6 +6,7 @@
 //
 
 use crate::language::Language;
+use crate::table::ColumnConfig;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 
@@ -58,19 +59,16 @@ pub fn parse_vec_bool(strvals: &[String]) -> aperror::Result<Vec<bool>> {
 
 impl ColBool {
     pub fn parse(
-        name: &str,
+        config: ColumnConfig,
         strvals: &[String],
-        iterable: bool,
     ) -> aperror::Result<Box<dyn table::Column>> {
         let values = parse_vec_bool(strvals)?;
         Ok(Box::new(ColBool {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type: basetype::BaseType::Bool,
                 table_type: basetype::BaseType::Bool,
-                iterable,
-                optional: false,
             },
             values,
         }))

@@ -6,6 +6,7 @@
 //
 
 use crate::language::Language;
+use crate::table::ColumnConfig;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 
@@ -38,18 +39,15 @@ impl table::Column for ColStr {
 
 impl ColStr {
     pub fn parse(
-        name: &str,
+        config: ColumnConfig,
         values: &Vec<String>,
-        iterable: bool,
     ) -> aperror::Result<Box<dyn table::Column>> {
         Ok(Box::new(ColStr {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type: basetype::BaseType::Str,
                 table_type: basetype::BaseType::Str,
-                iterable,
-                optional: false,
             },
             values: values.to_owned(),
         }))

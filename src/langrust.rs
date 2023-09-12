@@ -83,7 +83,7 @@ fn getter_col(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let info = col.info();
-    let field = field_name(&info.name);
+    let field = field_name(col.name());
     match &info.type_impl() {
         table::TypeImpl::Label => {
             let outtype = strtype(&info.interface_type);
@@ -168,11 +168,11 @@ fn iter_col(
 ) -> io::Result<()> {
     let info = col.info();
 
-    let field = field_name(&info.name);
+    let field = field_name(col.name());
     let argtype = argtype(&info.interface_type);
     let modname = mod_name(&table.name);
     let tablename = table_name(&table.name);
-    let indexname = index_name(&table.name, &info.name);
+    let indexname = index_name(&table.name, col.name());
     let cast = cast_to_interface_type(info);
 
     writeln!(
@@ -216,14 +216,14 @@ fn reverse_join(table: &table::Table, rj: &JoinTo, output: &mut dyn io::Write) -
     }
 
     let info = rj.col.info();
-    let field = field_name(&info.name);
+    let field = field_name(rj.col.name());
     let reverse = &rj.reverse_name;
     let srcmod = mod_name(&rj.table.name);
     let srcstruct = struct_name(&rj.table.name);
     let joinmod = mod_name(&table.name);
     let tabletype = strtype(&info.table_type);
     let offset = stroffset(rj.offset as isize);
-    let indexname = index_name(&rj.table.name, &info.name);
+    let indexname = index_name(&rj.table.name, rj.col.name());
 
     writeln!(
         output,
@@ -322,7 +322,7 @@ fn write_index(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let indexes = col.indexes();
-    let uperfield = const_name(&col.info().name);
+    let uperfield = const_name(col.name());
     let indextype = strtype(&table.index_type());
     let len = indexes.len();
 
@@ -346,7 +346,7 @@ fn write_index(
 // ================================================================================================
 fn variant_type_name(table: &table::Table, col: &dyn table::Column) -> String {
     let strname = struct_name(&table.name);
-    let varname = struct_name(&col.info().name);
+    let varname = struct_name(col.name());
     format!("{strname}{varname}")
 }
 fn write_variant(
@@ -388,7 +388,7 @@ fn getter_variant(
 ) -> io::Result<()> {
     let variants = col.variants().expect("variant must have variant");
     let vartypname = variant_type_name(table, col);
-    let field = field_name(&col.info().name);
+    let field = field_name(col.name());
 
     writeln!(
         output,
@@ -436,20 +436,15 @@ fn write_ctor_function(
     for col in outcols {
         let info = col.info();
         let typ = modtype(&info.table_type);
-        write!(output, "{}:{}, ", field_name(&info.name), typ)?;
+        write!(output, "{}:{}, ", field_name(col.name()), typ)?;
     }
     write!(output, ") -> {} ", strname)?;
 
     // body
     write!(output, "{{\n    {}{{", strname)?;
     for col in outcols {
-        let info = col.info();
-        write!(
-            output,
-            "{}_:{}, ",
-            field_name(&info.name),
-            field_name(&info.name)
-        )?;
+        let field = field_name(col.name());
+        write!(output, "{field}_:{field}, ")?;
     }
     write!(output, "}}\n}}\n\n")
 }
@@ -469,7 +464,7 @@ fn table_data(
     for col in &datacols {
         let info = col.info();
         let fieldtype = strtype(&info.table_type);
-        writeln!(output, "    {}_ : {},", field_name(&info.name), fieldtype)?;
+        writeln!(output, "    {}_ : {},", field_name(col.name()), fieldtype)?;
     }
     writeln!(
         output,
@@ -552,7 +547,7 @@ pub fn index_of(fic:&{strname}) -> usize {{
 
     // indexes
     for col in &datacols {
-        if col.info().iterable {
+        if col.iterable() {
             write_index(table, *col, output)?;
         }
     }

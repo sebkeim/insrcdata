@@ -6,6 +6,7 @@
 //
 
 use crate::language::Language;
+use crate::table::ColumnConfig;
 use crate::{aperror, table};
 use crate::{basetype, lint};
 
@@ -54,9 +55,8 @@ impl table::Column for ColInt {
 
 impl ColInt {
     pub fn parse(
-        name: &str,
+        config: ColumnConfig,
         strvals: &[String],
-        iterable: bool,
         interface_type: basetype::BaseType,
     ) -> aperror::Result<Box<dyn table::Column>> {
         let values = table::parse_vec::<i64>(strvals)?;
@@ -66,12 +66,10 @@ impl ColInt {
 
         Ok(Box::new(ColInt {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type,
                 table_type: basetype::int_type_for_range(min..=max),
-                iterable,
-                optional: false,
             },
             values,
             min, // minimal value
@@ -86,8 +84,12 @@ mod tests {
 
     #[test]
     fn u8_no_oveflow() {
-        let c =
-            ColInt::parse("", &vec!["123".to_string()], false, basetype::BaseType::U8).expect("");
+        let c = ColInt::parse(
+            ColumnConfig::default(),
+            &vec!["123".to_string()],
+            basetype::BaseType::U8,
+        )
+        .expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 0);
@@ -95,8 +97,12 @@ mod tests {
 
     #[test]
     fn u8_oveflow() {
-        let c =
-            ColInt::parse("", &vec!["300".to_string()], false, basetype::BaseType::U8).expect("");
+        let c = ColInt::parse(
+            ColumnConfig::default(),
+            &vec!["300".to_string()],
+            basetype::BaseType::U8,
+        )
+        .expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);
@@ -104,8 +110,12 @@ mod tests {
 
     #[test]
     fn u8_underflow() {
-        let c =
-            ColInt::parse("", &vec!["-1".to_string()], false, basetype::BaseType::U8).expect("");
+        let c = ColInt::parse(
+            ColumnConfig::default(),
+            &vec!["-1".to_string()],
+            basetype::BaseType::U8,
+        )
+        .expect("");
         let linter = lint::test_linter();
         c.lint(&linter);
         assert!(linter.errors() == 1);

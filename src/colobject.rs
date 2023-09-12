@@ -7,6 +7,7 @@
 
 use crate::language::Language;
 use crate::table;
+use crate::table::ColumnConfig;
 use crate::{basetype, lint};
 use std::collections::HashSet;
 
@@ -48,7 +49,7 @@ impl table::Column for ColObject {
 
 impl ColObject {
     pub fn new(
-        name: &str,
+        config: ColumnConfig,
         values: Vec<String>,
         objtype: &str,
         template: &str,
@@ -56,7 +57,7 @@ impl ColObject {
     ) -> ColObject {
         ColObject {
             info: table::ColumnInfo {
-                name: name.to_string(),
+                config,
                 len: values.len(),
                 interface_type: basetype::BaseType::Object {
                     objtype: objtype.to_string(),
@@ -64,8 +65,6 @@ impl ColObject {
                 table_type: basetype::BaseType::Object {
                     objtype: objtype.to_string(),
                 },
-                iterable: false,
-                optional: false,
             },
             values,
             template: template.to_string(),
