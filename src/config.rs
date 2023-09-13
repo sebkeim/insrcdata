@@ -685,7 +685,6 @@ impl Config {
                 linter.errors(),
             )));
         }
-
         Ok(project)
     }
 }

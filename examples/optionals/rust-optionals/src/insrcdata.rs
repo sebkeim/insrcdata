@@ -5,15 +5,19 @@ pub enum Adhocs {
     Filled = 0,
     Empty = 1,
 }
-impl std::ops::Deref for Adhocs {
-    type Target =  Adhoc;
-    fn deref(&self) -> &'static Adhoc {
-        &adhoc::TABLE[*self as usize]
+impl From<Adhocs> for  &'static Adhoc{
+    fn from(value:Adhocs) -> Self {
+        &adhoc::TABLE[value as usize]
     }
 }
-impl PartialEq<&Adhoc> for Adhocs {
-    fn eq(&self, other: &&Adhoc) -> bool {
-        std::ptr::eq(self as &Adhoc, *other)
+impl From<&Adhocs> for  &'static Adhoc{
+    fn from(value: &Adhocs) -> Self {
+        &adhoc::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Adhocs> for &Adhoc {
+    fn eq(&self, other: &Adhocs) -> bool {
+        std::ptr::eq(<&Adhoc>::from(other), *self)
     }
 }
 
@@ -127,15 +131,19 @@ pub enum Optjoins {
     Filled = 0,
     Empty = 1,
 }
-impl std::ops::Deref for Optjoins {
-    type Target =  Optjoin;
-    fn deref(&self) -> &'static Optjoin {
-        &optjoin::TABLE[*self as usize]
+impl From<Optjoins> for  &'static Optjoin{
+    fn from(value:Optjoins) -> Self {
+        &optjoin::TABLE[value as usize]
     }
 }
-impl PartialEq<&Optjoin> for Optjoins {
-    fn eq(&self, other: &&Optjoin) -> bool {
-        std::ptr::eq(self as &Optjoin, *other)
+impl From<&Optjoins> for  &'static Optjoin{
+    fn from(value: &Optjoins) -> Self {
+        &optjoin::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Optjoins> for &Optjoin {
+    fn eq(&self, other: &Optjoins) -> bool {
+        std::ptr::eq(<&Optjoin>::from(other), *self)
     }
 }
 

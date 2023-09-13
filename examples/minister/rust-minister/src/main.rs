@@ -1,4 +1,4 @@
-use crate::insrcdata::{Countries, Minister, Ministers};
+use crate::insrcdata::{Countries, Country, Minister, Ministers};
 
 #[allow(dead_code)]
 #[allow(unused_variables)]
@@ -6,9 +6,11 @@ mod insrcdata;
 
 // overview of insrcdata
 
+
+
 fn main() {
-    // get individual elements
-    let g_brown = Ministers::GordonBrown;
+
+    let g_brown:&Minister =  Ministers::GordonBrown.into();
 
     // access it's attributes
     println!("{} was born in {}.", g_brown.name(), g_brown.birth());
@@ -22,7 +24,7 @@ fn main() {
     }
     
     // perform reverse lookup between tables
-    for minister in Countries::Gb.ministers() {
+    for minister in <&Country>::from(Countries::Uk).ministers() {
         println!("{}", minister.name());
     }
 }

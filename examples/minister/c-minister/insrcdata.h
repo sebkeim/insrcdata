@@ -40,7 +40,7 @@ extern const country_t* minister_country(const minister_t* s);
 
 // ------    
 typedef enum {
-     COUNTRIES_GB = 0,
+     COUNTRIES_UK = 0,
      COUNTRIES_IT = 1,
 } countries_t;
 const country_t* country_from_countries(countries_t label);

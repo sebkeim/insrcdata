@@ -7,15 +7,19 @@ pub enum Persons {
     Irene = 2,
     Frederic = 3,
 }
-impl std::ops::Deref for Persons {
-    type Target =  Person;
-    fn deref(&self) -> &'static Person {
-        &person::TABLE[*self as usize]
+impl From<Persons> for  &'static Person{
+    fn from(value:Persons) -> Self {
+        &person::TABLE[value as usize]
     }
 }
-impl PartialEq<&Person> for Persons {
-    fn eq(&self, other: &&Person) -> bool {
-        std::ptr::eq(self as &Person, *other)
+impl From<&Persons> for  &'static Person{
+    fn from(value: &Persons) -> Self {
+        &person::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Persons> for &Person {
+    fn eq(&self, other: &Persons) -> bool {
+        std::ptr::eq(<&Person>::from(other), *self)
     }
 }
 
@@ -279,15 +283,19 @@ pub enum Lettercases {
     Upper = 1,
     Lower = 2,
 }
-impl std::ops::Deref for Lettercases {
-    type Target =  Lettercase;
-    fn deref(&self) -> &'static Lettercase {
-        &lettercase::TABLE[*self as usize]
+impl From<Lettercases> for  &'static Lettercase{
+    fn from(value:Lettercases) -> Self {
+        &lettercase::TABLE[value as usize]
     }
 }
-impl PartialEq<&Lettercase> for Lettercases {
-    fn eq(&self, other: &&Lettercase) -> bool {
-        std::ptr::eq(self as &Lettercase, *other)
+impl From<&Lettercases> for  &'static Lettercase{
+    fn from(value: &Lettercases) -> Self {
+        &lettercase::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Lettercases> for &Lettercase {
+    fn eq(&self, other: &Lettercases) -> bool {
+        std::ptr::eq(<&Lettercase>::from(other), *self)
     }
 }
 

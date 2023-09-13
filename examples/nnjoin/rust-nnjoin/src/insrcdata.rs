@@ -6,15 +6,19 @@ pub enum Clients {
     Alix = 1,
     David = 2,
 }
-impl std::ops::Deref for Clients {
-    type Target =  Client;
-    fn deref(&self) -> &'static Client {
-        &client::TABLE[*self as usize]
+impl From<Clients> for  &'static Client{
+    fn from(value:Clients) -> Self {
+        &client::TABLE[value as usize]
     }
 }
-impl PartialEq<&Client> for Clients {
-    fn eq(&self, other: &&Client) -> bool {
-        std::ptr::eq(self as &Client, *other)
+impl From<&Clients> for  &'static Client{
+    fn from(value: &Clients) -> Self {
+        &client::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Clients> for &Client {
+    fn eq(&self, other: &Clients) -> bool {
+        std::ptr::eq(<&Client>::from(other), *self)
     }
 }
 
@@ -111,15 +115,19 @@ pub enum Products {
     Peach = 2,
     Cherry = 3,
 }
-impl std::ops::Deref for Products {
-    type Target =  Product;
-    fn deref(&self) -> &'static Product {
-        &product::TABLE[*self as usize]
+impl From<Products> for  &'static Product{
+    fn from(value:Products) -> Self {
+        &product::TABLE[value as usize]
     }
 }
-impl PartialEq<&Product> for Products {
-    fn eq(&self, other: &&Product) -> bool {
-        std::ptr::eq(self as &Product, *other)
+impl From<&Products> for  &'static Product{
+    fn from(value: &Products) -> Self {
+        &product::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Products> for &Product {
+    fn eq(&self, other: &Products) -> bool {
+        std::ptr::eq(<&Product>::from(other), *self)
     }
 }
 

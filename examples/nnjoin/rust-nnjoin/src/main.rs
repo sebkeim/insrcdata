@@ -8,18 +8,20 @@ mod insrcdata;
 // This example maintain the many-to-many relationship between Client et Product with the Transaction table.
 
 // All product for a client
-fn print_product_list(client: &insrcdata::Client) {
-    print!("*  {}:", client.name());
-    for transaction in client.transactions() {
+fn print_product_list(client: &insrcdata::Clients) {
+    let info: &insrcdata::Client = client.into();
+    print!("*  {}:", info.name());
+    for transaction in info.transactions() {
         print!(" {}", transaction.product().name());
     }
     println!();
 }
 
 // All clients for a product
-fn print_client_list(product: &insrcdata::Product) {
-    print!("*  {}:", product.name());
-    for transaction in product.transactions() {
+fn print_client_list(product: &insrcdata::Products) {
+    let info: &insrcdata::Product = product.into();
+    print!("*  {}:", info.name());
+    for transaction in info.transactions() {
         print!(" {}", transaction.client().name());
     }
     println!();

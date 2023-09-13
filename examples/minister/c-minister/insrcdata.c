@@ -33,7 +33,7 @@ ministers_t minister_ministers(const minister_t *s) {
 
 static unsigned const COUNTRY_TABLE_COUNT = 2;
 static const country_t COUNTRY_TABLE[COUNTRY_TABLE_COUNT] = {
-   {"GB", "United Kingdom", },
+   {"UK", "United Kingdom", },
    {"IT", "Italy", },
 };
 

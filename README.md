@@ -43,6 +43,7 @@ You will find several uses in the sample directory.
 We suggest to start with the [HelloWorld tutorial](https://github.com/sebkeim/insrcdata/wiki/Hello-World-tutorial)
 
 ### Installing
+Note that installation is not needed [cargo build script](https://github.com/sebkeim/insrcdata/wiki)
 
 You can build *insrcdata* from source. 
 You will need [Rust](https://www.rust-lang.org/) compiler suite.

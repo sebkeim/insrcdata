@@ -13,15 +13,19 @@ pub enum Labels {
     ShoutyKebabCase = 8,
     TrainCase = 9,
 }
-impl std::ops::Deref for Labels {
-    type Target =  Label;
-    fn deref(&self) -> &'static Label {
-        &label::TABLE[*self as usize]
+impl From<Labels> for  &'static Label{
+    fn from(value:Labels) -> Self {
+        &label::TABLE[value as usize]
     }
 }
-impl PartialEq<&Label> for Labels {
-    fn eq(&self, other: &&Label) -> bool {
-        std::ptr::eq(self as &Label, *other)
+impl From<&Labels> for  &'static Label{
+    fn from(value: &Labels) -> Self {
+        &label::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Labels> for &Label {
+    fn eq(&self, other: &Labels) -> bool {
+        std::ptr::eq(<&Label>::from(other), *self)
     }
 }
 

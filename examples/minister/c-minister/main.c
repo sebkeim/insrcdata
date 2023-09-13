@@ -26,8 +26,8 @@ int main(void)
       }
       
       // perform reverse lookup between tables
-      const country_t* gb = country_from_countries(COUNTRIES_GB);
-      iter = country_ministers(gb);
+      const country_t* uk = country_from_countries(COUNTRIES_UK);
+      iter = country_ministers(uk);
       while( (minister = minister_next(&iter)) ){
             printf("%s\n", minister_name(minister));
       }

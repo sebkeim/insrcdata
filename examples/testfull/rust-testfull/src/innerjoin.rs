@@ -2,10 +2,10 @@ use crate::{insrcdata as db, insrcdata};
 
 // Inner join is when your join column reference a record in the same table
 pub fn test_innerjoin() {
-    let marie = db::Persons::Marie;
-    let pierre = db::Persons::Pierre;
-    let irene = db::Persons::Irene;
-    let frederic = db::Persons::Frederic;
+    let marie: &db::Person = db::Persons::Marie.into();
+    let pierre: &db::Person = db::Persons::Pierre.into();
+    let irene: &db::Person = db::Persons::Irene.into();
+    let frederic: &db::Person = db::Persons::Frederic.into();
 
     assert!(marie.name() == "Marie Curie");
     assert!(pierre.name() == "Pierre Curie");
@@ -30,8 +30,8 @@ pub fn test_innerjoin() {
 }
 
 pub fn test_bool() {
-    let marie = db::Persons::Marie;
-    let pierre = db::Persons::Pierre;
+    let marie: &db::Person = db::Persons::Marie.into();
+    let pierre: &db::Person = db::Persons::Pierre.into();
 
     assert!(marie.woman());
     assert!(!pierre.woman());
@@ -48,8 +48,8 @@ pub fn test_bool() {
 }
 
 pub fn test_float() {
-    let marie = db::Persons::Marie;
-    let pierre = db::Persons::Pierre;
+    let marie: &db::Person = db::Persons::Marie.into();
+    let pierre: &db::Person = db::Persons::Pierre.into();
 
     assert!(marie.score() == 1.0);
     assert!(pierre.score() == 2.1);
@@ -90,30 +90,54 @@ pub fn test_float() {
 // variant column
 pub fn test_variant_non_optional() {
     let q_marie = &insrcdata::Wikidata::array()[0];
-    assert!(insrcdata::WikidataObject::Person(&insrcdata::Persons::Marie) == q_marie.object());
+    assert!(
+        insrcdata::WikidataObject::Person(insrcdata::Persons::Marie.into()) == q_marie.object()
+    );
 
     let q_lower = &insrcdata::Wikidata::array()[1];
     assert!(
-        insrcdata::WikidataObject::Lettercase(&insrcdata::Lettercases::Lower) == q_lower.object()
+        insrcdata::WikidataObject::Lettercase(insrcdata::Lettercases::Lower.into())
+            == q_lower.object()
     );
 
-    assert!(insrcdata::Lettercases::Lower.wdata2().next().unwrap() == q_lower);
+    assert!(
+        <&insrcdata::Lettercase>::from(insrcdata::Lettercases::Lower)
+            .wdata2()
+            .next()
+            .unwrap()
+            == q_lower
+    );
 
-    assert!(insrcdata::Persons::Pierre.wdata().next().is_none());
+    assert!(<&insrcdata::Person>::from(insrcdata::Persons::Pierre)
+        .wdata()
+        .next()
+        .is_none());
 }
 
 pub fn test_variant_optional() {
     let q_marie = &insrcdata::Congress::array()[0];
-    assert!(insrcdata::CongressObject::Person(&insrcdata::Persons::Marie) == q_marie.object());
+    assert!(
+        insrcdata::CongressObject::Person(insrcdata::Persons::Marie.into()) == q_marie.object()
+    );
 
     let q_lower = &insrcdata::Congress::array()[1];
     assert!(
-        insrcdata::CongressObject::Lettercase(&insrcdata::Lettercases::Lower) == q_lower.object()
+        insrcdata::CongressObject::Lettercase(insrcdata::Lettercases::Lower.into())
+            == q_lower.object()
     );
 
-    assert!(insrcdata::Lettercases::Lower.congress().next().unwrap() == q_lower);
+    assert!(
+        <&insrcdata::Lettercase>::from(insrcdata::Lettercases::Lower)
+            .congress()
+            .next()
+            .unwrap()
+            == q_lower
+    );
 
-    assert!(insrcdata::Persons::Pierre.congress().next().is_none());
+    assert!(<&insrcdata::Person>::from(insrcdata::Persons::Pierre)
+        .congress()
+        .next()
+        .is_none());
 
     let q_france = &insrcdata::Congress::array()[3];
     assert!(insrcdata::CongressObject::None == q_france.object());

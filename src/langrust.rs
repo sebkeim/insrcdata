@@ -296,15 +296,19 @@ fn col_labels(
     if table.has_data() {
         writeln!(
             output,
-            "impl std::ops::Deref for {enumname} {{
-    type Target =  {strname};
-    fn deref(&self) -> &'static {strname} {{
-        &{modname}::TABLE[*self as usize]
+            "impl From<{enumname}> for  &'static {strname}{{
+    fn from(value:{enumname}) -> Self {{
+        &{modname}::TABLE[value as usize]
     }}
 }}
-impl PartialEq<&{strname}> for {enumname} {{
-    fn eq(&self, other: &&{strname}) -> bool {{
-        std::ptr::eq(self as &{strname}, *other)
+impl From<&{enumname}> for  &'static {strname}{{
+    fn from(value: &{enumname}) -> Self {{
+        &{modname}::TABLE[*value as usize]
+    }}
+}}
+impl PartialEq<{enumname}> for &{strname} {{
+    fn eq(&self, other: &{enumname}) -> bool {{
+        std::ptr::eq(<&{strname}>::from(other), *self)
     }}
 }}
 "

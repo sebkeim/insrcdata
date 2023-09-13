@@ -44,14 +44,15 @@ fn print_country(country: &db::Country) {
 
 pub fn demo() {
     // row access by label
-    let belgium = db::Countries::Belgium;
+    let belgium:&db::Country = db::Countries::Belgium.into();
     // we can access data members from the label
     println!("\n  infos for {} :", belgium.name());
     // but we ned to deref the label to pass the row reference to a function
-    print_country(&belgium);
+    print_country(belgium);
 
     println!("\n  info for a country without subregion");
-    print_country(&db::Countries::Antarctica);
+    let antartica:&db::Country = db::Countries::Antarctica.into();
+    print_country(antartica);
 
     println!("\n  all countries with  alpha3 code starting by 'F'");
     for country in db::Country::alpha3_range("F", "G") {
@@ -106,7 +107,7 @@ fn test_sdn_sgp(start: &str, stop: &str) {
 }
 
 pub fn test() {
-    let belgium = db::Countries::Belgium;
+    let belgium:&db::Country = db::Countries::Belgium.into();
     assert!(belgium.name() == "Belgium");
     assert!(belgium.alpha3() == "BEL");
     assert!(belgium.alpha2() == "BE");
@@ -125,6 +126,10 @@ pub fn test() {
     let africa = subsahara.region();
     assert!(africa.code() == 2);
     assert!(!africa.in_eurasia());
+
+    // equality
+    assert!(belgium==db::Countries::Belgium);
+    assert!(benin!=db::Countries::Antarctica);
 
     // check reverse join 0..1
     let mut benin_in_subsahara = false;

@@ -21,7 +21,7 @@ impl Optional for insrcdata::Optjoin {
 //  optjoin strategy usage sample
 pub fn sample() {
     println!("    Optional join strategy");
-    insrcdata::Optjoins::Filled.print("Filled");
-    insrcdata::Optjoins::Empty.print("Empty");
+    <&insrcdata::Optjoin>::from(insrcdata::Optjoins::Filled).print("Filled");
+    <&insrcdata::Optjoin>::from(insrcdata::Optjoins::Empty).print("Empty");
     println!();
 }

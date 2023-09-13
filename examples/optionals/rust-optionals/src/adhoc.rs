@@ -32,7 +32,7 @@ impl Optional for insrcdata::Adhoc {
 //  ad-hoc strategy usage sample
 pub fn sample() {
     println!("    Adhoc strategy");
-    insrcdata::Adhocs::Filled.print("Filled");
-    insrcdata::Adhocs::Empty.print("Empty");
+    <&insrcdata::Adhoc>::from(insrcdata::Adhocs::Filled).print("Filled");
+    <&insrcdata::Adhoc>::from(insrcdata::Adhocs::Empty).print("Empty");
     println!();
 }

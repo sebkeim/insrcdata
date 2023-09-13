@@ -6,15 +6,19 @@ pub enum Ministers {
     GordonBrown = 1,
     RomanoProdi = 2,
 }
-impl std::ops::Deref for Ministers {
-    type Target =  Minister;
-    fn deref(&self) -> &'static Minister {
-        &minister::TABLE[*self as usize]
+impl From<Ministers> for  &'static Minister{
+    fn from(value:Ministers) -> Self {
+        &minister::TABLE[value as usize]
     }
 }
-impl PartialEq<&Minister> for Ministers {
-    fn eq(&self, other: &&Minister) -> bool {
-        std::ptr::eq(self as &Minister, *other)
+impl From<&Ministers> for  &'static Minister{
+    fn from(value: &Ministers) -> Self {
+        &minister::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Ministers> for &Minister {
+    fn eq(&self, other: &Ministers) -> bool {
+        std::ptr::eq(<&Minister>::from(other), *self)
     }
 }
 
@@ -111,18 +115,22 @@ pub static COUNTRY_INDEX : [ u8 ; 3 ] = [
 pub use minister::IndexIter as MinisterIter;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Countries {
-    Gb = 0,
+    Uk = 0,
     It = 1,
 }
-impl std::ops::Deref for Countries {
-    type Target =  Country;
-    fn deref(&self) -> &'static Country {
-        &country::TABLE[*self as usize]
+impl From<Countries> for  &'static Country{
+    fn from(value:Countries) -> Self {
+        &country::TABLE[value as usize]
     }
 }
-impl PartialEq<&Country> for Countries {
-    fn eq(&self, other: &&Country) -> bool {
-        std::ptr::eq(self as &Country, *other)
+impl From<&Countries> for  &'static Country{
+    fn from(value: &Countries) -> Self {
+        &country::TABLE[*value as usize]
+    }
+}
+impl PartialEq<Countries> for &Country {
+    fn eq(&self, other: &Countries) -> bool {
+        std::ptr::eq(<&Country>::from(other), *self)
     }
 }
 
@@ -206,7 +214,7 @@ const fn r(code:&'static str, name:&'static str, ) -> Country {
 }
 
 pub static TABLE : [ Country ; 2 ] = [
-   {r("GB", "United Kingdom", )},
+   {r("UK", "United Kingdom", )},
    {r("IT", "Italy", )},
 ];
 
