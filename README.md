@@ -1,7 +1,6 @@
 # insrcdata
 *embed your data*
 
-
 insrcdata is a source code generator for embedding tabular data as a static array
 
 ## Why embedding data in code
@@ -36,14 +35,18 @@ The code can be generated for several languages : Rust and C today, other target
 
 ## Usage
 
-*insrcdata* is a command line tool that will generate source code from data in [.csv](Comma-separated values) file 
-and configuration in a [.toml](https://toml.io)  file
+*insrcdata* is a command line tool that will generate source code from data in [.csv](https://en.wikipedia.org/wiki/Comma-separated_values) file 
+and configuration in a [.toml](https://toml.io) file
+
+If you are developing in Rust, *insrcdata*  can be integrated in the build chain of your project 
+by using a [cargo build script](https://github.com/sebkeim/insrcdata/wiki/Rust-build-script).
 
 You will find several uses in the sample directory. 
 We suggest to start with the [HelloWorld tutorial](https://github.com/sebkeim/insrcdata/wiki/Hello-World-tutorial)
 
 ### Installing
-Note that installation is not needed [cargo build script](https://github.com/sebkeim/insrcdata/wiki)
+Note that installation is not needed if you use a  [cargo build script](https://github.com/sebkeim/insrcdata/wiki/Rust-build-script)
+since all the dependencies will be installed by cargo.
 
 You can build *insrcdata* from source. 
 You will need [Rust](https://www.rust-lang.org/) compiler suite.
@@ -53,7 +56,6 @@ In a terminal, go at the root of insrcdata source and type :
 cargo build
 ```
 you will find *insrcdata* executable  in the target/debug subdirectory.
-
 
 ### Data source csv file
 You will use one file per table.
@@ -74,7 +76,7 @@ Type the following command in a terminal window :
 insrcdata myconfig.toml
 ```
 
-where *myconfig.toml* is the path of your configuation file 
+where *myconfig.toml* is the path of your configuration file 
 
 insrcdata --help to get the list of options.
  
