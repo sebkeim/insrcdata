@@ -472,7 +472,9 @@ fn header_variant(
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
-    let Some(variants) = col.variants() else { return Ok(());};
+    let Some(variants) = col.variants() else {
+        return Ok(());
+    };
 
     writeln!(output, "typedef enum {{")?;
     for vrn in variants {

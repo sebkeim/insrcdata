@@ -358,7 +358,9 @@ fn write_variant(
     col: &dyn table::Column,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
-    let Some(variants) = col.variants() else { return Ok(());};
+    let Some(variants) = col.variants() else {
+        return Ok(());
+    };
     let vartypname = variant_type_name(table, col);
 
     writeln!(

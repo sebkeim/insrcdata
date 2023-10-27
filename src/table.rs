@@ -392,8 +392,11 @@ pub fn parse_vec<T: FromStr>(strvals: &[String]) -> aperror::Result<Vec<T>> {
     let mut vals: Vec<T> = vec![];
 
     for (i, s) in strvals.iter().enumerate() {
-        let Ok(v) =  s.parse::<T>() else {
-            return Err(aperror::Error::new(&format!("{} not a number at row {}", s, i)));
+        let Ok(v) = s.parse::<T>() else {
+            return Err(aperror::Error::new(&format!(
+                "{} not a number at row {}",
+                s, i
+            )));
         };
         vals.push(v);
     }

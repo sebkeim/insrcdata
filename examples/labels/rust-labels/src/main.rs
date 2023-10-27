@@ -95,7 +95,7 @@ fn test() {
     assert!(extfoo.title == "Foo is awesome");
 
     // compile-time check for various case conversions in input file
-    let converted_cases = vec![
+    let converted_cases = [
         insrcdata::Labels::UpperCamelCase,
         insrcdata::Labels::LowerCamelCase,
         insrcdata::Labels::SnakeCase,

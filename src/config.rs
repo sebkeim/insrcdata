@@ -181,7 +181,10 @@ impl Col {
     ) -> aperror::Result<Box<dyn table::Column>> {
         let lang = ctx.table_context.lang.extension();
         let Some(target) = self.target(&lang) else {
-            return Err(aperror::Error::new(&format!("target language {} not defined for column {}", lang, self.name)));
+            return Err(aperror::Error::new(&format!(
+                "target language {} not defined for column {}",
+                lang, self.name
+            )));
         };
 
         Ok(Box::new(colobject::ColObject::new(
@@ -208,8 +211,11 @@ impl Col {
             Some(helpcolname) => {
                 let key = ctx.table.key(helpcolname);
                 let Some(strvals) = ctx.table_context.col_values.get(&key) else {
-                return Err(aperror::Error::new(&format!("label help column not found {}", helpcolname)));
-            };
+                    return Err(aperror::Error::new(&format!(
+                        "label help column not found {}",
+                        helpcolname
+                    )));
+                };
                 strvals
             }
         };
@@ -307,7 +313,10 @@ impl Join {
         let dest_table = self.external.as_ref().unwrap_or(&ctx.table.name);
         let dest_col = colkey(dest_table, &self.to);
         let Some(dest_keys) = ctx.table_context.col_values.get(&dest_col) else {
-            return Err(aperror::Error::new(&format!("column not found {}", dest_col)));
+            return Err(aperror::Error::new(&format!(
+                "column not found {}",
+                dest_col
+            )));
         };
 
         let config = ColumnConfig {
@@ -383,7 +392,7 @@ impl Variant {
         let src = self.src_name();
         let key = ctx.table.key(src);
         let Some(values) = ctx.table_context.col_values.get(&key) else {
-           return Err(aperror::Error::new(&format!("column not found {}", key)));
+            return Err(aperror::Error::new(&format!("column not found {}", key)));
         };
 
         // variants
@@ -392,7 +401,10 @@ impl Variant {
             let dest_table = n.external.as_ref().unwrap_or(&ctx.table.name);
             let dest_col = colkey(dest_table, &n.to);
             let Some(dest_keys) = ctx.table_context.col_values.get(&dest_col) else {
-                return Err(aperror::Error::new(&format!("variant column  {} not found for table {}", n.to, dest_table)));
+                return Err(aperror::Error::new(&format!(
+                    "variant column  {} not found for table {}",
+                    n.to, dest_table
+                )));
             };
 
             dests.push(n.to_dest(dest_keys, dest_table.to_string()));
@@ -537,7 +549,7 @@ impl Table {
             }
 
             for (i, _) in headers.iter().enumerate() {
-                let Some(val) =  row.get(i) else {
+                let Some(val) = row.get(i) else {
                     return Err(aperror::Error::new("short row"));
                 };
                 let key = &keys[i];
