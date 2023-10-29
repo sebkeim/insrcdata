@@ -85,6 +85,16 @@ fn lt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     }
 }
 
+// write doc comment
+fn write_help(output: &mut dyn io::Write, prefix: &str, doc: &Option<String>) -> io::Result<()> {
+    if let Some(doc) = doc {
+        for row in doc.split('\n') {
+            writeln!(output, "{prefix}{row}")?;
+        }
+    }
+    Ok(())
+}
+
 // ================================================================================================
 // format name to C conventions
 // ================================================================================================
@@ -106,7 +116,7 @@ fn header_getter_col(
     let info = col.info();
     let strname = struct_name(&table.name);
     let field = col.name();
-
+    write_help(output, "//", &info.config.help)?;
     match &info.type_impl() {
         table::TypeImpl::Label => {
             log::verbose("unexpected getter_col for Label type");
@@ -213,6 +223,7 @@ fn header_iter_range(
     let strname = struct_name(&table.name);
     let colname = struct_name(col.name());
     let argtype = strtype(&info.interface_type);
+    write_help(output, "//", &info.config.iter_help)?;
     writeln!(
         output,
         "extern {strname}_iter_t  {strname}_{colname}_range( {argtype} start, {argtype} stop);"
@@ -275,9 +286,11 @@ fn header_reverse_join(
     rj: &JoinTo,
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
+    let info = rj.col.info();
     let strname = struct_name(&table.name);
     let reverse = &rj.reverse_name;
     let strsrc = struct_name(&rj.table.name);
+    write_help(output, "//", &info.config.iter_help)?;
     writeln!(
         output,
         "extern {strsrc}_iter_t {strname}_{reverse}(const {strname}_t* s);"
@@ -358,6 +371,7 @@ fn header_col_labels(
     output: &mut dyn io::Write,
 ) -> io::Result<()> {
     let info = col.info();
+    write_help(output, "//", &info.config.help)?;
     writeln!(output, "typedef enum {{")?;
 
     let enumname = enum_type_name(col);
@@ -367,11 +381,8 @@ fn header_col_labels(
         if !label.is_empty() {
             let camel = enum_name(&label);
             let help = col.emit_label_help(row);
-            if help.is_empty() {
-                writeln!(output, "     {prefix}_{camel} = {row},")?;
-            } else {
-                writeln!(output, "     {prefix}_{camel} = {row}, // {help}")?;
-            };
+            write_help(output, "     //", &help)?;
+            writeln!(output, "     {prefix}_{camel} = {row},")?;
         }
     }
     writeln!(output, "}} {enumname}_t;")?;
@@ -558,6 +569,7 @@ fn header_table_types(
         let strname = struct_name(&table.name);
 
         let datacols: Vec<&dyn table::Column> = table.data_columns();
+        write_help(output, "//", &table.help)?;
         writeln!(output, "typedef struct  {{")?;
         for col in &datacols {
             let info = col.info();
@@ -717,6 +729,7 @@ fn header_project(project: &table::Project) -> aperror::Result<()> {
 #include <stdint.h>
 #include <stdbool.h>"
     )?;
+    write_help(output, "//", &project.help)?;
     for import in project.imports() {
         writeln!(output, "#include \"{import}\"")?;
     }

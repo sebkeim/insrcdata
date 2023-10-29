@@ -47,7 +47,6 @@ impl Person {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn woman(&self) -> bool { self.woman_ }
     pub fn score(&self) -> f64 { self.score_ }
-
     pub fn score_range(start:f64, stop:f64) -> person::IndexIter {
         let mut lo = 0;
         let mut hi = person::SCORE_INDEX.len();
@@ -83,7 +82,6 @@ impl Person {
         let index = self.mother_;
         if index==0 { None } else { Some(&person::TABLE[index as usize -1]) }
     }
-
     pub fn wdata(&self) -> WikidataIter {
         let cons = person::index_of(self) as u8;
 
@@ -115,7 +113,6 @@ impl Person {
             indexes: Box::new(wikidata::OBJECT_INDEX[start..lo].iter()),
         }
     }
-
     pub fn congress(&self) -> CongressIter {
         let cons = person::index_of(self) as u8 + 1;
 
@@ -205,7 +202,6 @@ impl std::hash::Hash for Strencoding {
 
 impl Strencoding {
     pub fn text(&self) -> &'static str { self.text_ }
-
     pub fn text_range(start:& str, stop:& str) -> strencoding::IndexIter {
         let mut lo = 0;
         let mut hi = strencoding::TEXT_INDEX.len();
@@ -232,7 +228,9 @@ impl Strencoding {
             indexes: Box::new(strencoding::TEXT_INDEX[begin..lo].iter()),
         }
     }
+    /// Reference to the table containing all the values
     pub fn array() -> &'static [Strencoding; 6] { &strencoding::TABLE }
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize { strencoding::index_of(self) }
 }
 
@@ -320,7 +318,6 @@ impl Lettercase {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn transformer(&self) -> fn(&str)->String { self.transformer_ }
     pub fn point(&self) -> &'static crate::colobject::Point { self.point_ }
-
     pub fn wdata2(&self) -> WikidataIter {
         let cons = lettercase::index_of(self) as u8 + 4;
 
@@ -352,7 +349,6 @@ impl Lettercase {
             indexes: Box::new(wikidata::OBJECT_INDEX[start..lo].iter()),
         }
     }
-
     pub fn congress(&self) -> CongressIter {
         let cons = lettercase::index_of(self) as u8 + 5;
 
@@ -448,7 +444,9 @@ impl Wikidata {
              _ => panic!("insrcdata variant index overflow"),
         }
     }
+    /// Reference to the table containing all the values
     pub fn array() -> &'static [Wikidata; 3] { &wikidata::TABLE }
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize { wikidata::index_of(self) }
 }
 
@@ -523,7 +521,9 @@ impl Congress {
              _ => panic!("insrcdata variant index overflow"),
         }
     }
+    /// Reference to the table containing all the values
     pub fn array() -> &'static [Congress; 4] { &congress::TABLE }
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize { congress::index_of(self) }
 }
 

@@ -13,6 +13,11 @@
 # optional : default to project name with .rs extension
 dest ="src/hellodata.rs"
 
+# module level doc comment
+# will generate documentation for the whole module
+# note: a limitation in Rust compiler make module level doc comment unavailable with build.rs scripts
+# optional :no help generated if absent
+help = "This a module level help"
 
 #
 # Level 2 : table
@@ -24,6 +29,11 @@ dest ="src/hellodata.rs"
 # name of the struct that will implement a row in the table
 # must be a valid identifier
 name = 'HelloWorld'
+
+# table level doc comment
+# will generate documentation for the struct
+# optional : no help generated if absent
+help = "This text should document the use of a row in the table"
 
 # table source
 # path relative to  project file path (  or to the  -indir argument )
@@ -51,6 +61,12 @@ sorted = false
 # name of the struct field that will implement a column in the table
 name = 'sentence'
 
+# field level doc comment
+# will generate documentation for the getter method of the field
+# for label column it will be used to document the collection of label
+# optional : no help generated if absent
+help = "This text will explain the content of the column"
+
 # content of the header row in the csv that contain the name of the column
 # default to name option value
 src= 'sentence'
@@ -63,6 +79,10 @@ format = 'str'
 # optional : default to false
 # this field is useless for label and object formats
 range = false
+
+# doc comment for the method that iterate the rows
+# optional : no help generated if absent
+range_help = "Return the rows with column values matching input range"
 
 # if several rows have the same value for this column, only the first row is kept
 # rows with empty values are skipped
@@ -93,6 +113,11 @@ label_helps = "info-col"
 # name of the struct field that will implement a join in the table
 name = 'author'
 
+# field level doc comment
+# will generate documentation for the getter method of the field
+# optional : no help generated if absent
+help = "This text will explain the destination of the join"
+
 # content of the header row in the csv that contain the name of the column
 # default to name option value
 src= 'author'
@@ -112,17 +137,21 @@ optional = false
 # optional : no creation by default
 reverse = 'books'
 
-# name oh the column
-# optional : default to empty value, disabling generation
-as_index = "author_index"
+# will generate documentation for reverse join method
+# optional : no help generated if absent
+reverse_help = "This text will explain the reverse join"
 
 
 #
 # Level 3 : variant
 #
 
-# name of the struct field that will implement a join in the table
+# name of the struct field that will implement a variant join in the table
 name = 'object'
+
+# field level doc comment
+# will generate documentation for the variant getter method
+help = "This method will return either a X or Y record"
 
 # content of the header row in the csv that contain the name of the column
 # default to name option value

@@ -48,7 +48,9 @@ impl std::hash::Hash for Label {
 impl Label {
     pub fn title(&self) -> &'static str { self.title_ }
     pub fn as_label(&self) -> &Labels { &self.as_label_}
+    /// Reference to the table containing all the values
     pub fn array() -> &'static [Label; 10] { &label::TABLE }
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize { label::index_of(self) }
 }
 

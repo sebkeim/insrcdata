@@ -20,7 +20,6 @@ impl std::hash::Hash for Bench {
 
 impl Bench {
     pub fn byte(&self) -> u32 { self.byte_ as u32 }
-
     pub fn byte_range(start:u32, stop:u32) -> bench::IndexIter {
         let mut lo = 0;
         let mut hi = bench::BYTE_INDEX.len();
@@ -48,7 +47,6 @@ impl Bench {
         }
     }
     pub fn short(&self) -> u32 { self.short_ as u32 }
-
     pub fn short_range(start:u32, stop:u32) -> bench::IndexIter {
         let mut lo = 0;
         let mut hi = bench::SHORT_INDEX.len();
@@ -76,7 +74,6 @@ impl Bench {
         }
     }
     pub fn int(&self) -> u32 { self.int_ }
-
     pub fn int_range(start:u32, stop:u32) -> bench::IndexIter {
         let mut lo = 0;
         let mut hi = bench::INT_INDEX.len();
@@ -104,7 +101,6 @@ impl Bench {
         }
     }
     pub fn str(&self) -> &'static str { self.str_ }
-
     pub fn str_range(start:& str, stop:& str) -> bench::IndexIter {
         let mut lo = 0;
         let mut hi = bench::STR_INDEX.len();
@@ -131,7 +127,9 @@ impl Bench {
             indexes: Box::new(bench::STR_INDEX[begin..lo].iter()),
         }
     }
+    /// Reference to the table containing all the values
     pub fn array() -> &'static [Bench; 500] { &bench::TABLE }
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize { bench::index_of(self) }
 }
 

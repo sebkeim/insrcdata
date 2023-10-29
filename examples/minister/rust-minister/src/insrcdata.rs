@@ -42,7 +42,6 @@ impl std::hash::Hash for Minister {
 impl Minister {
     pub fn name(&self) -> &'static str { self.name_ }
     pub fn birth(&self) -> u16 { self.birth_ }
-
     pub fn birth_range(start:u16, stop:u16) -> minister::IndexIter {
         let mut lo = 0;
         let mut hi = minister::BIRTH_INDEX.len();
@@ -153,7 +152,6 @@ impl std::hash::Hash for Country {
 impl Country {
     pub fn code(&self) -> &'static str { self.code_ }
     pub fn name(&self) -> &'static str { self.name_ }
-
     pub fn ministers(&self) -> MinisterIter {
         let cons = country::index_of(self) as u8;
 

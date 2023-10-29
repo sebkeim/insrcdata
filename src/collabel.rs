@@ -31,8 +31,13 @@ impl table::Column for ColLabel {
     fn emit_label(&self, row: usize) -> String {
         self.labels[row].to_string()
     }
-    fn emit_label_help(&self, row: usize) -> String {
-        self.label_helps[row].to_string()
+    fn emit_label_help(&self, row: usize) -> Option<String> {
+        let s = &self.label_helps[row];
+        if s.is_empty() {
+            None
+        } else {
+            Some(s.to_string())
+        }
     }
 
     fn indexes(&self) -> Vec<usize> {

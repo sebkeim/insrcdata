@@ -44,6 +44,16 @@ fn modtype(typ: &basetype::BaseType) -> String {
     strtype(typ)
 }
 
+// write doc comment
+fn write_help(output: &mut dyn io::Write, prefix: &str, doc: &Option<String>) -> io::Result<()> {
+    if let Some(doc) = doc {
+        for row in doc.split('\n') {
+            writeln!(output, "{prefix} {row}")?;
+        }
+    }
+    Ok(())
+}
+
 // ================================================================================================
 // format name to rust conventions
 // ================================================================================================
@@ -84,6 +94,7 @@ fn getter_col(
 ) -> io::Result<()> {
     let info = col.info();
     let field = field_name(col.name());
+    write_help(output, "    ///", &info.config.help)?;
     match &info.type_impl() {
         table::TypeImpl::Label => {
             let outtype = strtype(&info.interface_type);
@@ -175,10 +186,10 @@ fn iter_col(
     let indexname = index_name(&table.name, col.name());
     let cast = cast_to_interface_type(info);
 
+    write_help(output, "    ///", &info.config.iter_help)?;
     writeln!(
         output,
-        "
-    pub fn {field}_range(start:{argtype}, stop:{argtype}) -> {modname}::IndexIter {{
+        "    pub fn {field}_range(start:{argtype}, stop:{argtype}) -> {modname}::IndexIter {{
         let mut lo = 0;
         let mut hi = {indexname}.len();
         while lo < hi {{
@@ -225,10 +236,10 @@ fn reverse_join(table: &table::Table, rj: &JoinTo, output: &mut dyn io::Write) -
     let offset = stroffset(rj.offset as isize);
     let indexname = index_name(&rj.table.name, rj.col.name());
 
+    write_help(output, "    ///", &info.config.iter_help)?;
     writeln!(
         output,
-        "
-    pub fn {reverse}(&self) -> {srcstruct}Iter {{
+        "    pub fn {reverse}(&self) -> {srcstruct}Iter {{
         let cons = {joinmod}::index_of(self) as {tabletype}{offset};
 
         // bissect left
@@ -272,6 +283,7 @@ fn col_labels(
 ) -> io::Result<()> {
     let info = col.info();
     let enumname = strtype(&info.interface_type);
+    write_help(output, "///", &info.config.help)?;
     write!(
         output,
         "#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]\npub enum {enumname} {{\n"
@@ -282,11 +294,8 @@ fn col_labels(
         if !label.is_empty() {
             let upper_label = label.to_upper_camel_case();
             let help = col.emit_label_help(row);
-            if help.is_empty() {
-                writeln!(output, "    {upper_label} = {row},")?;
-            } else {
-                writeln!(output, "    /// {help}\n    {upper_label} = {row},")?;
-            };
+            write_help(output, "     ///", &help)?;
+            writeln!(output, "    {upper_label} = {row},")?;
         }
     }
     writeln!(output, "}}")?;
@@ -466,6 +475,7 @@ fn table_data(
     // define structure
     let datacols: Vec<&dyn table::Column> = table.data_columns();
 
+    write_help(output, "///", &table.help)?;
     writeln!(output, "pub struct {strname} {{")?;
     for col in &datacols {
         let info = col.info();
@@ -511,7 +521,9 @@ impl std::hash::Hash for {strname} {{
         let srcmod = mod_name(&table.name);
         writeln!(
             output,
-            "    pub fn array() -> &'static [{srcstruct}; {tablelen}] {{ &{srcmod}::TABLE }}
+            "    /// Reference to the table containing all the values
+    pub fn array() -> &'static [{srcstruct}; {tablelen}] {{ &{srcmod}::TABLE }}
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize {{ {modname}::index_of(self) }}",
         )?;
     }
@@ -596,6 +608,13 @@ impl language::Language for Rust {
         let mut outfile =
             aperror::io_error_result(fs::File::create(&project.dst_path), &project.dst_path)?;
         let output = (&mut outfile) as &mut dyn io::Write;
+        if std::env::var("CARGO_MANIFEST_DIR").is_ok() {
+            // build.rs script limitation
+            // include! cannot include a file that contains inner doc comments  https://github.com/rust-lang/rust/issues/66920
+            write_help(output, "\n//", &project.help)?;
+        } else {
+            write_help(output, "\n//!", &project.help)?;
+        }
         let notice = language::file_notice();
         writeln!(output, "// {notice}\n")?;
 

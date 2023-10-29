@@ -27,10 +27,11 @@ pub enum TypeImpl {
 
 #[derive(Default)]
 pub struct ColumnConfig {
-    pub name: String,
-    pub iterable: bool,
-    pub optional: bool,
-    pub help: String,
+    pub name: String,              // field name
+    pub help: Option<String>,      // doc comment for getter
+    pub iterable: bool, // implement iter acessor (range search for data or reverse for join)
+    pub iter_help: Option<String>, // doc for iter acessor
+    pub optional: bool, // for join
 }
 
 pub struct ColumnInfo {
@@ -103,17 +104,14 @@ pub trait Column {
     fn optional(&self) -> bool {
         self.info().config.optional
     }
-    fn help(&self) -> &String {
-        &self.info().config.help
-    }
 
     // cell value
     fn emit_table_cell(&self, row: usize, lang: &dyn Language) -> String;
     fn emit_label(&self, _row: usize) -> String {
         "EMIT_LABEL_UNSUPORTED".to_string()
     }
-    fn emit_label_help(&self, _row: usize) -> String {
-        "".to_string()
+    fn emit_label_help(&self, _row: usize) -> Option<String> {
+        None
     }
 
     // for indexed lookup
@@ -141,6 +139,7 @@ pub trait Column {
 
 pub struct Table {
     pub name: String,
+    pub help: Option<String>,
     pub len: usize,
     pub columns: Vec<Box<dyn Column>>,
     pub get_array: bool,
@@ -151,7 +150,12 @@ pub struct Table {
 
 impl Table {
     // create Table structure
-    pub fn new(name: &str, columns: Vec<Box<dyn Column>>, get_array: bool) -> Table {
+    pub fn new(
+        name: &str,
+        help: Option<String>,
+        columns: Vec<Box<dyn Column>>,
+        get_array: bool,
+    ) -> Table {
         let mut outcol_indexes: Vec<usize> = Vec::new();
         let mut labcol_indexes: Vec<usize> = Vec::new();
 
@@ -177,6 +181,7 @@ impl Table {
 
         Table {
             name: name.to_owned(),
+            help,
             len,
             columns,
             get_array,
@@ -276,6 +281,7 @@ impl<'a> JoinTo<'a> {
 
 pub struct Project {
     pub dst_path: PathBuf,
+    pub help: Option<String>,
     pub lang: &'static dyn language::Language,
     pub tables: Vec<Table>,
     pub src_paths: Vec<PathBuf>,
@@ -412,11 +418,12 @@ mod tests {
 
     #[test]
     fn duplicate_table_name() {
-        let t1 = Table::new("mytable", vec![], false);
-        let t2 = Table::new("mytable", vec![], false);
+        let t1 = Table::new("mytable", None, vec![], false);
+        let t2 = Table::new("mytable", None, vec![], false);
 
         let project = Project {
             dst_path: PathBuf::new(),
+            help: None,
             lang: langrust::RUST,
             tables: vec![t1, t2],
             src_paths: vec![],
@@ -446,7 +453,7 @@ mod tests {
         )
         .unwrap();
 
-        let t = Table::new("table", vec![a1, a2], false);
+        let t = Table::new("table", None, vec![a1, a2], false);
 
         let linter = test_linter();
         t.lint(&linter);

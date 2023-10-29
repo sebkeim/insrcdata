@@ -5,7 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+//Countries and regions defined by UN M49 and  ISO 3166
 
+//Continent of provenance
 typedef struct  {
     const char* name_;
     uint8_t code_;
@@ -13,6 +15,7 @@ typedef struct  {
 typedef struct { uint8_t* ptr; uint8_t* end; } region_iter_t;
 extern const region_t* region_next(region_iter_t* idx);
 
+//Subcontinent as defined in UN M49
 typedef struct  {
     const char* name_;
     uint16_t code_;
@@ -21,6 +24,7 @@ typedef struct  {
 typedef struct { uint8_t* ptr; uint8_t* end; } subregion_iter_t;
 extern const subregion_t* subregion_next(subregion_iter_t* idx);
 
+//Country according to ISO/UN
 typedef struct  {
     const char* name_;
     const char* alpha2_;
@@ -36,19 +40,27 @@ extern const country_t* country_next(country_iter_t* idx);
 
 
 // ------    
+//English short name
 static inline const char* region_name(const region_t* s) { return s->name_; }
+//UN M49 code
 static inline uint8_t region_code(const region_t* s) { return s->code_; }
+//All the subregions belonging to the region
 extern subregion_iter_t region_subregions(const region_t* s);
 
 
 // ------    
+//English short name
 static inline const char* subregion_name(const subregion_t* s) { return s->name_; }
+//UN M49 code
 static inline uint16_t subregion_code(const subregion_t* s) { return s->code_; }
+//The region where the subregion is located
 extern const region_t* subregion_region(const subregion_t* s);
+//All the countries belonging to the subregions
 extern country_iter_t subregion_countries(const subregion_t* s);
 
 
 // ------    
+//Identifiers for countries according to ISO/UN
 typedef enum {
      COUNTRIES_ANTARCTICA = 8,
      COUNTRIES_BELGIUM = 21,
@@ -56,12 +68,19 @@ typedef enum {
 const country_t* country_from_countries(countries_t label);
 countries_t country_countries(const country_t *s);
             
+//English short name
 static inline const char* country_name(const country_t* s) { return s->name_; }
+//Two-letter country codes defined in ISO 3166-1
 static inline const char* country_alpha2(const country_t* s) { return s->alpha2_; }
+//Three-letter country codes defined in ISO 3166-1
 static inline const char* country_alpha3(const country_t* s) { return s->alpha3_; }
+//Search country by ISO 3166-1 three-letter code
 extern country_iter_t  country_alpha3_range( const char* start, const char* stop);
+//UN M49 code
 static inline uint16_t country_code(const country_t* s) { return s->code_; }
+//Search country by UN M49 code
 extern country_iter_t  country_code_range( uint16_t start, uint16_t stop);
+//Subregion containing the country
 extern bool country_subregion(const country_t* s, const subregion_t** ptr);
 
 #endif //  INSRCDATA_H 

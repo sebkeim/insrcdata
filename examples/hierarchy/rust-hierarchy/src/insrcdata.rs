@@ -21,7 +21,9 @@ impl Leave {
     pub fn title(&self) -> &'static str { self.title_ }
     pub fn chapter_code(&self) -> &'static str { self.chapter_code_ }
     pub fn chapter(&self) -> &'static Chapter { &chapter::TABLE[self.chapter_ as usize]}
+    /// Reference to the table containing all the values
     pub fn array() -> &'static [Leave; 9] { &leave::TABLE }
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize { leave::index_of(self) }
 }
 
@@ -89,7 +91,6 @@ impl std::hash::Hash for Chapter {
 impl Chapter {
     pub fn title(&self) -> &'static str { self.title_ }
     pub fn code(&self) -> &'static str { self.code_ }
-
     pub fn code_range(start:& str, stop:& str) -> chapter::IndexIter {
         let mut lo = 0;
         let mut hi = chapter::CODE_INDEX.len();
@@ -117,7 +118,6 @@ impl Chapter {
         }
     }
     pub fn parent(&self) -> &'static Chapter { &chapter::TABLE[self.parent_ as usize]}
-
     pub fn leaves(&self) -> LeaveIter {
         let cons = chapter::index_of(self) as u8;
 
@@ -149,7 +149,9 @@ impl Chapter {
             indexes: Box::new(leave::CHAPTER_INDEX[start..lo].iter()),
         }
     }
+    /// Reference to the table containing all the values
     pub fn array() -> &'static [Chapter; 7] { &chapter::TABLE }
+    /// Index of the current record in the table
     pub fn as_index(&self) -> usize { chapter::index_of(self) }
 }
 

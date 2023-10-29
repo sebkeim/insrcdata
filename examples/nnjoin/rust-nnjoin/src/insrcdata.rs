@@ -39,7 +39,6 @@ impl std::hash::Hash for Client {
 
 impl Client {
     pub fn name(&self) -> &'static str { self.name_ }
-
     pub fn transactions(&self) -> TransactionIter {
         let cons = client::index_of(self) as u8;
 
@@ -148,7 +147,6 @@ impl std::hash::Hash for Product {
 
 impl Product {
     pub fn name(&self) -> &'static str { self.name_ }
-
     pub fn transactions(&self) -> TransactionIter {
         let cons = product::index_of(self) as u8;
 

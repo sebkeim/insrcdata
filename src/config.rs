@@ -146,12 +146,16 @@ struct ColContext<'a> {
 struct Col {
     /// name of the field in structure
     name: String,
+    /// doc comment
+    help: Option<String>,
     /// name of column header in source .csv
     src: Option<String>,
     /// exported data type of field
     format: Option<String>,
     /// generate accessor for range indexing
     range: Option<bool>,
+    /// doc comment for range search method
+    range_help: Option<String>,
     /// deduplicate similar rows
     single: Option<bool>,
     /// target (for object format)
@@ -242,9 +246,10 @@ impl Col {
 
         let config = ColumnConfig {
             name: self.name.to_owned(),
+            help: self.help.to_owned(),
             iterable: self.range.unwrap_or(false),
+            iter_help: self.range_help.to_owned(),
             optional: false,
-            help: "".to_string(),
         };
 
         // generate column from field type
@@ -285,6 +290,8 @@ impl Col {
 struct Join {
     /// name of the field in structure
     name: String,
+    /// doc comment
+    help: Option<String>,
     /// name of column header in source .csv for join source
     src: Option<String>,
     /// name of column header for join target
@@ -295,6 +302,8 @@ struct Join {
     optional: Option<bool>,
     /// generate accessor for reverse join
     reverse: Option<String>,
+    /// doc comment for reverse join
+    reverse_help: Option<String>,
 }
 
 impl Join {
@@ -321,9 +330,10 @@ impl Join {
 
         let config = ColumnConfig {
             name: self.name.to_owned(),
+            help: self.help.to_owned(),
             iterable: false, // will be computed from reverse
+            iter_help: self.reverse_help.to_owned(),
             optional: self.optional.unwrap_or_default(),
-            help: "".to_string(),
         };
 
         Ok(Box::new(coljoin::ColJoin::new(
@@ -372,13 +382,12 @@ impl Either {
 struct Variant {
     /// name of the field in structure
     name: String,
-
+    /// doc comment
+    help: Option<String>,
     /// name of column header in source .csv for join source
     src: Option<String>,
-
     /// dest
     either: Vec<Either>,
-
     /// allow getter to return an Option
     optional: Option<bool>,
 }
@@ -412,9 +421,10 @@ impl Variant {
 
         let config = ColumnConfig {
             name: self.name.to_owned(),
-            iterable: false, // will be computed from reverse
+            help: self.help.to_owned(),
+            iterable: false,
+            iter_help: None,
             optional: self.optional.unwrap_or_default(),
-            help: "".to_string(),
         };
 
         ColVariant::parse(config, values, &mut dests)
@@ -436,12 +446,21 @@ struct TableContext<'a> {
 
 #[derive(Deserialize)]
 struct Table {
+    ///  name of the struct that will implement a row in the table
     name: String,
+    /// description of table content
+    help: Option<String>,
+    ///  table source path
     src: Option<String>,
+    /// if true : create a static method array() that will return  a reference to the table
     array: Option<bool>,
+    /// set this flag to true if input row order must not be altered in table
     sorted: Option<bool>,
+    /// list of struct field that will implement a column in the table
     col: Option<Vec<Col>>,
+    /// list of the struct field that will implement a join in the table
     join: Option<Vec<Join>>,
+    /// list of  of the struct field that will implement a join in the table
     variant: Option<Vec<Variant>>,
 }
 
@@ -604,7 +623,7 @@ impl Table {
 
         let get_array = self.array.unwrap_or(false);
 
-        table::Table::new(&self.name, columns, get_array)
+        table::Table::new(&self.name, self.help.to_owned(), columns, get_array)
     }
 }
 
@@ -615,6 +634,7 @@ impl Table {
 #[derive(Deserialize)]
 struct Config {
     dest: Option<String>,
+    help: Option<String>,
     table: Vec<Table>,
 }
 struct ConfigContext {
@@ -683,6 +703,7 @@ impl Config {
 
         let project = Project {
             dst_path,
+            help: self.help.to_owned(),
             lang: table_context.lang,
             tables,
             src_paths: self.src_paths(ctx),
