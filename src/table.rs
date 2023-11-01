@@ -143,7 +143,7 @@ pub struct Table {
     pub len: usize,
     pub columns: Vec<Box<dyn Column>>,
     pub get_array: bool,
-
+    pub exhaustive: bool, // a row can not be added between major releases
     pub outcol_indexes: Vec<usize>, // value columns
     pub labcol_indexes: Vec<usize>, // label columns
 }
@@ -155,6 +155,7 @@ impl Table {
         help: Option<String>,
         columns: Vec<Box<dyn Column>>,
         get_array: bool,
+        exhaustive: bool,
     ) -> Table {
         let mut outcol_indexes: Vec<usize> = Vec::new();
         let mut labcol_indexes: Vec<usize> = Vec::new();
@@ -185,6 +186,7 @@ impl Table {
             len,
             columns,
             get_array,
+            exhaustive,
             outcol_indexes,
             labcol_indexes,
         }
@@ -418,8 +420,8 @@ mod tests {
 
     #[test]
     fn duplicate_table_name() {
-        let t1 = Table::new("mytable", None, vec![], false);
-        let t2 = Table::new("mytable", None, vec![], false);
+        let t1 = Table::new("mytable", None, vec![], false, false);
+        let t2 = Table::new("mytable", None, vec![], false, false);
 
         let project = Project {
             dst_path: PathBuf::new(),
@@ -453,7 +455,7 @@ mod tests {
         )
         .unwrap();
 
-        let t = Table::new("table", None, vec![a1, a2], false);
+        let t = Table::new("table", None, vec![a1, a2], false, false);
 
         let linter = test_linter();
         t.lint(&linter);

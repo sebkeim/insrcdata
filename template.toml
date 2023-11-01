@@ -50,6 +50,10 @@ array  = true
 # optional : default to false
 sorted = false
 
+# if true : specify that adding a row will require a major version change (following semver.org conventions)
+# optional : default to false
+exhaustive = false
+
 
 #
 # Level 3 : column

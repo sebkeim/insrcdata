@@ -63,6 +63,7 @@ range = true
 [[table]]
 name = "lettercase"
 src = "lettercase.csv"
+exhaustive = true
 
 [[table.col]]
 name = 'name'

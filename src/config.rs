@@ -456,6 +456,8 @@ struct Table {
     array: Option<bool>,
     /// set this flag to true if input row order must not be altered in table
     sorted: Option<bool>,
+    /// set this flag to true if a row can not be added between major releases
+    exhaustive: Option<bool>,
     /// list of struct field that will implement a column in the table
     col: Option<Vec<Col>>,
     /// list of the struct field that will implement a join in the table
@@ -622,8 +624,14 @@ impl Table {
         }
 
         let get_array = self.array.unwrap_or(false);
-
-        table::Table::new(&self.name, self.help.to_owned(), columns, get_array)
+        let exhaustive = self.exhaustive.unwrap_or(false);
+        table::Table::new(
+            &self.name,
+            self.help.to_owned(),
+            columns,
+            get_array,
+            exhaustive,
+        )
     }
 }
 

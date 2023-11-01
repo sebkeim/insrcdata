@@ -283,10 +283,15 @@ fn col_labels(
 ) -> io::Result<()> {
     let info = col.info();
     let enumname = strtype(&info.interface_type);
+    let non_exaustive = if table.exhaustive {
+        ""
+    } else {
+        "#[non_exhaustive]\n"
+    };
     write_help(output, "///", &info.config.help)?;
     write!(
         output,
-        "#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]\npub enum {enumname} {{\n"
+        "{non_exaustive}#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]\npub enum {enumname} {{\n"
     )?;
 
     for row in 0..info.len {
