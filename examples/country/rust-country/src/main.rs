@@ -45,9 +45,9 @@ fn print_country(country: &db::Country) {
 pub fn demo() {
     // row access by label
     let belgium:&db::Country = db::Countries::Belgium.into();
-    // we can access data members from the label
+    // we can access data members  
     println!("\n  infos for {} :", belgium.name());
-    // but we ned to deref the label to pass the row reference to a function
+    // and pass the row reference to a function
     print_country(belgium);
 
     println!("\n  info for a country without subregion");

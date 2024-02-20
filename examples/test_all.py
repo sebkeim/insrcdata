@@ -145,6 +145,26 @@ class sample_rust(sample):
  
 
 
+class sample_swift(sample):
+      LANG = "swift"
+      
+      def dest(self):
+            return f"../swift-{self.name}/insrcdata.swift"
+    
+      def regress_path(self):
+            return f"{self.lang_path()}/build/regression"
+
+      def product_path(self):
+            return f"{self.lang_path()}/build/Release/swift-{self.name}"
+
+      def build(self):
+      
+            # build
+            r = os.system(f"xcodebuild -project {self.lang_path()}/swift-{self.name}.xcodeproj build -quiet")
+            assert r==0, f"failed cc build : {self.name}"
+    
+
+
 class sample_c(sample):
       LANG = "c"
       
@@ -171,6 +191,8 @@ class sample_c(sample):
 def test_sample(name):
       r = sample_rust(name)
       r.test()
+      w = sample_swift(name)
+      w.test()
       c = sample_c(name)
       c.test()
 

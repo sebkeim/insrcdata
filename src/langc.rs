@@ -6,15 +6,17 @@
 //
 
 use crate::basetype::BaseType;
+use crate::language::Language;
 use crate::table::JoinTo;
 use crate::{aperror, basetype, language, log, table};
 use heck::{ToShoutySnakeCase, ToSnakeCase};
+use language::write_help;
 use std::path::PathBuf;
 use std::{fs, io};
 
 struct LangC {}
 
-fn enum_type_name(col: &dyn table::Column) -> String {
+pub(crate) fn enum_type_name(col: &dyn table::Column) -> String {
     match &col.info().interface_type {
         basetype::BaseType::Label { name } => name.to_snake_case(),
         _ => "NOT A LABEL".to_string(),
@@ -85,23 +87,13 @@ fn lt(typ: &basetype::BaseType, left: &str, right: &str) -> String {
     }
 }
 
-// write doc comment
-fn write_help(output: &mut dyn io::Write, prefix: &str, doc: &Option<String>) -> io::Result<()> {
-    if let Some(doc) = doc {
-        for row in doc.split('\n') {
-            writeln!(output, "{prefix}{row}")?;
-        }
-    }
-    Ok(())
-}
-
 // ================================================================================================
 // format name to C conventions
 // ================================================================================================
-fn struct_name(table_name: &str) -> String {
+pub fn struct_name(table_name: &str) -> String {
     table_name.to_snake_case()
 }
-fn table_name(table_name: &str) -> String {
+pub fn table_name(table_name: &str) -> String {
     table_name.to_shouty_snake_case()
 }
 
@@ -358,7 +350,7 @@ fn impl_reverse_join(
     )
 }
 
-fn enum_name(s: &str) -> String {
+pub fn enum_name(s: &str) -> String {
     s.to_shouty_snake_case()
 }
 
@@ -472,7 +464,7 @@ static {indextyp} {tablename}_{field}_INDEX   [{tablename}_{field}_INDEX_COUNT] 
 // ================================================================================================
 // Variants
 // ================================================================================================
-fn variant_type_name(table: &table::Table, col: &dyn table::Column) -> String {
+pub fn variant_type_name(table: &table::Table, col: &dyn table::Column) -> String {
     let strname = struct_name(&table.name);
     let varname = struct_name(col.name());
     format!("{strname}_{varname}_type_t")
@@ -713,7 +705,7 @@ fn header_path(project: &table::Project) -> PathBuf {
     path
 }
 
-fn header_project(project: &table::Project) -> aperror::Result<()> {
+pub fn header_project(lang: &dyn Language, project: &table::Project) -> aperror::Result<()> {
     let mut outfile = fs::File::create(&header_path(project))?;
     let output = (&mut outfile) as &mut dyn io::Write;
 
@@ -742,15 +734,25 @@ fn header_project(project: &table::Project) -> aperror::Result<()> {
     for table in &project.tables {
         header_table_methods(project, table, output)?;
     }
+
+    // for language that use C binding
+    lang.c_binding_header(project, output)?;
+
     writeln!(output, "\n#endif //  {include_guard}_H ")?;
     Ok(())
 }
 
-fn impl_project(project: &table::Project) -> aperror::Result<()> {
+fn impl_path(project: &table::Project) -> PathBuf {
+    let mut path = PathBuf::from(&project.dst_path);
+    path.set_extension("c");
+    path
+}
+pub fn impl_project(lang: &dyn Language, project: &table::Project) -> aperror::Result<()> {
     let filename = project.name();
 
-    let mut outfile =
-        aperror::io_error_result(fs::File::create(&project.dst_path), &project.dst_path)?;
+    let filepath = impl_path(project);
+
+    let mut outfile = aperror::io_error_result(fs::File::create(&filepath), &filepath)?;
     let output = (&mut outfile) as &mut dyn io::Write;
     let notice = language::file_notice();
     writeln!(
@@ -773,6 +775,10 @@ fn impl_project(project: &table::Project) -> aperror::Result<()> {
     for table in &project.tables {
         impl_table_methods(project, table, output)?;
     }
+
+    // for language that use C binding
+    lang.c_binding_impl(project, output)?;
+
     Ok(())
 }
 
@@ -781,8 +787,8 @@ fn impl_project(project: &table::Project) -> aperror::Result<()> {
 // ================================================================================================
 impl language::Language for LangC {
     fn emit(&self, project: &table::Project) -> aperror::Result<()> {
-        header_project(project)?;
-        impl_project(project)
+        header_project(self, project)?;
+        impl_project(self, project)
     }
 
     fn extension(&self) -> String {

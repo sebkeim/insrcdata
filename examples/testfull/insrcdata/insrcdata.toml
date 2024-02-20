@@ -78,6 +78,7 @@ name = 'transformer'
 format = 'object'
 target = [ { lang= 'rs', type = 'fn(&str)->String', template="co::{}", import='crate::colobject as co'  },
            { lang= 'c', type = 'transformer_t*', import='colobject.h'  },
+ 	   { lang= 'swift', type = 'Transformer_t', import='colobject.h'  },
          ]
 
 [[table.col]]
@@ -85,6 +86,7 @@ name = 'point'
 format = 'object'
 target = [ { lang= 'rs', type = "&'static crate::colobject::Point", template="&co::{}", import='crate::colobject as co'  },
     { lang= 'c', type = 'const point_t*', template="&POINT_{}", import='colobject.h'  },
+    { lang= 'swift', type = 'Point_t', import='colobject.h'  },
 ]
 
 #    ---- table wikidata

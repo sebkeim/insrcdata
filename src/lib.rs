@@ -20,6 +20,7 @@ mod config;
 mod index;
 mod langc;
 mod langrust;
+mod langswift;
 mod language;
 mod lint;
 pub mod log;

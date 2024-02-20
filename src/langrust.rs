@@ -9,6 +9,7 @@ use crate::basetype::BaseType;
 use crate::table::JoinTo;
 use crate::{aperror, basetype, language, log, table};
 use heck::{ToShoutySnakeCase, ToSnakeCase, ToUpperCamelCase};
+use language::write_help;
 use std::{fs, io};
 
 struct Rust {}
@@ -42,16 +43,6 @@ fn argtype(typ: &basetype::BaseType) -> String {
 }
 fn modtype(typ: &basetype::BaseType) -> String {
     strtype(typ)
-}
-
-// write doc comment
-fn write_help(output: &mut dyn io::Write, prefix: &str, doc: &Option<String>) -> io::Result<()> {
-    if let Some(doc) = doc {
-        for row in doc.split('\n') {
-            writeln!(output, "{prefix} {row}")?;
-        }
-    }
-    Ok(())
 }
 
 // ================================================================================================

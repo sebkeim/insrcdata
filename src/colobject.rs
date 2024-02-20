@@ -36,7 +36,7 @@ impl table::Column for ColObject {
     fn lint(&self, linter: &lint::Linter) {
         linter.err(
             self.template.matches("{}").count() == 1,
-            "template must ontain exactly one '{}' placeholder",
+            "template must contain exactly one '{}' placeholder",
         );
     }
 

@@ -1,4 +1,3 @@
-use crate::insrcdata::Chapter;
 use std::collections::HashSet;
 
 // this sample show how to use insrcdata with a classification hierarchy
@@ -16,20 +15,20 @@ fn print_chapter_content(code: &str) {
     // but is already quite fast for tables of average size
     // see C language sample for an alternative usable in larger tables
 
-    // initialize he roots with searched code
-    let roots = insrcdata::Chapter::code_range(code, code);
-    let mut parents: HashSet<&Chapter> = HashSet::from_iter(roots);
+    // initialize the roots with searched code
+    let mut parents: HashSet<&str> = HashSet::new();
+    parents.insert(code);
 
     // collect all subchapters of roots
     for f in insrcdata::Chapter::array() {
-        if parents.contains(&f.parent()) {
-            parents.insert(f);
+        if parents.contains(&f.parent().code()) {
+            parents.insert(f.code());
         }
     }
 
-    // print oll the leaves corresponding to collected chapters
+    // print all the leaves corresponding to collected chapters
     for f in insrcdata::Leave::array() {
-        if parents.contains(&f.chapter()) {
+        if parents.contains(&f.chapter().code()) {
             println!("{}", f.title());
         }
     }
